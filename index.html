@@ -1,120 +1,16 @@
 <!DOCTYPE html>
 <head>
   <link rel="stylesheet" href="lib/nouislider.css">
-  <link rel="stylesheet" href="main.css">
+  <link rel="stylesheet" href="app.css">
 </head>
 
 <body>
-  <div id="limits"></div>
-  <div id="free-play"></div>
-  <div id="mode"></div>
-
-  <div id="main" class="lil-gui" hidden>
-    <div id="emulator"></div>
-
-    <div id="connected"></div>
-
-    <div id="connect-controller" class="controller">
-      <button id="connect" onclick="requestConnection()">
-        <div class="name">Connect Device</div>
-      </button>
-    </div>
-
-    <div id="free-play-controller" class="controller">
-      <button id="start-free-play" onclick="startFreePlay()">
-        <div class="name">Free Play</div>
-      </button>
-    </div>
-
-    <div id="stop-controller" class="controller disabled">
-      <button id="stop" onclick="stop()">
-        <div class="name">Stop (Esc)</div>
-      </button>
-    </div>
-
-    <div id="current-bpm">
-      <div class="slider"></div>
-      <div class="label">
-        <span>Current BPM</span>
-      </div>
-    </div>
-  </div>
+  <div id="app"></div>
 
   <script type="module">
-    import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.16/+esm';
-    import Slider from '../lib/nouislider.min.mjs';
-    import OSREmulator from 'https://unpkg.com/osr-emu';
+    import App from './app.js';
     import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.prod.js';
-    import LimitsComponent from './components/limits.js';
-    import FreePlayComponent from './components/free-play.js';
-    import ModeComponent from './components/mode.js';
-    import ConnectedComponent from './components/connected.js';
-    import Ayva, { WebSerialDevice, TempestStroke } from 'https://unpkg.com/ayvajs';
-    import { formatter } from './util.js';
     
-    const emulator = new OSREmulator('#emulator');
-
-    new GUI().hide(); // Hacky way to inject styles from lil-gui.
-
-    createApp(LimitsComponent).mount(document.querySelector('#limits'));
-    createApp(FreePlayComponent).mount(document.querySelector('#free-play'));
-    const modeApp = createApp(ModeComponent, {
-      mode: 'Stopped',
-    }).mount(document.querySelector('#mode'));
-    const connectedApp = createApp(ConnectedComponent).mount(document.querySelector('#connected'));
-
-    const currentBpmSlider = document.querySelector('#current-bpm .slider');
-
-    Slider.create(currentBpmSlider, {
-      start: [60],
-      tooltips: true,
-      connect: true,
-      padding: [10],
-      step: 1,
-      range: {
-        min: 0,
-        max: 120,
-      },
-      format: formatter(),
-    });
-
-    window.addEventListener('update-limits', function (event) {
-      console.log('Update limits here:', event);
-    });
-
-    window.addEventListener('update-free-play', function (event) {
-      console.log('Update free play properties here:', event);
-    });
-
-    const ayva = new Ayva().defaultConfiguration();
-    const device = new WebSerialDevice();
-
-    let disconnectInterval;
-    window.requestConnection = function () {
-      device.requestConnection().then(() => {
-        ayva.addOutputDevice(device);
-
-        document.querySelector('#connect-controller').classList.add('disabled');
-        document.querySelector('#connect').setAttribute('disabled', true);
-        connectedApp._.props.connected = true;
-
-        // TODO: Use the disconnect listener instead of polling once WebSerialDevice is updated to support it.
-        disconnectInterval = setInterval(() => {
-          if (!device.connected) {
-            clearInterval(disconnectInterval);
-            document.querySelector('#connect-controller').classList.remove('disabled');
-            document.querySelector('#connect').removeAttribute('disabled');
-            ayva.removeOutputDevice(device);
-            connectedApp._.props.connected = false;
-          }
-        }, 1000);
-      }).catch((error) => { 
-        /* Do nothing if no port was selected. */ 
-        console.warn(error);
-      });
-    };
-
-    // Display the app. It was hidden initially to prevent flash of unstyled content.
-    document.querySelector('#main').removeAttribute('hidden');
+    createApp(App).mount('#app');
   </script>
 </body>

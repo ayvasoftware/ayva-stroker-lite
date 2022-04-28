@@ -15,9 +15,9 @@ body {
   width: 150px;
 }
 
-#connect-controller, #stop-controller, #free-play-controller {
-  position: absolute;
-  bottom: 0;
+button[disabled] {
+  pointer-events: none !important;
+  opacity: 50%;
 }
 
 #connect {
@@ -25,7 +25,7 @@ body {
 }
 
 #connected {
-  bottom: 18px;
+  bottom: 13px;
   left: 150px;
 }
 
@@ -124,7 +124,7 @@ body {
 }
 
 .free-play-mode {
-  color: indigo;
+  color: #8400e6;
   font-weight: bold;
 }
 

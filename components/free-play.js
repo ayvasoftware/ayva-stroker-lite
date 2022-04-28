@@ -183,12 +183,11 @@ export default {
         ...slider.options,
       });
 
-      element.noUiSlider.on('update', (arg) => {
-        this.$el.dispatchEvent(new CustomEvent('update-free-play', {
-          composed: true,
-          bubbles: true,
-          detail: arg
-        }));
+      element.noUiSlider.on('update', (limits) => {
+        this.$emit('update-parameters', {
+          name: slider.name,
+          limits,
+        });
       });
     });
 

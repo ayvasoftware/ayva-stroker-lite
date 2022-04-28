@@ -8,8 +8,8 @@ export default {
     <div class="limits lil-gui children">
 
       <template v-for="axis of axes">
-        <div class="limit" :class="axis.name">
-          <div class="axis">{{ axis.name }}</div>
+        <div class="limit" :class="axis">
+          <div class="axis">{{ axis }}</div>
           <div class="slider"></div>
         </div>
       </template>
@@ -19,25 +19,13 @@ export default {
 
   data () {
     return {
-      availableAxes: ['stroke', 'forward', 'left', 'twist', 'roll', 'pitch'],
+      axes: ['stroke', 'forward', 'left', 'twist', 'roll', 'pitch'],
     }
-  },
-
-  computed: {
-    axes () {
-      return this.availableAxes.map((name) => ({
-        name,
-        limits: {
-          min: 0,
-          max: 1,
-        }
-      }));
-    },
   },
 
   mounted () {
     this.axes.forEach((axis) => {
-      const element = this.$el.querySelector(`.limit.${axis.name} .slider`);
+      const element = this.$el.querySelector(`.limit.${axis} .slider`);
 
       Slider.create(element, {
         start: [0, 1],
@@ -50,14 +38,11 @@ export default {
         }
       });
 
-      element.noUiSlider.on('update', ([min, max]) => {
-        axis.limits.min = min;
-        axis.limits.max = max;
-        this.$el.dispatchEvent(new CustomEvent('update-limits', {
-          composed: true,
-          bubbles: true,
-          detail: axis,
-        }));
+      element.noUiSlider.on('update', (limits) => {
+        this.$emit('update-limits', {
+          name: axis,
+          limits,
+        });
       });
     });
 
