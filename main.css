@@ -1,0 +1,241 @@
+body {
+  --custom-value-color: #6784bb;
+  background: black;
+  margin: 0
+}
+
+#main {
+  background-color: black;
+}
+
+#connect, #stop, #start-free-play, #connected {
+  position: absolute;
+  left: 10px;
+  font-size: 16px;
+  width: 150px;
+}
+
+#connect-controller, #stop-controller, #free-play-controller {
+  position: absolute;
+  bottom: 0;
+}
+
+#connect {
+  bottom: 70px;
+}
+
+#connected {
+  bottom: 18px;
+  left: 150px;
+}
+
+.connect-status-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: black;
+}
+
+.connect-icon {
+  width: 12px;
+  height: 12px;
+  border-radius: 9px;
+  margin-right: 10px;
+}
+
+.connect-icon.connected {
+  background-color: green;
+}
+
+.connect-icon.disconnected {
+  background-color: rgb(168, 0, 0);
+}
+
+.disconnected {
+  opacity: 0.5;
+}
+
+#start-free-play {
+  bottom: 40px;
+}
+
+#stop {
+  bottom: 10px;
+}
+
+#container {
+  display: flex
+}
+
+#emulator {
+  width: 90%; 
+  height: 100vh;
+}
+
+#current-bpm {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translate(-50%);
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+}
+
+#current-bpm .slider {
+  width: 600px;
+}
+
+#current-bpm .label {
+  display: flex;
+  justify-content: center;
+  padding: 5px;
+  color: var(--custom-value-color);
+  font-weight: bold;
+}
+
+#current-bpm .label > * {
+  padding-left: 10px;
+}
+
+#gui-container {
+  position: absolute;
+  padding-top: 10px;
+  right: 10px;
+  height: 100vh;
+  overflow: auto;
+}
+
+.mode-container {
+  position: absolute;
+  left: 50%;
+  top: 10px;
+  transform: translate(-50%);
+  font-size: 18px;
+  background-color: black;
+}
+
+.mode-container .mode {
+  padding: 0 5px;
+}
+
+.stopped-mode {
+  color: rgb(235, 235, 235);
+  opacity: 0.5;
+}
+
+.free-play-mode {
+  color: indigo;
+  font-weight: bold;
+}
+
+.manual-mode {
+  color: var(--custom-value-color);
+}
+
+.limits-container {
+  position: absolute;
+  width: 245px;
+  left: 10px;
+  top: 10px;
+}
+
+.free-play {
+  position: absolute;
+  width: 400px;
+  right: 10px;
+  height: 100vh;
+  overflow: auto;
+}
+
+.free-play-container.lil-gui.root {
+  width: 400px;
+  position: relative;
+  top: 10px;
+}
+
+.limits {
+  padding-top: 5px;
+  border: none;
+  margin-left: var(--folder-indent);
+}
+
+.limit {
+  display: grid;
+  grid-template-columns: 30% 70%;
+  padding: 15px 21px 15px 4px;
+}
+
+.tempest-stroke {
+  display: grid;
+  grid-template-columns: 30% 240px;
+  padding-top: 7px;
+}
+
+.tempest-stroke .checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slider {
+  height: 3px;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  top: 7px;
+}
+
+.slider .noUi-connect {
+  background: var(--custom-value-color)
+}
+
+.slider .noUi-handle {
+  height: 12px;
+  width: 12px;
+  top: -5px;
+  right: -12px;
+  border-radius: 9px;
+  background: var(--custom-value-color);
+  box-shadow: none;
+  border: none;
+  cursor: pointer;
+}
+
+.slider[disabled] .noUi-handle {
+  cursor: not-allowed;
+}
+
+.slider[disabled], .axis[disabled] {
+  opacity: 0.5;
+}
+
+.slider .noUi-connects, 
+.slider {
+  background-color: rgb(66, 66, 66);
+}
+
+.noUi-handle:after {
+  display: none;
+}
+
+.noUi-handle:before {
+  display: none;
+}
+
+.noUi-tooltip {
+  font-size: 10px;
+  background-color: transparent;
+  border: none;
+  color: var(--custom-value-color);
+  font-weight: bold;
+}
+
+.info {
+  content: "Empty";
+  padding: 0 var(--padding);
+  margin: var(--spacing) 0;
+  display: block;
+  font-style: italic;
+  line-height: var(--widget-height);
+  opacity: 0.75;
+}
