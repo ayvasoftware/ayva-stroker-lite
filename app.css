@@ -252,3 +252,8 @@ button[disabled] {
   padding: 0 5px;
   color: var(--custom-value-color);
 }
+
+.label[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

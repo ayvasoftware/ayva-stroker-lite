@@ -48,8 +48,8 @@ export default {
       </button>
 
       <div id="current-bpm">
-        <div class="slider" ref="bpmSlider"></div>
-        <div class="label">
+        <div class="slider" ref="bpmSlider" :disabled="bpmDisabled ? '' : null"></div>
+        <div class="label" :disabled="bpmDisabled ? '' : null">
           <span>Current BPM</span>
         </div>
       </div>
@@ -67,6 +67,8 @@ export default {
       bpmActive: false,
       currentBpm: 60,
       currentStrokeName: 'None',
+      bpmDisabled: false,
+      bpmAnimationFrame: null,
     }
   },
 
@@ -97,6 +99,7 @@ export default {
         controller.strokes = this.strokes;
         controller.parameters = this.parameters;
         controller.bpmActive = this.bpmActive;
+        controller.userBpm = this.currentBpm;
       }
     },
 
@@ -112,9 +115,49 @@ export default {
       this.mode = 'Free Play';
     },
 
+    getBpm () {
+      return Number(this.$refs.bpmSlider.noUiSlider.get());
+    },
+
+    setBpm (bpm) {
+      this.$refs.bpmSlider.noUiSlider.set(bpm);
+    },
+
+    createBpmAnimation (duration, targetBpm) {
+      const startTime = performance.now();
+      const endTime = startTime + duration * 1000;
+      const startBpm = this.getBpm();
+
+      const updateFrame = () => {
+        const currentBpm = Math.round(Ayva.map(performance.now(), startTime, endTime, startBpm, targetBpm));
+        this.setBpm(currentBpm);
+
+        this.bpmAnimationFrame = requestAnimationFrame(updateFrame);
+      };
+
+      this.bpmAnimationFrame = requestAnimationFrame(updateFrame);
+    },
+
+    clearBpmAnimation () {
+      cancelAnimationFrame(this.bpmAnimationFrame);
+    },
+
     startController () {
       if (!controller) {
         controller = new AyvaController();
+        controller.onTransitionStart = (duration, targetBpm) => {
+          this.createBpmAnimation(duration, targetBpm);
+          this.currentStrokeName = 'Transitioning...';
+          this.bpmDisabled = true;
+        };
+
+        controller.onTransitionEnd = (stroke, bpm) => {
+          this.currentStrokeName = stroke;
+          this.bpmDisabled = false;
+          this.clearBpmAnimation();
+          this.setBpm(bpm);
+        };
+
         this.updateController();
         ayva.do(controller);
       }
@@ -129,6 +172,9 @@ export default {
       ayva.stop();
       controller = null;
       this.mode = 'Stopped';
+      this.currentStrokeName = 'None';
+      this.bpmDisabled = false;
+      this.clearBpmAnimation();
     },
 
     requestConnection() {
@@ -180,7 +226,15 @@ export default {
     });
 
     this.$refs.bpmSlider.noUiSlider.on('update', ([bpm]) => {
-      this.currentBpm = bpm;
+      this.currentBpm = Number(bpm);
+    });
+
+    this.$refs.bpmSlider.noUiSlider.on('change', ([bpm]) => {
+      this.currentBpm = Number(bpm);
+
+      if (controller) {
+        controller.updatedBpm = true;
+      }
     });
 
     const watchProperties = [
