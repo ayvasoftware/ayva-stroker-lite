@@ -190,6 +190,7 @@ export default {
             clearInterval(this.disconnectInterval);
             this.connected = false;
             ayva.removeOutputDevice(device);
+            this.stop();
           }
         }, 1000);
       }).catch((error) => { 
