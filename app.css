@@ -253,7 +253,7 @@ button[disabled] {
   color: var(--custom-value-color);
 }
 
-.label[disabled] {
+[disabled] {
   opacity: 0.5;
   cursor: not-allowed;
 }

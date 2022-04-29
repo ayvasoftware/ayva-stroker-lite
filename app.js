@@ -152,7 +152,7 @@ export default {
         };
 
         controller.onTransitionEnd = (stroke, bpm) => {
-          this.currentStrokeName = stroke;
+          this.currentStrokeName = typeof stroke === 'string' ? stroke : 'Custom';
           this.bpmDisabled = false;
           this.clearBpmAnimation();
           this.setBpm(bpm);

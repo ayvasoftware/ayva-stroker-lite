@@ -50,7 +50,7 @@ export default class Controller extends AyvaBehavior {
 
       const { transitionStroke, nextStroke } = this.#currentStroke.createTransition(
         duration,
-        strokeConfig,
+        this.#createStrokeConfig(strokeConfig),
         bpmProvider,
       );
 
@@ -59,7 +59,7 @@ export default class Controller extends AyvaBehavior {
       this.queueBehavior(transitionStroke, 1, ayva);
     } else {
       // Just move to the start position for the new stroke.
-      this.#currentStroke = new TempestStroke(strokeConfig, bpmProvider);
+      this.#currentStroke = new TempestStroke(this.#createStrokeConfig(strokeConfig), bpmProvider);
       this.#queueTransitionStartEvent(1, this.#currentStroke.bpm);
       this.queueMove(...this.#currentStroke.getStartMoves(ayva, { duration: 1 }));
     }
@@ -72,6 +72,24 @@ export default class Controller extends AyvaBehavior {
         this.#startTimer();
       });
     }
+  }
+
+  #createStrokeConfig (stroke) {
+    if (typeof stroke === 'string') {
+      const config = TempestStroke.library[stroke];
+
+      if (this.parameters.twist) {
+        const [from, to] = this.parameters['twist-range'];
+        const [phase] = this.parameters['twist-phase'];
+        const [ecc] = this.parameters['twist-ecc'];
+
+        config.R0 = { from, to, phase, ecc };
+      }
+
+      return config;
+    }
+
+    return stroke;
   }
 
   #queueTransitionStartEvent (duration, targetBpm) {
