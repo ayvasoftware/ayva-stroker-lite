@@ -1,14 +1,13 @@
-import { html } from '../util.js';
 import AyvaLimits from './components/limits.js';
 import AyvaFreePlay from './components/free-play.js';
 import AyvaMode from './components/mode.js';
 import AyvaConnected from './components/connected.js';
 import AyvaController from './controller.js';
 import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.16/+esm';
-import Slider from '../lib/nouislider.min.mjs';
+import Slider from './lib/nouislider.min.mjs';
 import OSREmulator from 'https://unpkg.com/osr-emu';
 import Ayva, { WebSerialDevice } from 'https://unpkg.com/ayvajs';
-import { formatter } from './util.js';
+import { html, formatter } from './util.js';
 
 // These need to be "globals" so they aren't proxied by Vue... because issues with private members :(
 const ayva = new Ayva().defaultConfiguration();
