@@ -8,19 +8,19 @@ export default {
     <div class="free-play-container lil-gui root">
       <div class="title">Free Play Parameters</div>
       <div class="limits lil-gui children">
-        <div class="limit bpm">
+        <div class="limit">
           <div class="axis">BPM Range</div>
-          <div class="slider"></div>
+          <div class="slider" ref="bpm"></div>
         </div>
 
-        <div class="limit pattern-duration">
+        <div class="limit">
           <div class="axis">Pattern Duration</div>
-          <div class="slider"></div>
+          <div class="slider" ref="pattern-duration"></div>
         </div>
 
-        <div class="limit transition-duration">
+        <div class="limit">
           <div class="axis">Transition Duration</div>
-          <div class="slider"></div>
+          <div class="slider" ref="transition-duration"></div>
         </div>
 
         <div class="limit twist">
@@ -32,24 +32,29 @@ export default {
           </div>
         </div>
 
-        <div class="limit twist-range">
-          <div class="axis" disabled>Twist Range</div>
-          <div class="slider" disabled></div>
+        <div class="limit">
+          <div class="axis" :disabled="disableTwist">Twist Range</div>
+          <div class="slider" :disabled="disableTwist" ref="twist-range"></div>
         </div>
 
-        <div class="limit twist-phase">
-          <div class="axis" disabled>Twist Phase</div>
-          <div class="slider" disabled></div>
+        <div class="limit">
+          <div class="axis" :disabled="disableTwist">Twist Phase</div>
+          <div class="slider" :disabled="disableTwist" ref="twist-phase"></div>
         </div>
 
-        <div class="limit twist-ecc">
-          <div class="axis" disabled>Twist Eccentricity</div>
-          <div class="slider" disabled></div>
+        <div class="limit">
+          <div class="axis" :disabled="disableTwist">Twist Eccentricity</div>
+          <div class="slider" :disabled="disableTwist" ref="twist-ecc"></div>
         </div>
       </div>
     </div>
     <div class="free-play-container lil-gui root">
-      <div class="title">Strokes</div>
+      <div class="title">
+        <span>Strokes</span>
+        <span class="current-stroke-container">
+          <span class="label">Playing:</span>
+          <span class="current-stroke">{{ currentStrokeName }}</span>
+        </div>
       <div class="limits lil-gui children">
         <div class="info">
           Select what strokes to include in free play mode, or click buttons to manually trigger a stroke
@@ -59,8 +64,8 @@ export default {
         <div class="tempest-stroke-container">
           <template v-for="stroke of strokes">
             <div class="tempest-stroke">
-              <div class="checkbox"><input type="checkbox" v-model="stroke.enabled"></div>
-              <div><button>{{ stroke.name }}</button></div>
+              <div class="checkbox"><input type="checkbox" v-model="stroke.enabled" @change="fireUpdateStrokes"></div>
+              <div><button @click="fireSelectStroke(stroke.name)">{{ stroke.name }}</button></div>
             </div>
           </template>
         </div>
@@ -106,7 +111,7 @@ export default {
             min: 0,
             max: 30,
           },
-          start: [5, 10],
+          start: [2, 5],
           padding: [1],
           step: 0.1,
           margin: 3,
@@ -151,30 +156,50 @@ export default {
     }
   },
 
-  watch: {
-    twist (value) {
-      const classes = ['twist-range', 'twist-phase', 'twist-ecc'];
+  props: ['currentStrokeName'],
 
-      if (!value) {
-        classes.forEach((clazz) => {
-          this.$el.querySelector(`.${clazz} > .axis`).setAttribute('disabled', true);
-          this.$el.querySelector(`.${clazz} > .slider`).setAttribute('disabled', true);
-        });
-      } else {
-        classes.forEach((clazz) => {
-          this.$el.querySelector(`.${clazz} > .axis`).removeAttribute('disabled');
-          this.$el.querySelector(`.${clazz} > .slider`).removeAttribute('disabled');
-        });
+  watch: {
+    twist: {
+      immediate: true,
+      handler (value) {
+        this.fireUpdateParameter('twist', value);
+      },
+    },
+
+    strokes: {
+      immediate: true,
+      handler () {
+        this.fireUpdateStrokes();
       }
     }
   },
 
+  computed: {
+    disableTwist () {
+      return !this.twist ? '' : null;
+    }
+  },
+
+  methods: {
+    fireUpdateStrokes () {
+      this.$emit('update-strokes', this.strokes.filter(s => s.enabled).map(s => s.name));
+    },
+
+    fireUpdateParameter (name, value) {
+      this.$emit('update-parameters', {
+        name,
+        value,
+      });
+    },
+
+    fireSelectStroke (stroke) {
+      this.$emit('select-stroke', stroke);
+    }
+  },
 
   mounted () {
-    const sliderElement = (className) => this.$el.querySelector(`.limit.${className} .slider`);
-
     this.sliderConfigs.forEach((slider) => {
-      const element = sliderElement(slider.name);
+      const element = this.$refs[slider.name];
       this.sliders[slider.name] = element;
 
       Slider.create(element, {
@@ -184,10 +209,7 @@ export default {
       });
 
       element.noUiSlider.on('update', (limits) => {
-        this.$emit('update-parameters', {
-          name: slider.name,
-          limits,
-        });
+        this.fireUpdateParameter(slider.name, limits.map(l => Number(l.replaceAll(/[a-zA-Z]/g, ''))));
       });
     });
 

@@ -38,10 +38,13 @@ export default {
         }
       });
 
-      element.noUiSlider.on('update', (limits) => {
+      element.noUiSlider.on('update', ([min, max]) => {
         this.$emit('update-limits', {
           name: axis,
-          limits,
+          limits: {
+            min: Number(min),
+            max: Number(max),
+          },
         });
       });
     });

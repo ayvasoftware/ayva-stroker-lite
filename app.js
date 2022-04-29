@@ -3,6 +3,7 @@ import AyvaLimits from './components/limits.js';
 import AyvaFreePlay from './components/free-play.js';
 import AyvaMode from './components/mode.js';
 import AyvaConnected from './components/connected.js';
+import AyvaController from './controller.js';
 import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.16/+esm';
 import Slider from '../lib/nouislider.min.mjs';
 import OSREmulator from 'https://unpkg.com/osr-emu';
@@ -12,12 +13,17 @@ import { formatter } from './util.js';
 // These need to be "globals" so they aren't proxied by Vue... because issues with private members :(
 const ayva = new Ayva().defaultConfiguration();
 const device = new WebSerialDevice();
+let controller;
 let emulator;
 
 export default {
   template: html`
     <ayva-limits @update-limits="updateLimits"/>
-    <ayva-free-play @update-parameters="updateParameters"/>
+    <ayva-free-play 
+      @update-parameters="updateParameters" 
+      @update-strokes="updateStrokes"
+      @select-stroke="selectStroke"
+      :current-stroke-name="currentStrokeName"/>
     <ayva-mode :mode="mode"/>
 
     <div id="main" class="lil-gui">
@@ -29,8 +35,12 @@ export default {
         Connect Device
       </button>
 
-      <button id="start-free-play" @click="freePlay()" :disabled="mode === 'Free Play'">
+      <button id="start-free-play" @click="freePlay()" :disabled="mode === 'Free Play' || !strokes.length">
         Free Play
+      </button>
+
+      <button id="home" @click="home()">
+        Home
       </button>
 
       <button id="stop" @click="stop" :disabled="mode === 'Stopped'">
@@ -52,6 +62,11 @@ export default {
       connected: false,
       disconnectInterval: null,
       mode: 'Stopped',
+      strokes: [],
+      parameters: {},
+      bpmActive: false,
+      currentBpm: 60,
+      currentStrokeName: 'None',
     }
   },
 
@@ -65,21 +80,54 @@ export default {
   },
 
   methods: {
-    updateLimits (event) {
-      console.log('Update limits here.', event);
+    updateLimits (axis) {
+      ayva.updateLimits(axis.name, axis.limits.min, axis.limits.max);
     },
 
-    updateParameters (event) {
-      console.log('Update parameters here.', event);
+    updateParameters (parameter) {
+      this.parameters[parameter.name] = parameter.value;
+    },
+
+    updateStrokes (strokes) {
+      this.strokes = strokes;
+    },
+
+    updateController () {
+      if (controller) {
+        controller.strokes = this.strokes;
+        controller.parameters = this.parameters;
+        controller.bpmActive = this.bpmActive;
+      }
+    },
+
+    selectStroke (stroke) {
+      this.startController();
+      controller.strokeCommand = stroke;
+      this.mode = 'Manual';
     },
 
     freePlay () {
-      console.log('Start free play.');
+      this.startController();
+      controller.random = true;
       this.mode = 'Free Play';
+    },
+
+    startController () {
+      if (!controller) {
+        controller = new AyvaController();
+        this.updateController();
+        ayva.do(controller);
+      }
+    },
+
+    home () {
+      this.stop();
+      ayva.home();
     },
 
     stop () {
       ayva.stop();
+      controller = null;
       this.mode = 'Stopped';
     },
 
@@ -122,6 +170,27 @@ export default {
       },
       format: formatter(),
     });
+
+    this.$refs.bpmSlider.noUiSlider.on('start', () => {
+      this.bpmActive = true;
+    });
+
+    this.$refs.bpmSlider.noUiSlider.on('end', () => {
+      this.bpmActive = false;
+    });
+
+    this.$refs.bpmSlider.noUiSlider.on('update', ([bpm]) => {
+      this.currentBpm = bpm;
+    });
+
+    const watchProperties = [
+      'bpmActive',
+      'currentBpm',
+      'strokes',
+      'parameters'
+    ];
+    
+    watchProperties.forEach((prop) => this.$watch(prop, () => this.updateController(), { immediate: true, deep: true }));
 
     window.addEventListener('keyup', (event) => {
       if (event.key === 'Escape') {

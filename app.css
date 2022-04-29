@@ -8,7 +8,7 @@ body {
   background-color: black;
 }
 
-#connect, #stop, #start-free-play, #connected {
+#connect, #stop, #start-free-play, #connected, #home {
   position: absolute;
   left: 10px;
   font-size: 16px;
@@ -20,8 +20,12 @@ button[disabled] {
   opacity: 50%;
 }
 
+#home {
+  bottom: 40px;
+}
+
 #connect {
-  bottom: 70px;
+  bottom: 100px;
 }
 
 #connected {
@@ -56,7 +60,7 @@ button[disabled] {
 }
 
 #start-free-play {
-  bottom: 40px;
+  bottom: 70px;
 }
 
 #stop {
@@ -111,7 +115,7 @@ button[disabled] {
   top: 10px;
   transform: translate(-50%);
   font-size: 18px;
-  background-color: black;
+  background-color: transparent;
 }
 
 .mode-container .mode {
@@ -238,4 +242,13 @@ button[disabled] {
   font-style: italic;
   line-height: var(--widget-height);
   opacity: 0.75;
+}
+
+.current-stroke-container {
+  float: right;
+}
+
+.current-stroke-container .current-stroke {
+  padding: 0 5px;
+  color: var(--custom-value-color);
 }
