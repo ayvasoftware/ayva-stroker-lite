@@ -7,7 +7,7 @@ import AyvaController from './controller.js';
 import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.16/+esm';
 import Slider from '../lib/nouislider.min.mjs';
 import OSREmulator from 'https://unpkg.com/osr-emu';
-import Ayva, { WebSerialDevice, TempestStroke } from 'https://unpkg.com/ayvajs';
+import Ayva, { WebSerialDevice } from 'https://unpkg.com/ayvajs';
 import { formatter } from './util.js';
 
 // These need to be "globals" so they aren't proxied by Vue... because issues with private members :(
@@ -29,29 +29,31 @@ export default {
     <div id="main" class="lil-gui">
       <div id="emulator" ref="emulator"></div>
 
-      <div id="connected"><ayva-connected :connected="connected"/></div>
+      <ayva-connected :connected="connected" :mode="mode" @request-connection="requestConnection"/>
 
-      <button id="connect" @click="requestConnection" :disabled="connected">
-        Connect Device
-      </button>
+      <div class="actions">
+        <button id="home" @click="home()">
+          Home Device
+        </button>
 
-      <button id="start-free-play" @click="freePlay()" :disabled="mode === 'Free Play' || !strokes.length">
-        Free Play
-      </button>
+        <button id="start-free-play" @click="freePlay()" :disabled="mode === 'Free Play' || !strokes.length">
+          Free Play
+        </button>
 
-      <button id="home" @click="home()">
-        Home
-      </button>
-
-      <button id="stop" @click="stop" :disabled="mode === 'Stopped'">
-        Stop (Esc)
-      </button>
+        <button id="stop" @click="stop" :disabled="mode === 'Stopped'">
+          Stop (Esc)
+        </button>
+      </div>
 
       <div id="current-bpm">
         <div class="slider" ref="bpmSlider" :disabled="bpmDisabled ? '' : null"></div>
         <div class="label" :disabled="bpmDisabled ? '' : null">
           <span>Current BPM</span>
         </div>
+      </div>
+
+      <div class="logo">
+        Powered By <a class="ayva" href="https://ayvajs.github.io/ayvajs-docs" target="_blank">Ayva</a>
       </div>
     </div>
   `,

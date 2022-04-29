@@ -4,15 +4,28 @@ body {
   margin: 0
 }
 
+@font-face {
+  font-family: locust;
+  src: url(fonts/cgf-locust-resistance.regular.ttf);
+}
+
 #main {
   background-color: black;
 }
 
-#connect, #stop, #start-free-play, #connected, #home {
+.actions {
   position: absolute;
-  left: 10px;
+  bottom: 10px;
+  display: flex;
+  left: 50%;
+  transform: translate(-50%);
+}
+
+.actions button {
   font-size: 16px;
   width: 150px;
+  margin: 0 20px;
+  height: 25px;
 }
 
 button[disabled] {
@@ -20,51 +33,53 @@ button[disabled] {
   opacity: 50%;
 }
 
-#home {
-  bottom: 40px;
-}
-
-#connect {
-  bottom: 100px;
-}
-
-#connected {
-  bottom: 13px;
-  left: 150px;
-}
-
 .connect-status-container {
+  /* TODO: Don't absolute position this. Put it inside of limits element... :) */
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: black;
+  position: absolute;
+  top: 13px;
+  left: 136px;
+  font-size: 10px;
 }
 
-.connect-icon {
+.connect-status-container.connected {
+  /* No... 😂 */
+  left: 152px;
+}
+
+.connect-status-icon {
   width: 12px;
   height: 12px;
   border-radius: 9px;
   margin-right: 10px;
 }
 
-.connect-icon.connected {
+.connect-icon svg {
+  width: 18px;
+  height: 18px;
+  position: relative;
+  left: 5px;
+  top: 1px;
+}
+
+.connected > .connect-status-icon {
   background-color: green;
 }
 
-.connect-icon.disconnected {
+.disconnected > .connect-status-icon {
   background-color: rgb(168, 0, 0);
 }
 
+.disconnected:hover {
+  opacity: 0.75;
+}
+
 .disconnected {
+  cursor: pointer;
   opacity: 0.5;
-}
-
-#start-free-play {
-  bottom: 70px;
-}
-
-#stop {
-  bottom: 10px;
 }
 
 #container {
@@ -78,7 +93,7 @@ button[disabled] {
 
 #current-bpm {
   position: absolute;
-  bottom: 20px;
+  bottom: 70px;
   left: 50%;
   transform: translate(-50%);
   display: grid;
@@ -128,7 +143,7 @@ button[disabled] {
 }
 
 .free-play-mode {
-  color: #8400e6;
+  color: indigo;
   font-weight: bold;
 }
 
@@ -256,4 +271,19 @@ button[disabled] {
 [disabled] {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.logo {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  font-family: locust;
+  font-size: 12px;
+  color: var(--custom-value-color);
+}
+
+.logo .ayva {
+  color: indigo;
+  font-size: 20px;
+  text-decoration: none;
 }
