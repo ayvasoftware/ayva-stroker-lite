@@ -1,4 +1,4 @@
-import { html, makeCollapsible } from '../util.js';
+import { html, makeCollapsible, has } from '../util.js';
 import Slider from '../lib/nouislider.min.mjs';
 
 export default {
@@ -23,7 +23,36 @@ export default {
     }
   },
 
+  methods: {
+    load () {
+      return JSON.parse(localStorage.getItem('limits') || '{}');
+    },
+
+    save (axis, limits) {
+      const axes = this.load();
+      axes[axis] = limits;
+
+      localStorage.setItem('limits', JSON.stringify(axes));
+    },
+
+    updateLimit (axis, min, max) {
+      const limits = {
+        min: Number(min),
+        max: Number(max),
+      };
+
+      this.save(axis, [min, max]);
+
+      this.$emit('update-limits', {
+        name: axis,
+        limits,
+      });
+    }
+  },
+
   mounted () {
+    const savedLimits = this.load();
+
     this.axes.forEach((axis) => {
       const element = this.$el.querySelector(`.limit.${axis} .slider`);
 
@@ -38,14 +67,16 @@ export default {
         }
       });
 
+      if (has(savedLimits, axis)) {
+        element.noUiSlider.set(savedLimits[axis]);
+      }
+
       element.noUiSlider.on('update', ([min, max]) => {
-        this.$emit('update-limits', {
-          name: axis,
-          limits: {
-            min: Number(min),
-            max: Number(max),
-          },
-        });
+        this.updateLimit(axis, min, max);
+      });
+
+      element.noUiSlider.on('change', ([min, max]) => {
+        this.updateLimit(axis, min, max);
       });
     });
 

@@ -66,3 +66,10 @@ export const formatter = (decimals = 0, suffix = '') => ({
     return Number(value.replace(',-', ''));
   }
 });
+
+/**
+ * Shorthand for Object.prototype.hasOwnProperty.call()
+ */
+export function has (obj, prop) {
+  return Object.prototype.hasOwnProperty.call(obj, prop);
+}

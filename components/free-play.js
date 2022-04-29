@@ -1,4 +1,4 @@
-import { html, makeCollapsible, formatter } from '../util.js';
+import { html, makeCollapsible, formatter, has } from '../util.js';
 import { TempestStroke } from 'https://unpkg.com/ayvajs';
 import Slider from '../lib/nouislider.min.mjs';
 
@@ -153,6 +153,9 @@ export default {
         name,
         enabled: true,
       })),
+
+      initializedTwist: false,
+      initializedStrokes: false,
     }
   },
 
@@ -162,14 +165,16 @@ export default {
     twist: {
       immediate: true,
       handler (value) {
-        this.fireUpdateParameter('twist', value);
+        this.fireUpdateParameter('twist', value, this.initializedTwist);
+        this.initializedTwist = true;
       },
     },
 
     strokes: {
       immediate: true,
       handler () {
-        this.fireUpdateStrokes();
+        this.fireUpdateStrokes(this.initializedStrokes);
+        this.initializedStrokes = true;
       }
     }
   },
@@ -181,11 +186,21 @@ export default {
   },
 
   methods: {
-    fireUpdateStrokes () {
-      this.$emit('update-strokes', this.strokes.filter(s => s.enabled).map(s => s.name));
+    fireUpdateStrokes (storage = true) {
+      const selectedStrokes = this.strokes.filter(s => s.enabled).map(s => s.name);
+
+      if (storage) {
+        this.save('strokes', selectedStrokes);
+      }
+
+      this.$emit('update-strokes', selectedStrokes);
     },
 
-    fireUpdateParameter (name, value) {
+    fireUpdateParameter (name, value, storage = true) {
+      if (storage) {
+        this.save(name, value);
+      }
+
       this.$emit('update-parameters', {
         name,
         value,
@@ -194,10 +209,23 @@ export default {
 
     fireSelectStroke (stroke) {
       this.$emit('select-stroke', stroke);
+    },
+
+    load () {
+      return JSON.parse(localStorage.getItem('free-play-parameters') || '{}');
+    },
+
+    save (parameter, value) {
+      const parameters = this.load();
+      parameters[parameter] = value;
+
+      localStorage.setItem('free-play-parameters', JSON.stringify(parameters));
     }
   },
 
   mounted () {
+    const parameters = this.load();
+
     this.sliderConfigs.forEach((slider) => {
       const element = this.$refs[slider.name];
       this.sliders[slider.name] = element;
@@ -208,10 +236,33 @@ export default {
         ...slider.options,
       });
 
+      if (has(parameters, slider.name)) {
+        element.noUiSlider.set(parameters[slider.name]);
+      }
+
+      const cleanLimits = l => l.map(l => Number(l.replaceAll(/[a-zA-Z]/g, '')));
+      
       element.noUiSlider.on('update', (limits) => {
-        this.fireUpdateParameter(slider.name, limits.map(l => Number(l.replaceAll(/[a-zA-Z]/g, ''))));
+        this.fireUpdateParameter(slider.name, cleanLimits(limits));
+      });
+
+      element.noUiSlider.on('change', (limits) => {
+        this.fireUpdateParameter(slider.name, cleanLimits(limits));
       });
     });
+
+    if (has(parameters, 'twist')) {
+      this.twist = parameters.twist;
+    }
+
+    if (has(parameters, 'strokes')) {
+      const enabledStrokes = new Set(parameters.strokes);
+      this.strokes.forEach((stroke) => {
+        stroke.enabled = enabledStrokes.has(stroke.name);
+      });
+
+      this.fireUpdateStrokes();
+    }
 
     this.$el.querySelectorAll('.free-play-container').forEach((element) => {
       makeCollapsible(element);
