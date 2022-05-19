@@ -1,31 +1,28 @@
 <!DOCTYPE html>
-<head>
-  <link rel="stylesheet" href="lib/nouislider.css">
-  <link rel="stylesheet" href="app.css">
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/ayva.ico" />
+    <title>Ayva Stroker Lite</title>
 
-  <!-- Global site tag (gtag.js) - Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-JSZQ3E5LY2"></script>
-  <script>
-    if (window.location.hostname != 'localhost') {
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JSZQ3E5LY2"></script>
+    <script>
+      if (window.location.hostname != 'localhost') {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
 
-      gtag('config', 'G-JSZQ3E5LY2');
-    } else {
-      console.warn('Google analytics disabled on localhost.');
-    }
-    
-  </script>
-</head>
+        gtag('config', 'G-JSZQ3E5LY2');
+      } else {
+        console.warn('Google analytics disabled on localhost.');
+      }
+    </script>
+  </head>
 
-<body>
-  <div id="app"></div>
-
-  <script type="module">
-    import App from './app.js';
-    import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.prod.js';
-    
-    createApp(App).mount('#app');
-  </script>
-</body>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
