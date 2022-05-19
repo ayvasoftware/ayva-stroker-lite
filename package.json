@@ -1,0 +1,47 @@
+{
+  "name": "ayva-stroker-lite",
+  "version": "0.1.0",
+  "description": "A stroker app powered by Ayva.",
+  "main": "/src/main.js",
+  "scripts": {
+    "dev": "vite --port 8080",
+    "build": "vite build",
+    "preview": "vite preview --port 5050",
+    "lint": "eslint . --format html -o test-output/eslint.html --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ayvajs/ayva-stroker-lite.git"
+  },
+  "keywords": [
+    "ayvajs",
+    "osr2",
+    "sr6",
+    "stroker"
+  ],
+  "author": "soritesparadox",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ayvajs/ayva-stroker-lite/issues"
+  },
+  "homepage": "https://github.com/ayvajs/ayva-stroker-lite#readme",
+  "devDependencies": {
+    "@rushstack/eslint-patch": "^1.1.0",
+    "@vitejs/plugin-vue": "^2.3.1",
+    "@vue/eslint-config-prettier": "^7.0.0",
+    "eslint": "^8.5.0",
+    "eslint-config-airbnb": "^19.0.2",
+    "eslint-plugin-import": "^2.25.3",
+    "eslint-plugin-vue": "^8.2.0",
+    "naive-ui": "^2.29.0",
+    "nouislider": "^15.6.0",
+    "prettier": "^2.5.1",
+    "vite": "^2.9.5",
+    "vite-svg-loader": "^3.3.0"
+  },
+  "dependencies": {
+    "ayvajs": "^0.11.1",
+    "osr-emu": "^0.2.1",
+    "vue": "^3.2.33"
+  }
+}

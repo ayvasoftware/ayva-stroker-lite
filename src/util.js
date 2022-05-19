@@ -1,49 +1,44 @@
-// Marker template tag so we get HTML syntax highlighting in our editor.
-export const html = (...args) => String.raw(...args);
-
 /**
  * Rip of function from lil-gui that makes an element collapsible.
  * The element must contain the appropriate classes in order for this
  * methd to work (.title and .children element).
  */
 export function makeCollapsible (element) {
-  element._openAnimated = function( open = true ) {
+  element._openAnimated = function (open = true) {
     // set state immediately
     this._closed = !open;
 
-    this.$title.setAttribute( 'aria-expanded', !this._closed );
+    this.$title.setAttribute('aria-expanded', !this._closed);
 
     // wait for next frame to measure $children
-    requestAnimationFrame( () => {
-
+    requestAnimationFrame(() => {
       // explicitly set initial height for transition
       const initialHeight = this.$children.clientHeight;
-      this.$children.style.height = initialHeight + 'px';
+      this.$children.style.height = `${initialHeight}px`;
 
-      this.domElement.classList.add( 'transition' );
+      this.domElement.classList.add('transition');
 
-      const onTransitionEnd = e => {
-        if ( e.target !== this.$children ) return;
+      const onTransitionEnd = (e) => {
+        if (e.target !== this.$children) return;
         this.$children.style.height = '';
-        this.domElement.classList.remove( 'transition' );
-        this.$children.removeEventListener( 'transitionend', onTransitionEnd );
+        this.domElement.classList.remove('transition');
+        this.$children.removeEventListener('transitionend', onTransitionEnd);
       };
 
-      this.$children.addEventListener( 'transitionend', onTransitionEnd );
+      this.$children.addEventListener('transitionend', onTransitionEnd);
 
       // todo: this is wrong if children's scrollHeight makes for a gui taller than maxHeight
       const targetHeight = !open ? 0 : this.$children.scrollHeight;
 
-      this.domElement.classList.toggle( 'closed', !open );
+      this.domElement.classList.toggle('closed', !open);
 
-      requestAnimationFrame( () => {
-        this.$children.style.height = targetHeight + 'px';
-      } );
-
-    } );
+      requestAnimationFrame(() => {
+        this.$children.style.height = `${targetHeight}px`;
+      });
+    });
 
     return this;
-  }
+  };
 
   element.$title = element.querySelector('.title');
   element.$children = element.querySelector('.children');
@@ -64,7 +59,7 @@ export const formatter = (decimals = 0, suffix = '') => ({
   },
   from (value) {
     return Number(value.replace(',-', ''));
-  }
+  },
 });
 
 /**

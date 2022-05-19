@@ -1,50 +1,94 @@
-import { html, makeCollapsible, formatter, has } from '../util.js';
-import { TempestStroke } from 'https://unpkg.com/ayvajs';
-import Slider from '../lib/nouislider.min.mjs';
-
-export default {
-  template: html`
+<template>
   <div class="free-play">
     <div class="free-play-container lil-gui root">
-      <div class="title">Free Play Parameters</div>
+      <div class="title">
+        Free Play Parameters
+      </div>
       <div class="limits lil-gui children">
         <div class="limit">
-          <div class="axis">BPM Range</div>
-          <div class="slider" ref="bpm"></div>
+          <div class="axis">
+            BPM Range
+          </div>
+          <div
+            ref="bpm"
+            class="slider"
+          />
         </div>
 
         <div class="limit">
-          <div class="axis">Pattern Duration</div>
-          <div class="slider" ref="pattern-duration"></div>
+          <div class="axis">
+            Pattern Duration
+          </div>
+          <div
+            ref="pattern-duration"
+            class="slider"
+          />
         </div>
 
         <div class="limit">
-          <div class="axis">Transition Duration</div>
-          <div class="slider" ref="transition-duration"></div>
+          <div class="axis">
+            Transition Duration
+          </div>
+          <div
+            ref="transition-duration"
+            class="slider"
+          />
         </div>
 
         <div class="limit twist">
-          <div class="axis">Enable Twist</div>
+          <div class="axis">
+            Enable Twist
+          </div>
           <div>
             <label class="widget">
-              <input type="checkbox" v-model="twist">
+              <input
+                v-model="twist"
+                type="checkbox"
+              >
             </label>
           </div>
         </div>
 
         <div class="limit">
-          <div class="axis" :disabled="disableTwist">Twist Range</div>
-          <div class="slider" :disabled="disableTwist" ref="twist-range"></div>
+          <div
+            class="axis"
+            :disabled="disableTwist"
+          >
+            Twist Range
+          </div>
+          <div
+            ref="twist-range"
+            class="slider"
+            :disabled="disableTwist"
+          />
         </div>
 
         <div class="limit">
-          <div class="axis" :disabled="disableTwist">Twist Phase</div>
-          <div class="slider" :disabled="disableTwist" ref="twist-phase"></div>
+          <div
+            class="axis"
+            :disabled="disableTwist"
+          >
+            Twist Phase
+          </div>
+          <div
+            ref="twist-phase"
+            class="slider"
+            :disabled="disableTwist"
+          />
         </div>
 
         <div class="limit">
-          <div class="axis" :disabled="disableTwist">Twist Eccentricity</div>
-          <div class="slider" :disabled="disableTwist" ref="twist-ecc"></div>
+          <div
+            class="axis"
+            :disabled="disableTwist"
+          >
+            Twist Eccentricity
+          </div>
+          <div
+            ref="twist-ecc"
+            class="slider"
+            :disabled="disableTwist"
+          />
         </div>
       </div>
     </div>
@@ -54,7 +98,8 @@ export default {
         <span class="current-stroke-container">
           <span class="label">Playing:</span>
           <span class="current-stroke">{{ currentStrokeName }}</span>
-        </div>
+        </span>
+      </div>
       <div class="limits lil-gui children">
         <div class="info">
           Select what strokes to include in free play mode, or click buttons to manually trigger a stroke
@@ -62,18 +107,43 @@ export default {
         </div>
 
         <div class="tempest-stroke-container">
-          <template v-for="stroke of strokes">
+          <template v-for="stroke of strokes" :key="stroke.name">
             <div class="tempest-stroke">
-              <div class="checkbox"><input type="checkbox" v-model="stroke.enabled" @change="fireUpdateStrokes"></div>
-              <div><button @click="fireSelectStroke(stroke.name)">{{ stroke.name }}</button></div>
+              <div class="checkbox">
+                <input
+                  v-model="stroke.enabled"
+                  type="checkbox"
+                  @change="fireUpdateStrokes"
+                >
+              </div>
+              <div>
+                <button @click="fireSelectStroke(stroke.name)">
+                  {{ stroke.name }}
+                </button>
+              </div>
             </div>
           </template>
         </div>
       </div>
     </div>
   </div>
-  
-  `,
+</template>
+
+<script>
+import { TempestStroke } from 'ayvajs';
+import Slider from 'nouislider';
+import { makeCollapsible, formatter, has } from '../util.js';
+
+export default {
+
+  props: {
+    currentStrokeName: {
+      type: String,
+      default: null,
+    },
+  },
+
+  emits: ['update-parameters', 'update-strokes', 'select-stroke'],
 
   data () {
     return {
@@ -89,7 +159,7 @@ export default {
           start: [20, 60],
           padding: [10],
           step: 1,
-          format: formatter()
+          format: formatter(),
         },
       }, {
         name: 'pattern-duration',
@@ -102,7 +172,7 @@ export default {
           padding: [1],
           step: 0.1,
           margin: 3,
-          format: formatter(1, 's')
+          format: formatter(1, 's'),
         },
       }, {
         name: 'transition-duration',
@@ -115,7 +185,7 @@ export default {
           padding: [1],
           step: 0.1,
           margin: 3,
-          format: formatter(1, 's')
+          format: formatter(1, 's'),
         },
       }, {
         name: 'twist-range',
@@ -156,10 +226,14 @@ export default {
 
       initializedTwist: false,
       initializedStrokes: false,
-    }
+    };
   },
 
-  props: ['currentStrokeName'],
+  computed: {
+    disableTwist () {
+      return !this.twist ? '' : null;
+    },
+  },
 
   watch: {
     twist: {
@@ -175,19 +249,59 @@ export default {
       handler () {
         this.fireUpdateStrokes(this.initializedStrokes);
         this.initializedStrokes = true;
-      }
-    }
+      },
+    },
   },
 
-  computed: {
-    disableTwist () {
-      return !this.twist ? '' : null;
+  mounted () {
+    const parameters = this.load();
+
+    this.sliderConfigs.forEach((slider) => {
+      const element = this.$refs[slider.name];
+      this.sliders[slider.name] = element;
+
+      Slider.create(element, {
+        tooltips: true,
+        connect: true,
+        ...slider.options,
+      });
+
+      if (has(parameters, slider.name)) {
+        element.noUiSlider.set(parameters[slider.name]);
+      }
+
+      const cleanLimits = (limits) => limits.map((l) => Number(l.replaceAll(/[a-zA-Z]/g, '')));
+
+      element.noUiSlider.on('update', (limits) => {
+        this.fireUpdateParameter(slider.name, cleanLimits(limits));
+      });
+
+      element.noUiSlider.on('change', (limits) => {
+        this.fireUpdateParameter(slider.name, cleanLimits(limits));
+      });
+    });
+
+    if (has(parameters, 'twist')) {
+      this.twist = parameters.twist;
     }
+
+    if (has(parameters, 'strokes')) {
+      const enabledStrokes = new Set(parameters.strokes);
+      this.strokes.forEach((stroke) => {
+        stroke.enabled = enabledStrokes.has(stroke.name);
+      });
+
+      this.fireUpdateStrokes();
+    }
+
+    this.$el.querySelectorAll('.free-play-container').forEach((element) => {
+      makeCollapsible(element);
+    });
   },
 
   methods: {
     fireUpdateStrokes (storage = true) {
-      const selectedStrokes = this.strokes.filter(s => s.enabled).map(s => s.name);
+      const selectedStrokes = this.strokes.filter((s) => s.enabled).map((s) => s.name);
 
       if (storage) {
         this.save('strokes', selectedStrokes);
@@ -220,52 +334,7 @@ export default {
       parameters[parameter] = value;
 
       localStorage.setItem('free-play-parameters', JSON.stringify(parameters));
-    }
+    },
   },
-
-  mounted () {
-    const parameters = this.load();
-
-    this.sliderConfigs.forEach((slider) => {
-      const element = this.$refs[slider.name];
-      this.sliders[slider.name] = element;
-
-      Slider.create(element, {
-        tooltips: true,
-        connect: true,
-        ...slider.options,
-      });
-
-      if (has(parameters, slider.name)) {
-        element.noUiSlider.set(parameters[slider.name]);
-      }
-
-      const cleanLimits = l => l.map(l => Number(l.replaceAll(/[a-zA-Z]/g, '')));
-      
-      element.noUiSlider.on('update', (limits) => {
-        this.fireUpdateParameter(slider.name, cleanLimits(limits));
-      });
-
-      element.noUiSlider.on('change', (limits) => {
-        this.fireUpdateParameter(slider.name, cleanLimits(limits));
-      });
-    });
-
-    if (has(parameters, 'twist')) {
-      this.twist = parameters.twist;
-    }
-
-    if (has(parameters, 'strokes')) {
-      const enabledStrokes = new Set(parameters.strokes);
-      this.strokes.forEach((stroke) => {
-        stroke.enabled = enabledStrokes.has(stroke.name);
-      });
-
-      this.fireUpdateStrokes();
-    }
-
-    this.$el.querySelectorAll('.free-play-container').forEach((element) => {
-      makeCollapsible(element);
-    });
-  }
 };
+</script>

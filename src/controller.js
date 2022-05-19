@@ -1,8 +1,10 @@
-import Ayva, { AyvaBehavior, TempestStroke, VariableDuration } from 'https://unpkg.com/ayvajs';
+import Ayva, { AyvaBehavior, TempestStroke, VariableDuration } from 'ayvajs';
 
 export default class Controller extends AyvaBehavior {
   #currentStroke = null;
+
   #duration = null;
+
   #bpm;
 
   generateActions (ayva) {
@@ -42,7 +44,7 @@ export default class Controller extends AyvaBehavior {
       }
 
       return this.#bpm;
-    }
+    };
 
     if (this.#currentStroke) {
       // Create smooth transition to the next stroke.
@@ -83,7 +85,9 @@ export default class Controller extends AyvaBehavior {
         const [phase] = this.parameters['twist-phase'];
         const [ecc] = this.parameters['twist-ecc'];
 
-        config.R0 = { from, to, phase, ecc };
+        config.R0 = {
+          from, to, phase, ecc,
+        };
       }
 
       return config;
@@ -109,7 +113,7 @@ export default class Controller extends AyvaBehavior {
   }
 
   #readyForNextStroke () {
-    // We're ready for the next stroke when the duration has elapsed, we have strokes available, 
+    // We're ready for the next stroke when the duration has elapsed, we have strokes available,
     // and also the user is not mucking about with the bpm slider.
     return (!this.#duration || this.#duration.complete) && this.strokes.length && !this.bpmActive;
   }
@@ -125,7 +129,7 @@ export default class Controller extends AyvaBehavior {
   }
 
   #generateNextBpm () {
-    const [from, to] = this.parameters['bpm'];
+    const [from, to] = this.parameters.bpm;
     return Math.floor(Ayva.map(Math.random(), 0, 1, from, to));
   }
 
