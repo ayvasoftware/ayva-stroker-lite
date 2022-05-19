@@ -1,9 +1,13 @@
 {
-  "extends": "airbnb-base",
+  "extends": [
+    "airbnb-base",
+    "plugin:vue/vue3-recommended"
+  ],
   "parserOptions": {
     "ecmaVersion": "latest"
   },
   "rules": {
+    "vue/max-attributes-per-line": "off",
     "space-before-function-paren": [
       "error",
       "always"
