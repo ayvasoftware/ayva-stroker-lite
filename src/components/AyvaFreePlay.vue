@@ -11,7 +11,7 @@
           </div>
           <div
             ref="bpm"
-            class="slider"
+            class="slider horizontal"
           />
         </div>
 
@@ -21,7 +21,7 @@
           </div>
           <div
             ref="pattern-duration"
-            class="slider"
+            class="slider horizontal"
           />
         </div>
 
@@ -31,7 +31,7 @@
           </div>
           <div
             ref="transition-duration"
-            class="slider"
+            class="slider horizontal"
           />
         </div>
 
@@ -58,7 +58,7 @@
           </div>
           <div
             ref="twist-range"
-            class="slider"
+            class="slider horizontal"
             :disabled="disableTwist"
           />
         </div>
@@ -72,7 +72,7 @@
           </div>
           <div
             ref="twist-phase"
-            class="slider"
+            class="slider horizontal"
             :disabled="disableTwist"
           />
         </div>
@@ -86,7 +86,7 @@
           </div>
           <div
             ref="twist-ecc"
-            class="slider"
+            class="slider horizontal"
             :disabled="disableTwist"
           />
         </div>

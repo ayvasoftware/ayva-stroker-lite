@@ -1,0 +1,72 @@
+.slider {
+  --custom-value-color: #6784bb;
+}
+
+.slider {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.slider.horizontal {
+  height: 3px;
+  top: 7px;
+}
+
+.slider.vertical {
+  width: 3px;
+  height: 100%;
+}
+
+.slider .noUi-connect {
+  background: var(--custom-value-color)
+}
+
+.slider .noUi-handle {
+  height: 12px;
+  width: 12px;
+  border-radius: 9px;
+  background: var(--custom-value-color);
+  box-shadow: none;
+  border: none;
+  cursor: pointer;
+}
+
+.slider.horizontal .noUi-handle {
+  top: -5px;
+  right: -12px;
+}
+
+.slider.vertical .noUi-handle {
+  right: -4.5px;
+  bottom: -5px;
+}
+
+.slider[disabled] .noUi-handle {
+  cursor: not-allowed;
+}
+
+.slider[disabled], .axis[disabled] {
+  opacity: 0.5;
+}
+
+.slider .noUi-connects, 
+.slider {
+  background-color: rgb(66, 66, 66);
+}
+
+.noUi-handle:after {
+  display: none;
+}
+
+.noUi-handle:before {
+  display: none;
+}
+
+.noUi-tooltip {
+  font-size: 10px;
+  background-color: transparent;
+  border: none;
+  color: var(--custom-value-color);
+  font-weight: bold;
+}

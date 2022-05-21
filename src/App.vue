@@ -51,7 +51,7 @@
     <div id="current-bpm">
       <div
         ref="bpmSlider"
-        class="slider"
+        class="slider horizontal"
         :disabled="bpmDisabled ? '' : null"
       />
       <div
@@ -288,6 +288,4 @@ export default {
 };
 </script>
 
-<style src="./assets/lil-gui.css"></style>
-<style src="./assets/nouislider.css"></style>
 <style src="./assets/main.css"></style>

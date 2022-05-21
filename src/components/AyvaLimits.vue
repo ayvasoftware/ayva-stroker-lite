@@ -12,7 +12,7 @@
           <div class="axis">
             {{ axis }}
           </div>
-          <div class="slider" />
+          <div class="slider horizontal" />
         </div>
       </template>
     </div>
