@@ -9,9 +9,10 @@
           <div class="axis">
             BPM Range
           </div>
-          <div
-            ref="bpm"
-            class="slider horizontal"
+          <ayva-slider
+            :options="bpmOptions"
+            storage="free-play-bpm"
+            @update="onUpdate('bpm', $event)"
           />
         </div>
 
@@ -19,9 +20,10 @@
           <div class="axis">
             Pattern Duration
           </div>
-          <div
-            ref="pattern-duration"
-            class="slider horizontal"
+          <ayva-slider
+            :options="patternDurationOptions"
+            storage="free-play-pattern-duration"
+            @update="onUpdate('pattern-duration', $event)"
           />
         </div>
 
@@ -29,9 +31,10 @@
           <div class="axis">
             Transition Duration
           </div>
-          <div
-            ref="transition-duration"
-            class="slider horizontal"
+          <ayva-slider
+            :options="transitionDurationOptions"
+            storage="free-play-transition-duration"
+            @update="onUpdate('transition-duration', $event)"
           />
         </div>
 
@@ -40,12 +43,7 @@
             Enable Twist
           </div>
           <div>
-            <label class="widget">
-              <input
-                v-model="twist"
-                type="checkbox"
-              >
-            </label>
+            <ayva-checkbox v-model="twist" storage="free-play-enable-twist" />
           </div>
         </div>
 
@@ -56,10 +54,12 @@
           >
             Twist Range
           </div>
-          <div
-            ref="twist-range"
-            class="slider horizontal"
+
+          <ayva-slider
+            :options="twistRangeOptions"
             :disabled="disableTwist"
+            storage="free-play-twist-range"
+            @update="onUpdate('twist-range', $event)"
           />
         </div>
 
@@ -70,10 +70,11 @@
           >
             Twist Phase
           </div>
-          <div
-            ref="twist-phase"
-            class="slider horizontal"
+          <ayva-slider
+            :options="twistPhaseOptions"
             :disabled="disableTwist"
+            storage="free-play-twist-phase"
+            @update="onUpdate('twist-phase', $event)"
           />
         </div>
 
@@ -84,10 +85,11 @@
           >
             Twist Eccentricity
           </div>
-          <div
-            ref="twist-ecc"
-            class="slider horizontal"
+          <ayva-slider
+            :options="twistEccOptions"
             :disabled="disableTwist"
+            storage="free-play-twist-ecc"
+            @update="onUpdate('twist-ecc', $event)"
           />
         </div>
       </div>
@@ -110,11 +112,11 @@
           <template v-for="stroke of strokes" :key="stroke.name">
             <div class="tempest-stroke">
               <div class="checkbox">
-                <input
+                <ayva-checkbox
                   v-model="stroke.enabled"
-                  type="checkbox"
+                  :storage="`free-play-pattern-${stroke.name}`"
                   @change="fireUpdateStrokes"
-                >
+                />
               </div>
               <div>
                 <button @click="fireSelectStroke(stroke.name)">
@@ -131,10 +133,15 @@
 
 <script>
 import { TempestStroke } from 'ayvajs';
-import Slider from 'nouislider';
-import { makeCollapsible, formatter, has } from '../util.js';
+import AyvaSlider from './widgets/AyvaSlider.vue';
+import AyvaCheckbox from './widgets/AyvaCheckbox.vue';
+import { makeCollapsible, formatter } from '../util.js';
 
 export default {
+  components: {
+    AyvaSlider,
+    AyvaCheckbox,
+  },
 
   props: {
     currentStrokeName: {
@@ -149,83 +156,67 @@ export default {
     return {
       twist: false,
 
-      sliderConfigs: [{
-        name: 'bpm',
-        options: {
-          range: {
-            min: 0,
-            max: 120,
-          },
-          start: [20, 60],
-          padding: [10],
-          step: 1,
-          format: formatter(),
+      bpmOptions: {
+        range: {
+          min: 0,
+          max: 120,
         },
-      }, {
-        name: 'pattern-duration',
-        options: {
-          range: {
-            min: 0,
-            max: 30,
-          },
-          start: [5, 10],
-          padding: [1],
-          step: 0.1,
-          margin: 3,
-          format: formatter(1, 's'),
+        start: [20, 60],
+        padding: [10],
+        step: 1,
+        format: formatter(),
+      },
+      patternDurationOptions: {
+        range: {
+          min: 0,
+          max: 30,
         },
-      }, {
-        name: 'transition-duration',
-        options: {
-          range: {
-            min: 0,
-            max: 30,
-          },
-          start: [2, 5],
-          padding: [1],
-          step: 0.1,
-          margin: 3,
-          format: formatter(1, 's'),
+        start: [5, 10],
+        padding: [1],
+        step: 0.1,
+        margin: 3,
+        format: formatter(1, 's'),
+      },
+      transitionDurationOptions: {
+        range: {
+          min: 0,
+          max: 30,
         },
-      }, {
-        name: 'twist-range',
-        options: {
-          range: {
-            min: 0,
-            max: 1,
-          },
-          start: [0, 1],
-          margin: 0.1,
+        start: [2, 5],
+        padding: [1],
+        step: 0.1,
+        margin: 3,
+        format: formatter(1, 's'),
+      },
+      twistRangeOptions: {
+        range: {
+          min: 0,
+          max: 1,
         },
-      }, {
-        name: 'twist-phase',
-        options: {
-          range: {
-            min: 0,
-            max: 4,
-          },
-          start: [0],
+        start: [0, 1],
+        margin: 0.1,
+      },
+      twistPhaseOptions: {
+        range: {
+          min: -4,
+          max: 4,
         },
-      }, {
-        name: 'twist-ecc',
-        options: {
-          range: {
-            min: 0,
-            max: 1,
-          },
-          start: [0],
+        start: [0],
+      },
+      twistEccOptions: {
+        range: {
+          min: -2.5,
+          max: 2.5,
         },
-      }],
-
-      sliders: {},
+        start: [0],
+      },
 
       strokes: Object.keys(TempestStroke.library).sort().map((name) => ({
         name,
         enabled: true,
       })),
 
-      initializedTwist: false,
-      initializedStrokes: false,
+      initialParameters: {},
     };
   },
 
@@ -239,82 +230,35 @@ export default {
     twist: {
       immediate: true,
       handler (value) {
-        this.fireUpdateParameter('twist', value, this.initializedTwist);
-        this.initializedTwist = true;
+        this.fireUpdateParameter('twist', value);
       },
     },
 
     strokes: {
       immediate: true,
       handler () {
-        this.fireUpdateStrokes(this.initializedStrokes);
-        this.initializedStrokes = true;
+        this.fireUpdateStrokes();
       },
     },
   },
 
   mounted () {
-    const parameters = this.load();
-
-    this.sliderConfigs.forEach((slider) => {
-      const element = this.$refs[slider.name];
-      this.sliders[slider.name] = element;
-
-      Slider.create(element, {
-        tooltips: true,
-        connect: true,
-        ...slider.options,
-      });
-
-      if (has(parameters, slider.name)) {
-        element.noUiSlider.set(parameters[slider.name]);
-      }
-
-      const cleanLimits = (limits) => limits.map((l) => Number(l.replaceAll(/[a-zA-Z]/g, '')));
-
-      element.noUiSlider.on('update', (limits) => {
-        this.fireUpdateParameter(slider.name, cleanLimits(limits));
-      });
-
-      element.noUiSlider.on('change', (limits) => {
-        this.fireUpdateParameter(slider.name, cleanLimits(limits));
-      });
-    });
-
-    if (has(parameters, 'twist')) {
-      this.twist = parameters.twist;
-    }
-
-    if (has(parameters, 'strokes')) {
-      const enabledStrokes = new Set(parameters.strokes);
-      this.strokes.forEach((stroke) => {
-        stroke.enabled = enabledStrokes.has(stroke.name);
-      });
-
-      this.fireUpdateStrokes();
-    }
-
     this.$el.querySelectorAll('.free-play-container').forEach((element) => {
       makeCollapsible(element);
     });
   },
 
   methods: {
-    fireUpdateStrokes (storage = true) {
+    onUpdate (name, value) {
+      this.fireUpdateParameter(name, value);
+    },
+
+    fireUpdateStrokes () {
       const selectedStrokes = this.strokes.filter((s) => s.enabled).map((s) => s.name);
-
-      if (storage) {
-        this.save('strokes', selectedStrokes);
-      }
-
       this.$emit('update-strokes', selectedStrokes);
     },
 
-    fireUpdateParameter (name, value, storage = true) {
-      if (storage) {
-        this.save(name, value);
-      }
-
+    fireUpdateParameter (name, value) {
       this.$emit('update-parameters', {
         name,
         value,
@@ -323,17 +267,6 @@ export default {
 
     fireSelectStroke (stroke) {
       this.$emit('select-stroke', stroke);
-    },
-
-    load () {
-      return JSON.parse(localStorage.getItem('free-play-parameters') || '{}');
-    },
-
-    save (parameter, value) {
-      const parameters = this.load();
-      parameters[parameter] = value;
-
-      localStorage.setItem('free-play-parameters', JSON.stringify(parameters));
     },
   },
 };

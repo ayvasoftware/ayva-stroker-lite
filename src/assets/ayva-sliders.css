@@ -70,3 +70,11 @@
   color: var(--custom-value-color);
   font-weight: bold;
 }
+
+.slider.active-tooltips .noUi-tooltip {
+  display: none;
+}
+
+.slider.active-tooltips .noUi-active .noUi-tooltip {
+  display: block;
+}

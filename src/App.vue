@@ -49,10 +49,14 @@
     </div>
 
     <div id="current-bpm">
-      <div
+      <ayva-slider
         ref="bpmSlider"
-        class="slider horizontal"
+        :options="bpmSliderOptions"
         :disabled="bpmDisabled ? '' : null"
+        @update="currentBpm = $event"
+        @start="bpmActive = true"
+        @end="bpmActive = false"
+        @change="onChange"
       />
       <div
         class="label"
@@ -73,9 +77,9 @@
 </template>
 
 <script>
-import Slider from 'nouislider';
 import OSREmulator from 'osr-emu';
 import Ayva, { WebSerialDevice } from 'ayvajs';
+import AyvaSlider from './components/widgets/AyvaSlider.vue';
 import AyvaLimits from './components/AyvaLimits.vue';
 import AyvaFreePlay from './components/AyvaFreePlay.vue';
 import AyvaMode from './components/AyvaMode.vue';
@@ -96,6 +100,7 @@ export default {
     AyvaFreePlay,
     AyvaMode,
     AyvaConnected,
+    AyvaSlider,
   },
 
   props: [],
@@ -112,6 +117,19 @@ export default {
       currentStrokeName: 'None',
       bpmDisabled: false,
       bpmAnimationFrame: null,
+
+      bpmSliderOptions: {
+        start: [60],
+        tooltips: true,
+        connect: true,
+        padding: [10],
+        step: 1,
+        range: {
+          min: 0,
+          max: 120,
+        },
+        format: formatter(),
+      },
     };
   },
 
@@ -120,38 +138,10 @@ export default {
 
     ayva.addOutputDevice(emulator);
 
-    Slider.create(this.$refs.bpmSlider, {
-      start: [60],
-      tooltips: true,
-      connect: true,
-      padding: [10],
-      step: 1,
-      range: {
-        min: 0,
-        max: 120,
-      },
-      format: formatter(),
-    });
+    // this.$refs.bpmSlider.noUiSlider.on('change', ([bpm]) => {
+    //   this.currentBpm = Number(bpm);
 
-    this.$refs.bpmSlider.noUiSlider.on('start', () => {
-      this.bpmActive = true;
-    });
-
-    this.$refs.bpmSlider.noUiSlider.on('end', () => {
-      this.bpmActive = false;
-    });
-
-    this.$refs.bpmSlider.noUiSlider.on('update', ([bpm]) => {
-      this.currentBpm = Number(bpm);
-    });
-
-    this.$refs.bpmSlider.noUiSlider.on('change', ([bpm]) => {
-      this.currentBpm = Number(bpm);
-
-      if (controller) {
-        controller.updatedBpm = true;
-      }
-    });
+    // });
 
     const watchProperties = [
       'bpmActive',
@@ -170,6 +160,13 @@ export default {
   },
 
   methods: {
+    onChange () {
+      // Triggered when user clicks a location on slider without dragging...
+      if (controller) {
+        controller.updatedBpm = true;
+      }
+    },
+
     updateLimits (axis) {
       ayva.updateLimits(axis.name, axis.limits.min, axis.limits.max);
     },
@@ -204,11 +201,11 @@ export default {
     },
 
     getBpm () {
-      return Number(this.$refs.bpmSlider.noUiSlider.get());
+      return Number(this.$refs.bpmSlider.get());
     },
 
     setBpm (bpm) {
-      this.$refs.bpmSlider.noUiSlider.set(bpm);
+      this.$refs.bpmSlider.set(bpm);
     },
 
     createBpmAnimation (duration, targetBpm) {

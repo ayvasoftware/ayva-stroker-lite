@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-import ConnectIcon from '../assets/connect-icon.svg';
+import ConnectIcon from '../assets/icons/connect.svg';
 </script>
 
 <script>

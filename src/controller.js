@@ -82,8 +82,8 @@ export default class Controller extends AyvaBehavior {
 
       if (this.parameters.twist) {
         const [from, to] = this.parameters['twist-range'];
-        const [phase] = this.parameters['twist-phase'];
-        const [ecc] = this.parameters['twist-ecc'];
+        const phase = this.parameters['twist-phase'];
+        const ecc = this.parameters['twist-ecc'];
 
         config.R0 = {
           from, to, phase, ecc,
