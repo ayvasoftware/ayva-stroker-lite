@@ -3,9 +3,9 @@
     <div class="range">
       <ayva-slider
         ref="rangeSlider"
+        v-model="range"
         :options="rangeOptions"
         active-tooltips
-        @update="onUpdateRange"
       />
     </div>
     <div class="wave">
@@ -19,18 +19,18 @@
     <div class="phase">
       <ayva-slider
         ref="phaseSlider"
+        v-model="phase"
         :options="phaseOptions"
         active-tooltips
-        @update="onUpdatePhase"
       />
     </div>
 
     <div class="ecc">
       <ayva-slider
         ref="eccSlider"
+        v-model="ecc"
         :options="eccOptions"
         active-tooltips
-        @update="onUpdateEcc"
       />
     </div>
   </div>
@@ -38,7 +38,9 @@
 
 <script>
 import Ayva from 'ayvajs';
+import _ from 'lodash';
 import AyvaSlider from './widgets/AyvaSlider.vue';
+import { clamp } from '../util.js';
 
 export default {
   components: {
@@ -46,7 +48,10 @@ export default {
   },
 
   props: {
-    initialParameters: {
+    /**
+     * The model value of a TempestMotion is a parameters object with from, to, phase, and ecc properties.
+     */
+    modelValue: {
       type: Object,
       default: () => ({
         from: 0.5,
@@ -67,7 +72,7 @@ export default {
     },
   },
 
-  emits: ['update:parameters'],
+  emits: ['update:modelValue'],
 
   data () {
     return {
@@ -110,23 +115,33 @@ export default {
     };
   },
 
-  watch: {
-    initialParameters: {
-      immediate: true,
-      deep: true,
-      handler (updatedParameters) {
-        this.$nextTick(() => {
-          const { rangeSlider, phaseSlider, eccSlider } = this.$refs;
-          // Perform this on nextTick to ensure noUiSlider is initialized...
-          const {
-            from, to, phase, ecc,
-          } = updatedParameters;
-
-          rangeSlider.set(from, to);
-          phaseSlider.set(phase);
-          eccSlider.set(ecc);
-        });
+  computed: {
+    range: {
+      get () {
+        return [this.from, this.to];
       },
+
+      set (value) {
+        [this.from, this.to] = value;
+      },
+    },
+  },
+
+  watch: {
+    modelValue (updated) {
+      const {
+        from, to, phase, ecc,
+      } = this;
+
+      if (!_.isEqual(updated, {
+        from, to, phase, ecc,
+      })) {
+        const { rangeSlider, phaseSlider, eccSlider } = this.$refs;
+
+        rangeSlider.set(updated.from, updated.to);
+        phaseSlider.set(updated.phase);
+        eccSlider.set(updated.ecc);
+      }
     },
 
     angle () {
@@ -134,22 +149,16 @@ export default {
     },
   },
 
+  mounted () {
+    const watchProperties = ['from', 'to', 'phase', 'ecc'];
+
+    watchProperties.forEach((prop) => this.$watch(prop, () => {
+      this.plot();
+      this.updateModelValue();
+    }));
+  },
+
   methods: {
-    onUpdateRange (values) {
-      [this.from, this.to] = values;
-      this.fireUpdateParameters();
-    },
-
-    onUpdatePhase (value) {
-      this.phase = value;
-      this.fireUpdateParameters();
-    },
-
-    onUpdateEcc (value) {
-      this.ecc = value;
-      this.fireUpdateParameters();
-    },
-
     /**
      * Expand or shrink range on mouse wheel.
      */
@@ -158,7 +167,7 @@ export default {
       const average = (this.from + this.to) / 2;
 
       const computeLimits = (direction) => (direction > 0 ? { min: 0, max: average } : { min: average, max: 1 });
-      const format = (value, limits) => this.clamp(value, limits.min, limits.max);
+      const format = (value, limits) => clamp(value, limits.min, limits.max);
       const computeDirection = (value) => {
         const distance = average - value;
 
@@ -192,6 +201,9 @@ export default {
       this.lastToDirection = toDirection;
     },
 
+    /**
+     * Plot the sin wav graph.
+     */
     plot () {
       const {
         from, to, phase, ecc,
@@ -250,19 +262,13 @@ export default {
       context.fill();
     },
 
-    fireUpdateParameters () {
-      this.plot();
-
+    updateModelValue () {
       const {
         from, to, phase, ecc,
       } = this;
-      this.$emit('update:parameters', {
+      this.$emit('update:modelValue', {
         from, to, phase, ecc,
       });
-    },
-
-    clamp (value, min, max) {
-      return Math.max(min, Math.min(max, value));
     },
   },
 };

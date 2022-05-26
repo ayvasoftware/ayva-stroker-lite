@@ -68,3 +68,7 @@ export const formatter = (decimals = 0, suffix = '') => ({
 export function has (obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
+
+export function clamp (value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}

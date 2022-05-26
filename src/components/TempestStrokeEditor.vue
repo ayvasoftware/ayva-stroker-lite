@@ -8,10 +8,9 @@
       <div class="axis-scroll">
         <div v-for="axis in axes" :key="axis.name" class="tempest-motion-container">
           <tempest-motion
+            v-model="axis.parameters"
             :display-name="axis.displayName"
-            :initial-parameters="axis.initialParameters"
             :angle="previewAngle"
-            @update:parameters="parameters => onUpdateParameters(axis, parameters)"
           />
         </div>
       </div>
@@ -19,7 +18,10 @@
     <div class="emulator-column">
       <div ref="emulator" class="emulator" />
       <div class="preview-bpm">
-        <ayva-slider :options="previewBpmOptions" @update="previewBpm = $event" />
+        <ayva-slider
+          v-model="previewBpm"
+          :options="previewBpmOptions"
+        />
         <div class="label">
           Preview BPM
         </div>
@@ -52,34 +54,22 @@ export default {
   },
 
   data () {
-    const initialParameters = {
-      from: 0.5,
-      to: 0.5,
-      phase: 0,
-      ecc: 0,
-    };
-
     return {
       axes: [{
         alias: 'stroke',
         displayName: 'stroke (L0)',
-        initialParameters,
       }, {
         alias: 'twist',
         displayName: 'twist (R0)',
-        initialParameters,
       }, {
         alias: 'roll',
         displayName: 'roll (R1)',
-        initialParameters,
       }, {
         alias: 'pitch',
         displayName: 'pitch (R2)',
-        initialParameters,
       }, {
         alias: 'vibe0',
         displayName: 'vibe0 (V0)',
-        initialParameters,
       }],
 
       availableAxes: Ayva.defaultConfiguration.axes.map((axis) => ({
@@ -143,10 +133,6 @@ export default {
   },
 
   methods: {
-    onUpdateParameters (axis, parameters) {
-      axis.parameters = parameters;
-    },
-
     animatePreview () {
       // TODO: Change this to use TempestStroke parameter providers when that feature is available.
       const { granularity } = TempestStroke;
@@ -179,7 +165,7 @@ export default {
       const tempestMotion = (valueParameters) => {
         const mappedAxis = this.axesByAlias[axis.alias];
 
-        if (mappedAxis) {
+        if (mappedAxis && mappedAxis.parameters) {
           const {
             from, to, phase, ecc,
           } = mappedAxis.parameters;
@@ -202,7 +188,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .root {
   min-width: 1200px;
   min-height: 700px;

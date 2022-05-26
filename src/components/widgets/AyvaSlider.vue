@@ -4,6 +4,7 @@
 
 <script>
 import Slider from 'nouislider';
+import _ from 'lodash';
 
 export default {
   expose: ['set', 'get'],
@@ -23,9 +24,14 @@ export default {
       type: String,
       default: null,
     },
+
+    modelValue: {
+      type: [Number, Array],
+      default: null,
+    },
   },
 
-  emits: ['update', 'change', 'start', 'end'],
+  emits: ['update', 'update:modelValue', 'change', 'start', 'end'],
 
   data () {
     return {
@@ -60,6 +66,16 @@ export default {
     mergedOptions () {
       this.initSlider();
     },
+
+    modelValue (newValue) {
+      if (!_.isEqual(newValue, this.value)) {
+        if (newValue.length) {
+          this.slider.set(...newValue);
+        } else {
+          this.slider.set(newValue);
+        }
+      }
+    },
   },
 
   beforeMount () {
@@ -89,6 +105,7 @@ export default {
       }
 
       this.$emit('update', this.value);
+      this.$emit('update:modelValue', this.value);
     },
 
     initSlider () {

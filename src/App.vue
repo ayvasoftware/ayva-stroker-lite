@@ -138,11 +138,6 @@ export default {
 
     ayva.addOutputDevice(emulator);
 
-    // this.$refs.bpmSlider.noUiSlider.on('change', ([bpm]) => {
-    //   this.currentBpm = Number(bpm);
-
-    // });
-
     const watchProperties = [
       'bpmActive',
       'currentBpm',

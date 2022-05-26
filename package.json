@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "ayvajs": "^0.11.1",
+    "lodash": "^4.17.21",
     "osr-emu": "^0.2.1",
     "vue": "^3.2.33"
   }
