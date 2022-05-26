@@ -1,16 +1,29 @@
 <template>
   <div class="root">
     <div class="header">
-      <div class="toolbar" />
+      <div class="toolbar">
+        <span>{{ edit ? 'Edit' : 'Create' }} Stroke</span>
+        <span class="presets" :disabled="disabled">
+          <n-dropdown
+            placement="bottom-start"
+            trigger="click"
+            size="small"
+            :options="strokeLibraryOptions"
+            @select="selectPreset"
+          ><span class="presets-button">Presets</span>
+          </n-dropdown>
+        </span>
+      </div>
       <div class="main-inputs" />
     </div>
     <div class="axis-column">
-      <div class="axis-scroll">
+      <div ref="axisScroll" class="axis-scroll">
         <div v-for="axis in axes" :key="axis.name" class="tempest-motion-container">
           <tempest-motion
             v-model="axis.parameters"
             :display-name="axis.displayName"
             :angle="previewAngle"
+            :disabled="disabled"
           />
         </div>
       </div>
@@ -21,8 +34,9 @@
         <ayva-slider
           v-model="previewBpm"
           :options="previewBpmOptions"
+          :disabled="disabled"
         />
-        <div class="label">
+        <div class="label" :disabled="disabled">
           Preview BPM
         </div>
       </div>
@@ -33,6 +47,7 @@
 <script>
 import Ayva, { TempestStroke } from 'ayvajs';
 import OSREmulator from 'osr-emu';
+import { h, nextTick } from 'vue';
 import AyvaSlider from './widgets/AyvaSlider.vue';
 import TempestMotion from './TempestMotion.vue';
 import { formatter } from '../util.js';
@@ -47,30 +62,20 @@ export default {
   },
 
   props: {
-    active: {
+    edit: {
       type: Boolean,
-      default: true,
+      default: false,
     },
   },
 
   data () {
     return {
-      axes: [{
-        alias: 'stroke',
-        displayName: 'stroke (L0)',
-      }, {
-        alias: 'twist',
-        displayName: 'twist (R0)',
-      }, {
-        alias: 'roll',
-        displayName: 'roll (R1)',
-      }, {
-        alias: 'pitch',
-        displayName: 'pitch (R2)',
-      }, {
-        alias: 'vibe0',
-        displayName: 'vibe0 (V0)',
-      }],
+      active: {
+        type: Boolean,
+        default: true,
+      },
+
+      axes: [],
 
       availableAxes: Ayva.defaultConfiguration.axes.map((axis) => ({
         name: axis.name,
@@ -95,6 +100,10 @@ export default {
         },
         format: formatter(),
       },
+
+      tempestStrokeLibrary: TempestStroke.library,
+
+      transitionDuration: 0.75,
     };
   },
 
@@ -105,20 +114,38 @@ export default {
         return map;
       }, {});
     },
+
+    strokeLibraryOptions () {
+      const tempestStrokeOptions = Object.keys(this.tempestStrokeLibrary).sort().map((key) => ({
+        key,
+        label: key,
+      }));
+
+      return [{
+        key: 'header',
+        type: 'render',
+        render: () => h('div', { style: 'padding: 5px' }, 'Library'),
+      }, ...tempestStrokeOptions];
+    },
+
+    disabled () {
+      // Because we are putting this attribute on non input elements we have
+      // to do this hacky thing...
+      return this.active ? undefined : '';
+    },
   },
 
   watch: {
     active: {
       immediate: true,
       handler (active) {
-        this.$nextTick(() => {
-          if (active) {
-            ayva.stop();
+        ayva.stop();
+
+        if (active) {
+          nextTick(() => {
             this.animatePreview();
-          } else {
-            ayva.stop();
-          }
-        });
+          });
+        }
       },
     },
   },
@@ -184,17 +211,97 @@ export default {
 
       return (valueParameters) => tempestMotion(valueParameters);
     },
+
+    selectPreset (key) {
+      const stroke = this.tempestStrokeLibrary[key];
+
+      if (stroke) {
+        this.active = false;
+        this.previewAngle = 0;
+
+        this.$refs.axisScroll.scrollTop = 0;
+
+        nextTick(() => {
+          // Perform the transition move on next tick so Ayva has time to stop().
+          const axisNames = Object.keys(stroke);
+
+          this.axes = axisNames.map((name) => {
+            const parameters = { ...stroke[name] };
+            const { alias } = ayva.getAxis(name);
+
+            return {
+              alias,
+              name,
+              parameters,
+              displayName: `${alias} (${name})`,
+            };
+          }).filter((axis) => !(axis.parameters.from === 0.5 && axis.parameters.to === 0.5));
+
+          const resetMoves = this.getResetMoves(stroke);
+
+          ayva.move(...resetMoves).then(() => {
+            this.active = true;
+          });
+        });
+      }
+    },
+
+    getResetMoves (stroke) {
+      const duration = this.transitionDuration;
+      const startMoves = new TempestStroke(stroke).getStartMoves(ayva, { duration });
+
+      const usedAxesSet = startMoves.reduce((set, next) => {
+        set.add(next.axis);
+        return set;
+      }, new Set());
+
+      const unusedAxes = Ayva.defaultConfiguration.axes
+        .filter((axis) => !usedAxesSet.has(axis.name) && !usedAxesSet.has(axis.alias));
+
+      const unusedMoves = unusedAxes.map((axis) => {
+        const to = axis.type === 'auxiliary' ? 0 : 0.5; // Send unused linear / rotation to 0.5, auxiliary to 0.
+
+        return {
+          to, duration, axis: axis.name,
+        };
+      });
+
+      return [...startMoves, ...unusedMoves];
+    },
   },
 };
 </script>
 
 <style scoped>
 .root {
-  min-width: 1200px;
-  min-height: 700px;
+  width: 1200px;
+  height: 700px;
   display: grid;
   grid-template-columns: 45% 55%;
   grid-template-rows: 1fr 80% 50px;
+}
+
+.header {
+  grid-column: span 2;
+}
+
+.toolbar {
+  background-color: rgb(17, 17, 17);
+  height: 30px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+}
+
+[disabled] > * {
+  pointer-events: none;
+}
+
+.presets-button:hover {
+  opacity: 0.9;
+  cursor: pointer;
 }
 
 .emulator {
@@ -228,7 +335,7 @@ export default {
   display: grid;
   grid-template-rows: 1fr 1fr;
   position: absolute;
-  top: 550px;
+  top: 500px;
   width: 300px;
   left: 50%;
   transform: translate(-50%);

@@ -39,6 +39,7 @@
 <script>
 import Ayva from 'ayvajs';
 import _ from 'lodash';
+import { nextTick } from 'vue';
 import AyvaSlider from './widgets/AyvaSlider.vue';
 import { clamp } from '../util.js';
 
@@ -128,20 +129,28 @@ export default {
   },
 
   watch: {
-    modelValue (updated) {
-      const {
-        from, to, phase, ecc,
-      } = this;
+    modelValue: {
+      immediate: true,
+      deep: true,
+      handler (updated) {
+        nextTick(() => {
+          // TODO: Truly understand why this must be done on the next tick to work...
+          const {
+            from, to, phase, ecc,
+          } = this;
 
-      if (!_.isEqual(updated, {
-        from, to, phase, ecc,
-      })) {
-        const { rangeSlider, phaseSlider, eccSlider } = this.$refs;
+          if (!_.isEqual(updated, {
+            from, to, phase, ecc,
+          })) {
+            const { rangeSlider, phaseSlider, eccSlider } = this.$refs;
 
-        rangeSlider.set(updated.from, updated.to);
-        phaseSlider.set(updated.phase);
-        eccSlider.set(updated.ecc);
-      }
+            rangeSlider.set(updated.from, updated.to);
+            phaseSlider.set(updated.phase);
+            eccSlider.set(updated.ecc);
+          }
+        });
+      },
+      flush: 'post',
     },
 
     angle () {
@@ -280,6 +289,10 @@ export default {
     grid-template-columns: 15px 60px 1fr 20px 1fr;
     grid-template-rows: 100px 20px;
     width: 450px;
+  }
+
+  .tempest-motion[disabled] > * {
+    pointer-events: none;
   }
 
   .wave {

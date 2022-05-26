@@ -71,6 +71,10 @@
   display: none;
 }
 
+.slider.active-tooltips:hover .noUi-tooltip {
+  display: block;
+}
+
 .slider.active-tooltips .noUi-active .noUi-tooltip {
   display: block;
 }
