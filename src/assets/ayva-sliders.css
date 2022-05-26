@@ -1,8 +1,4 @@
 .slider {
-  --custom-value-color: #6784bb;
-}
-
-.slider {
   border: none;
   border-radius: 0;
   box-shadow: none;
@@ -19,14 +15,14 @@
 }
 
 .slider .noUi-connect {
-  background: var(--custom-value-color)
+  background: var(--ayva-text-color)
 }
 
 .slider .noUi-handle {
   height: 12px;
   width: 12px;
   border-radius: 9px;
-  background: var(--custom-value-color);
+  background: var(--ayva-text-color);
   box-shadow: none;
   border: none;
   cursor: pointer;
@@ -67,7 +63,7 @@
   font-size: 10px;
   background-color: transparent;
   border: none;
-  color: var(--custom-value-color);
+  color: var(--ayva-text-color);
   font-weight: bold;
 }
 

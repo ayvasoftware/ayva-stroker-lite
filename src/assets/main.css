@@ -1,5 +1,5 @@
 body {
-  --custom-value-color: #6784bb;
+  --ayva-text-color: #6784bb;
   background: black;
   margin: 0
 }
@@ -108,7 +108,7 @@ button[disabled] {
   display: flex;
   justify-content: center;
   padding: 5px;
-  color: var(--custom-value-color);
+  color: var(--ayva-text-color);
   font-weight: bold;
 }
 
@@ -148,7 +148,7 @@ button[disabled] {
 }
 
 .manual-mode {
-  color: var(--custom-value-color);
+  color: var(--ayva-text-color);
 }
 
 .limits-container {
@@ -212,7 +212,7 @@ button[disabled] {
 
 .current-stroke-container .current-stroke {
   padding: 0 5px;
-  color: var(--custom-value-color);
+  color: var(--ayva-text-color);
 }
 
 [disabled] {
@@ -226,7 +226,7 @@ button[disabled] {
   left: 20px;
   font-family: locust;
   font-size: 12px;
-  color: var(--custom-value-color);
+  color: var(--ayva-text-color);
 }
 
 .logo .ayva {
