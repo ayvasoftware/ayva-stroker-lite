@@ -99,8 +99,8 @@ export default {
       },
       eccOptions: {
         range: {
-          min: -2.5,
-          max: 2.5,
+          min: -1,
+          max: 1,
         },
         start: [0],
         step: 0.05,
@@ -316,6 +316,7 @@ export default {
     left: -15px;
     bottom: -3px;
     color: #6784bb;
+    font-size: 12px;
   }
 
   .range .slider {

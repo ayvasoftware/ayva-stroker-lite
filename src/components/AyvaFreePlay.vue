@@ -205,8 +205,8 @@ export default {
       },
       twistEccOptions: {
         range: {
-          min: -2.5,
-          max: 2.5,
+          min: -1,
+          max: 1,
         },
         start: [0],
       },

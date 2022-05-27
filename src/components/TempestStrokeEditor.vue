@@ -1,20 +1,27 @@
 <template>
-  <div class="root">
+  <div class="modal-body">
     <div class="header">
       <div class="toolbar">
-        <span>{{ edit ? 'Edit' : 'Create' }} Stroke</span>
-        <span class="presets" :disabled="disabled">
-          <n-dropdown
-            placement="bottom-start"
-            trigger="click"
-            size="small"
-            :options="strokeLibraryDropdownOptions"
-            @select="selectPreset"
-          ><span class="presets-button">{{ presetLabel }}</span>
-          </n-dropdown>
-          <span class="cycle-buttons">
-            <chevron-left-icon class="cycle-button" @click="previousPreset()" />
-            <chevron-right-icon class="cycle-button" @click="nextPreset()" />
+        <span class="toolbar-left">
+          <span>{{ edit ? 'Edit' : 'Create' }} Stroke</span>
+        </span>
+        <span class="toolbar-right">
+          <span class="presets" :disabled="disabled">
+            <n-dropdown
+              placement="bottom-start"
+              trigger="click"
+              size="small"
+              :options="strokeLibraryDropdownOptions"
+              @select="selectPreset"
+            ><span class="presets-button">{{ presetLabel }}</span>
+            </n-dropdown>
+            <span>
+              <chevron-left-icon class="icon" @click="previousPreset()" />
+              <chevron-right-icon class="icon" @click="nextPreset()" />
+            </span>
+          </span>
+          <span>
+            <close-icon class="close icon" />
           </span>
         </span>
       </div>
@@ -58,11 +65,27 @@ import { formatter } from '../lib/util.js';
 import Storage from '../lib/ayva-storage.js';
 import ChevronLeftIcon from '../assets/icons/chevron-left.svg';
 import ChevronRightIcon from '../assets/icons/chevron-right.svg';
+import CloseIcon from '../assets/icons/close.svg';
 
 const storage = new Storage('custom-tempest-strokes');
 
 const ayva = new Ayva().defaultConfiguration();
 let emulator;
+
+const defaultStroke = {
+  stroke: {
+    from: 0.5, to: 0.5, phase: 0, ecc: 0,
+  },
+  twist: {
+    from: 0.5, to: 0.5, phase: 0, ecc: 0,
+  },
+  roll: {
+    from: 0.5, to: 0.5, phase: 0, ecc: 0,
+  },
+  pitch: {
+    from: 0.5, to: 0.5, phase: 0, ecc: 0,
+  },
+};
 
 export default {
   components: {
@@ -70,6 +93,7 @@ export default {
     AyvaSlider,
     ChevronLeftIcon,
     ChevronRightIcon,
+    CloseIcon,
   },
 
   props: {
@@ -86,7 +110,7 @@ export default {
         default: true,
       },
 
-      axes: [],
+      axes: this.createAxes('default', defaultStroke),
 
       availableAxes: Ayva.defaultConfiguration.axes.map((axis) => ({
         name: axis.name,
@@ -107,7 +131,7 @@ export default {
         step: 1,
         range: {
           min: 0,
-          max: 120,
+          max: 150,
         },
         format: formatter(),
       },
@@ -118,7 +142,7 @@ export default {
 
       transitionDuration: 0.75,
 
-      presetIndex: null,
+      presetIndex: 0,
 
       presetLabel: 'Presets',
     };
@@ -149,7 +173,7 @@ export default {
     strokeLibraryDropdownOptions () {
       return [{
         key: 'default',
-        label: 'Default',
+        label: 'default',
       }, {
         key: 'header',
         type: 'render',
@@ -257,13 +281,6 @@ export default {
     },
 
     selectPreset (key, item) {
-      const defaultStroke = {
-        stroke: { from: 1, to: 0 },
-        twist: { from: 0.5, to: 0.5 },
-        roll: { from: 0.5, to: 0.5 },
-        pitch: { from: 0.5, to: 0.5 },
-      };
-
       const stroke = this.customStrokeLibrary[key] || this.tempestStrokeLibrary[key] || defaultStroke;
 
       if (stroke) {
@@ -276,20 +293,7 @@ export default {
 
         nextTick(() => {
           // Perform the transition move on next tick so Ayva has time to stop().
-          const axisNames = Object.keys(stroke);
-
-          this.axes = axisNames.map((name) => {
-            const parameters = { ...stroke[name] };
-            const { alias } = ayva.getAxis(name);
-
-            return {
-              alias,
-              name,
-              parameters,
-              displayName: `${alias} (${name})`,
-            };
-          }).filter((axis) => key === 'default' || !(axis.parameters.from === 0.5 && axis.parameters.to === 0.5));
-
+          this.axes = this.createAxes(key, stroke);
           const resetMoves = this.getResetMoves(stroke);
 
           ayva.move(...resetMoves).then(() => {
@@ -345,17 +349,34 @@ export default {
 
       return [...startMoves, ...unusedMoves];
     },
+
+    createAxes (key, stroke) {
+      const axisNames = Object.keys(stroke);
+
+      return axisNames.map((axisName) => {
+        // Note: axisName might be alias or machine name...
+        const parameters = { ...stroke[axisName] };
+        const { alias, name } = ayva.getAxis(axisName);
+
+        return {
+          alias,
+          name,
+          parameters,
+          displayName: `${alias} (${name})`,
+        };
+      }).filter((axis) => key === 'default' || !(axis.parameters.from === 0.5 && axis.parameters.to === 0.5));
+    },
   },
 };
 </script>
 
 <style scoped>
-.root {
+.modal-body {
   width: 1200px;
   height: 700px;
   display: grid;
   grid-template-columns: 45% 55%;
-  grid-template-rows: 1fr 80% 50px;
+  grid-template-rows: 1fr 82% 50px;
 }
 
 .header {
@@ -370,6 +391,10 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 0 10px;
+}
+
+.toolbar > * {
+  display: flex;
 }
 
 [disabled] > * {
@@ -435,17 +460,21 @@ export default {
   font-weight: 700;
 }
 
-.cycle-button {
+.icon {
   width: 25px;
   cursor: pointer;
   margin-top: 2px;
 }
 
-.cycle-button:hover {
+.icon:hover {
   opacity: var(--ayva-hover-opacity)
 }
 
-.cycle-button:active {
+.icon:active {
   opacity: var(--ayva-active-opacity);
+}
+
+.close.icon {
+  margin-left: 5px;
 }
 </style>
