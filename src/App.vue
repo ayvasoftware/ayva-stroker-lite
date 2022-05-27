@@ -78,18 +78,19 @@
 
 <script>
 import OSREmulator from 'osr-emu';
-import Ayva, { WebSerialDevice } from 'ayvajs';
+import Ayva from 'ayvajs';
 import AyvaSlider from './components/widgets/AyvaSlider.vue';
 import AyvaLimits from './components/AyvaLimits.vue';
 import AyvaFreePlay from './components/AyvaFreePlay.vue';
 import AyvaMode from './components/AyvaMode.vue';
 import AyvaConnected from './components/AyvaConnected.vue';
-import AyvaController from './controller.js';
-import { formatter } from './util.js';
+import AyvaController from './lib/controller.js';
+import { formatter } from './lib/util.js';
+import device from './lib/device.js';
 
 // These need to be "globals" so they aren't proxied by Vue... because issues with private members :(
 const ayva = new Ayva().defaultConfiguration();
-const device = new WebSerialDevice();
+
 let controller;
 let emulator;
 

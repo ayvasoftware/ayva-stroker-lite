@@ -11,7 +11,7 @@
           </div>
           <ayva-slider
             :options="bpmOptions"
-            storage="free-play-bpm"
+            storage-key="free-play-bpm"
             @update="onUpdate('bpm', $event)"
           />
         </div>
@@ -22,7 +22,7 @@
           </div>
           <ayva-slider
             :options="patternDurationOptions"
-            storage="free-play-pattern-duration"
+            storage-key="free-play-pattern-duration"
             @update="onUpdate('pattern-duration', $event)"
           />
         </div>
@@ -33,7 +33,7 @@
           </div>
           <ayva-slider
             :options="transitionDurationOptions"
-            storage="free-play-transition-duration"
+            storage-key="free-play-transition-duration"
             @update="onUpdate('transition-duration', $event)"
           />
         </div>
@@ -43,7 +43,7 @@
             Enable Twist
           </div>
           <div>
-            <ayva-checkbox v-model="twist" storage="free-play-enable-twist" />
+            <ayva-checkbox v-model="twist" storage-key="free-play-enable-twist" />
           </div>
         </div>
 
@@ -58,7 +58,7 @@
           <ayva-slider
             :options="twistRangeOptions"
             :disabled="disableTwist"
-            storage="free-play-twist-range"
+            storage-key="free-play-twist-range"
             @update="onUpdate('twist-range', $event)"
           />
         </div>
@@ -73,7 +73,7 @@
           <ayva-slider
             :options="twistPhaseOptions"
             :disabled="disableTwist"
-            storage="free-play-twist-phase"
+            storage-key="free-play-twist-phase"
             @update="onUpdate('twist-phase', $event)"
           />
         </div>
@@ -88,7 +88,7 @@
           <ayva-slider
             :options="twistEccOptions"
             :disabled="disableTwist"
-            storage="free-play-twist-ecc"
+            storage-key="free-play-twist-ecc"
             @update="onUpdate('twist-ecc', $event)"
           />
         </div>
@@ -114,7 +114,7 @@
               <div class="checkbox">
                 <ayva-checkbox
                   v-model="stroke.enabled"
-                  :storage="`free-play-pattern-${stroke.name}`"
+                  :storage-key="`free-play-pattern-${stroke.name}`"
                   @change="fireUpdateStrokes"
                 />
               </div>
@@ -135,7 +135,7 @@
 import { TempestStroke } from 'ayvajs';
 import AyvaSlider from './widgets/AyvaSlider.vue';
 import AyvaCheckbox from './widgets/AyvaCheckbox.vue';
-import { makeCollapsible, formatter } from '../util.js';
+import { makeCollapsible, formatter } from '../lib/util.js';
 
 export default {
   components: {

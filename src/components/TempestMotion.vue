@@ -41,7 +41,7 @@ import Ayva from 'ayvajs';
 import _ from 'lodash';
 import { nextTick } from 'vue';
 import AyvaSlider from './widgets/AyvaSlider.vue';
-import { clamp } from '../util.js';
+import { clamp } from '../lib/util.js';
 
 export default {
   components: {

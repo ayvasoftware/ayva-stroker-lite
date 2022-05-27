@@ -5,6 +5,9 @@
 <script>
 import Slider from 'nouislider';
 import _ from 'lodash';
+import Storage from '../../lib/ayva-storage.js';
+
+const storage = new Storage('slider-value');
 
 export default {
   expose: ['set', 'get'],
@@ -20,7 +23,7 @@ export default {
       default: false,
     },
 
-    storage: {
+    storageKey: {
       type: String,
       default: null,
     },
@@ -42,8 +45,6 @@ export default {
         orientation: 'horizontal',
       },
       slider: null,
-
-      storageNamespace: 'ayva-stroker',
     };
   },
 
@@ -79,8 +80,8 @@ export default {
   },
 
   beforeMount () {
-    if (this.storage) {
-      this.value = JSON.parse(localStorage.getItem(this.getStorageKey()));
+    if (this.storageKey) {
+      this.value = storage.load(this.storageKey);
     }
   },
 
@@ -100,7 +101,7 @@ export default {
         this.value = values.map((v) => this.cleanValue(v));
       }
 
-      if (this.storage) {
+      if (this.storageKey) {
         this.save();
       }
 
@@ -142,11 +143,7 @@ export default {
     },
 
     save () {
-      localStorage.setItem(this.getStorageKey(), JSON.stringify(this.value));
-    },
-
-    getStorageKey () {
-      return `${this.storageNamespace}-slider--${this.storage}`;
+      storage.save(this.storageKey, this.value);
     },
 
     set (...values) {

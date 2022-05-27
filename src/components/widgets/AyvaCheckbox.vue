@@ -7,6 +7,10 @@
 </template>
 
 <script>
+import Storage from '../../lib/ayva-storage.js';
+
+const storage = new Storage('checkbox-value');
+
 export default {
   props: {
     modelValue: {
@@ -14,7 +18,7 @@ export default {
       default: false,
     },
 
-    storage: {
+    storageKey: {
       type: String,
       default: null,
     },
@@ -24,23 +28,18 @@ export default {
 
   data () {
     return {
-      storageNamespace: 'ayva-stroker',
       initialValue: null,
     };
   },
 
   beforeMount () {
-    if (this.storage) {
-      const storedValue = localStorage.getItem(this.getStorageKey());
-
-      if (storedValue !== undefined && storedValue !== null) {
-        this.initialValue = storedValue === 'true';
-      }
+    if (this.storageKey) {
+      this.initialValue = storage.load(this.storageKey);
     }
   },
 
   mounted () {
-    if (this.initialValue !== null) {
+    if (this.initialValue !== null && this.initialValue !== undefined) {
       this.notifyChange(this.initialValue);
     }
   },
@@ -49,8 +48,8 @@ export default {
     onChange (event) {
       const { checked } = event.target;
 
-      if (this.storage) {
-        localStorage.setItem(this.getStorageKey(this.storage), checked);
+      if (this.storageKey) {
+        storage.save(this.storageKey, checked);
       }
 
       this.notifyChange(checked);
@@ -59,10 +58,6 @@ export default {
     notifyChange (checked) {
       this.$emit('update:modelValue', checked);
       this.$emit('change', checked);
-    },
-
-    getStorageKey () {
-      return `${this.storageNamespace}-checkbox--${this.storage}`;
     },
   },
 };

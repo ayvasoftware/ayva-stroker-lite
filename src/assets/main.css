@@ -1,5 +1,10 @@
 body {
-  --ayva-text-color: #6784bb;
+  --ayva-text-color-blue: #6784bb;
+  --ayva-text-color-off-white: rgb(235, 235, 235);
+  --ayva-text-color-light-gray: rgb(176, 176, 176);
+  --ayva-background-dark: rgb(17, 17, 17);
+  --ayva-background-medium: rgb(24, 24, 24);
+  --ayva-background-light: rgb(31, 31, 31);
   background: black;
   margin: 0
 }
@@ -108,7 +113,7 @@ button[disabled] {
   display: flex;
   justify-content: center;
   padding: 5px;
-  color: var(--ayva-text-color);
+  color: var(--ayva-text-color-blue);
   font-weight: bold;
 }
 
@@ -148,7 +153,7 @@ button[disabled] {
 }
 
 .manual-mode {
-  color: var(--ayva-text-color);
+  color: var(--ayva-text-color-blue);
 }
 
 .limits-container {
@@ -212,7 +217,7 @@ button[disabled] {
 
 .current-stroke-container .current-stroke {
   padding: 0 5px;
-  color: var(--ayva-text-color);
+  color: var(--ayva-text-color-blue);
 }
 
 [disabled] {
@@ -226,7 +231,7 @@ button[disabled] {
   left: 20px;
   font-family: locust;
   font-size: 12px;
-  color: var(--ayva-text-color);
+  color: var(--ayva-text-color-blue);
 }
 
 .logo .ayva {
@@ -235,8 +240,3 @@ button[disabled] {
   text-decoration: none;
 }
 
-/* Naive UI Style Overrides */
-.n-dropdown-menu {
-  max-height: 600px;
-  overflow: scroll;
-}

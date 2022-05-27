@@ -14,7 +14,7 @@
           </div>
           <ayva-slider
             :options="sliderOptions"
-            :storage="`${axis}-limit`"
+            :storage-key="`${axis}-limit`"
             @update="onUpdate(axis, $event)"
           />
         </div>
@@ -25,7 +25,7 @@
 
 <script>
 import AyvaSlider from './widgets/AyvaSlider.vue';
-import { makeCollapsible } from '../util.js';
+import { makeCollapsible } from '../lib/util.js';
 
 export default {
   components: {

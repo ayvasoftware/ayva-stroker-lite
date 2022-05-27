@@ -50,7 +50,7 @@ import OSREmulator from 'osr-emu';
 import { h, nextTick } from 'vue';
 import AyvaSlider from './widgets/AyvaSlider.vue';
 import TempestMotion from './TempestMotion.vue';
-import { formatter } from '../util.js';
+import { formatter } from '../lib/util.js';
 
 const ayva = new Ayva().defaultConfiguration();
 let emulator;
@@ -124,7 +124,11 @@ export default {
       return [{
         key: 'header',
         type: 'render',
-        render: () => h('div', { style: 'padding: 5px' }, 'Library'),
+        render: () => h('div', { class: 'stroke-library-heading' }, h('div', { disabled: '' }, 'Custom')),
+      }, {
+        key: 'header',
+        type: 'render',
+        render: () => h('div', { class: 'stroke-library-heading' }, 'Library'),
       }, ...tempestStrokeOptions];
     },
 
@@ -345,7 +349,7 @@ export default {
   display: flex;
   justify-content: center;
   padding: 4px;
-  color: var(--ayva-text-color);
+  color: var(--ayva-text-color-blue);
   font-weight: 700;
 }
 </style>

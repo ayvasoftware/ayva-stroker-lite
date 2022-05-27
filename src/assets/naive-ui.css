@@ -1,0 +1,27 @@
+/* Naive UI Style Overrides */
+.n-dropdown-menu {
+  max-height: 600px;
+  overflow: scroll;
+  background-color: var(--ayva-background-medium);
+  color: var(--ayva-text-color-light-gray);
+}
+
+.n-dropdown-option-body__label {
+  color: var(--ayva-text-color-light-gray);
+  padding-left: 5px;
+}
+
+.n-dropdown-menu .n-dropdown-option .n-dropdown-option-body.n-dropdown-option-body--pending:not(.n-dropdown-option-body--disabled) {
+  background-color: black;
+}
+
+.n-dropdown-menu .n-dropdown-option .n-dropdown-option-body.n-dropdown-option-body--pending:not(.n-dropdown-option-body--disabled)
+.n-dropdown-option-body__label {
+  color: var(--ayva-text-color-off-white);
+}
+
+.n-dropdown-menu .stroke-library-heading {
+  background-color: black;
+  padding: 5px;
+  cursor: default;
+}
