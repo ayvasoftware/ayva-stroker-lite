@@ -8,10 +8,14 @@
             placement="bottom-start"
             trigger="click"
             size="small"
-            :options="strokeLibraryOptions"
+            :options="strokeLibraryDropdownOptions"
             @select="selectPreset"
-          ><span class="presets-button">Presets</span>
+          ><span class="presets-button">{{ presetLabel }}</span>
           </n-dropdown>
+          <span class="cycle-buttons">
+            <chevron-left-icon class="cycle-button" @click="previousPreset()" />
+            <chevron-right-icon class="cycle-button" @click="nextPreset()" />
+          </span>
         </span>
       </div>
       <div class="main-inputs" />
@@ -51,6 +55,11 @@ import { h, nextTick } from 'vue';
 import AyvaSlider from './widgets/AyvaSlider.vue';
 import TempestMotion from './TempestMotion.vue';
 import { formatter } from '../lib/util.js';
+import Storage from '../lib/ayva-storage.js';
+import ChevronLeftIcon from '../assets/icons/chevron-left.svg';
+import ChevronRightIcon from '../assets/icons/chevron-right.svg';
+
+const storage = new Storage('custom-tempest-strokes');
 
 const ayva = new Ayva().defaultConfiguration();
 let emulator;
@@ -59,6 +68,8 @@ export default {
   components: {
     TempestMotion,
     AyvaSlider,
+    ChevronLeftIcon,
+    ChevronRightIcon,
   },
 
   props: {
@@ -103,7 +114,13 @@ export default {
 
       tempestStrokeLibrary: TempestStroke.library,
 
+      customStrokeLibrary: {},
+
       transitionDuration: 0.75,
+
+      presetIndex: null,
+
+      presetLabel: 'Presets',
     };
   },
 
@@ -115,21 +132,40 @@ export default {
       }, {});
     },
 
-    strokeLibraryOptions () {
-      const tempestStrokeOptions = Object.keys(this.tempestStrokeLibrary).sort().map((key) => ({
+    tempestStrokeOptions () {
+      return Object.keys(this.tempestStrokeLibrary).sort().map((key) => ({
         key,
         label: key,
       }));
+    },
 
+    customStrokeOptions () {
+      return Object.keys(this.customStrokeLibrary).sort().map((key) => ({
+        key,
+        label: key,
+      }));
+    },
+
+    strokeLibraryDropdownOptions () {
       return [{
-        key: 'header',
-        type: 'render',
-        render: () => h('div', { class: 'stroke-library-heading' }, h('div', { disabled: '' }, 'Custom')),
+        key: 'default',
+        label: 'Default',
       }, {
         key: 'header',
         type: 'render',
+        render: () => h('div', { class: 'stroke-library-heading' }, h('div', {
+          disabled: this.customStrokeOptions.length ? undefined : '',
+        }, 'Custom')),
+      }, ...this.customStrokeOptions, {
+        key: 'header',
+        type: 'render',
         render: () => h('div', { class: 'stroke-library-heading' }, 'Library'),
-      }, ...tempestStrokeOptions];
+      }, ...this.tempestStrokeOptions];
+    },
+
+    strokeLibraryOptions () {
+      // Dropdown options without the headers.
+      return this.strokeLibraryDropdownOptions.filter((option) => option.key !== 'header');
     },
 
     disabled () {
@@ -152,6 +188,10 @@ export default {
         }
       },
     },
+  },
+
+  beforeMount () {
+    this.customStrokeLibrary = storage.load('all') || {};
   },
 
   mounted () {
@@ -216,10 +256,19 @@ export default {
       return (valueParameters) => tempestMotion(valueParameters);
     },
 
-    selectPreset (key) {
-      const stroke = this.tempestStrokeLibrary[key];
+    selectPreset (key, item) {
+      const defaultStroke = {
+        stroke: { from: 1, to: 0 },
+        twist: { from: 0.5, to: 0.5 },
+        roll: { from: 0.5, to: 0.5 },
+        pitch: { from: 0.5, to: 0.5 },
+      };
+
+      const stroke = this.customStrokeLibrary[key] || this.tempestStrokeLibrary[key] || defaultStroke;
 
       if (stroke) {
+        this.presetLabel = item.label;
+        this.presetIndex = this.strokeLibraryOptions.findIndex((option) => option.key === key);
         this.active = false;
         this.previewAngle = 0;
 
@@ -239,7 +288,7 @@ export default {
               parameters,
               displayName: `${alias} (${name})`,
             };
-          }).filter((axis) => !(axis.parameters.from === 0.5 && axis.parameters.to === 0.5));
+          }).filter((axis) => key === 'default' || !(axis.parameters.from === 0.5 && axis.parameters.to === 0.5));
 
           const resetMoves = this.getResetMoves(stroke);
 
@@ -248,6 +297,30 @@ export default {
           });
         });
       }
+    },
+
+    nextPreset () {
+      let nextIndex;
+      if (this.presetIndex === null) {
+        nextIndex = 0;
+      } else {
+        nextIndex = (this.presetIndex + 1) % this.strokeLibraryOptions.length;
+      }
+
+      const selected = this.strokeLibraryOptions[nextIndex];
+      this.selectPreset(selected.key, selected);
+    },
+
+    previousPreset () {
+      let nextIndex;
+      if (this.presetIndex === null || this.presetIndex === 0) {
+        nextIndex = this.strokeLibraryOptions.length - 1;
+      } else {
+        nextIndex = this.presetIndex - 1;
+      }
+
+      const selected = this.strokeLibraryOptions[nextIndex];
+      this.selectPreset(selected.key, selected);
     },
 
     getResetMoves (stroke) {
@@ -303,9 +376,18 @@ export default {
   pointer-events: none;
 }
 
+.presets {
+  display: flex;
+  align-items: center;
+}
+
 .presets-button:hover {
-  opacity: 0.9;
+  opacity: var(--ayva-hover-opacity);
   cursor: pointer;
+}
+
+.presets-button:active {
+  opacity: var(--ayva-active-opacity);
 }
 
 .emulator {
@@ -351,5 +433,19 @@ export default {
   padding: 4px;
   color: var(--ayva-text-color-blue);
   font-weight: 700;
+}
+
+.cycle-button {
+  width: 25px;
+  cursor: pointer;
+  margin-top: 2px;
+}
+
+.cycle-button:hover {
+  opacity: var(--ayva-hover-opacity)
+}
+
+.cycle-button:active {
+  opacity: var(--ayva-active-opacity);
 }
 </style>

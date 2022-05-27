@@ -8,7 +8,13 @@ class Storage {
   }
 
   load (key) {
-    return JSON.parse(localStorage.getItem(this.storageKey(key)));
+    const stored = localStorage.getItem(this.storageKey(key));
+
+    if (stored !== null && stored !== undefined && stored !== 'undefined') {
+      return JSON.parse(stored);
+    }
+
+    return null;
   }
 
   save (key, item) {

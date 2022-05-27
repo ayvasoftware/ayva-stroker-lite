@@ -5,6 +5,8 @@ body {
   --ayva-background-dark: rgb(17, 17, 17);
   --ayva-background-medium: rgb(24, 24, 24);
   --ayva-background-light: rgb(31, 31, 31);
+  --ayva-hover-opacity: 0.85;
+  --ayva-active-opacity: 0.75;
   background: black;
   margin: 0
 }
