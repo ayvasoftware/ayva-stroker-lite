@@ -18,7 +18,7 @@
     />
 
     <ayva-connected
-      :connected="connected"
+      :connected="device.connected"
       :mode="mode"
       @request-connection="requestConnection"
     />
@@ -78,7 +78,7 @@
 
 <script>
 import OSREmulator from 'osr-emu';
-import Ayva from 'ayvajs';
+import Ayva, { WebSerialDevice } from 'ayvajs';
 import AyvaSlider from './components/widgets/AyvaSlider.vue';
 import AyvaLimits from './components/AyvaLimits.vue';
 import AyvaFreePlay from './components/AyvaFreePlay.vue';
@@ -86,7 +86,6 @@ import AyvaMode from './components/AyvaMode.vue';
 import AyvaConnected from './components/AyvaConnected.vue';
 import AyvaController from './lib/controller.js';
 import { formatter } from './lib/util.js';
-import device from './lib/device.js';
 
 // These need to be "globals" so they aren't proxied by Vue... because issues with private members :(
 const ayva = new Ayva().defaultConfiguration();
@@ -108,7 +107,6 @@ export default {
   data () {
     return {
       stopped: true,
-      connected: false,
       disconnectInterval: null,
       mode: 'Stopped',
       strokes: [],
@@ -131,7 +129,18 @@ export default {
         },
         format: formatter(),
       },
+
+      device: new WebSerialDevice(),
     };
+  },
+
+  watch: {
+    'device.connected' (connected) {
+      if (!connected) {
+        ayva.removeOutputDevice(this.device);
+        this.stop();
+      }
+    },
   },
 
   mounted () {
@@ -259,19 +268,8 @@ export default {
     },
 
     requestConnection () {
-      device.requestConnection().then(() => {
-        ayva.addOutputDevice(device);
-        this.connected = true;
-
-        // TODO: Use the disconnect listener instead of polling once WebSerialDevice is updated to support it.
-        this.disconnectInterval = setInterval(() => {
-          if (!device.connected) {
-            clearInterval(this.disconnectInterval);
-            this.connected = false;
-            ayva.removeOutputDevice(device);
-            this.stop();
-          }
-        }, 1000);
+      this.device.requestConnection().then(() => {
+        ayva.addOutputDevice(this.device);
       }).catch((error) => {
         /* Do nothing if no port was selected. */
         console.warn(error); // eslint-disable-line no-console
