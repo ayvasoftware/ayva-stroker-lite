@@ -326,6 +326,6 @@ export default {
   }
 
   .wave canvas {
-    background-color: rgb(25,25,25)
+    background-color: var(--ayva-background-medium);
   }
 </style>

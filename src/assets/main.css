@@ -7,8 +7,34 @@ body {
   --ayva-background-light: rgb(31, 31, 31);
   --ayva-hover-opacity: 0.85;
   --ayva-active-opacity: 0.75;
+  --ayva-button-primary-color: #374f7b;
+  --ayva-button-primary-color-hover: #3a5281;
+  --ayva-button-primary-color-active: #2f436a;
   background: black;
   margin: 0
+}
+
+.ayva-button,
+.lil-gui .ayva-button {
+  height: 30px;
+  font-size: 16px;
+  border: none;
+}
+
+.ayva-button.primary,
+.lil-gui .ayva-button.primary {
+  background-color: var(--ayva-button-primary-color);
+  color: var(--ayva-text-color-off-white);
+}
+
+.ayva-button.primary:hover,
+.lil-gui .ayva-button.primary:hover{
+  background-color: var(--ayva-button-primary-color-hover);
+}
+
+.ayva-button.primary:active,
+.lil-gui .ayva-button.primary:active {
+  background-color: var(--ayva-button-primary-color-active);
 }
 
 @font-face {

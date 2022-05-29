@@ -25,19 +25,34 @@
           </span>
         </span>
       </div>
-      <div class="main-inputs" />
-    </div>
-    <div class="axis-column">
-      <div ref="axisScroll" class="axis-scroll">
-        <div v-for="axis in axes" :key="axis.name" class="tempest-motion-container">
-          <tempest-motion
-            v-model="axis.parameters"
-            :display-name="axis.displayName"
-            :angle="previewAngle"
-            :disabled="disabled"
-          />
+      <div class="main-inputs">
+        <div class="setup">
+          <span />
+        </div>
+        <div v-if="device && device.connected" class="device">
+          <span>
+            <ayva-checkbox id="preview-on-device" v-model="previewOnDevice" />
+            <label for="preview-on-device">Send preview to actual device.</label>
+          </span>
+        </div>
+        <div v-else class="device">
+          <label disabled>No device connected. Preview only available on emulator.</label>
         </div>
       </div>
+    </div>
+    <div class="axis-column">
+      <n-scrollbar ref="axisScroll" :data-scroll="axisScrollTop">
+        <div class="axis-scroll">
+          <div v-for="axis in axes" :key="axis.name" class="tempest-motion-container">
+            <tempest-motion
+              v-model="axis.parameters"
+              :display-name="axis.displayName"
+              :angle="previewAngle"
+              :disabled="disabled"
+            />
+          </div>
+        </div>
+      </n-scrollbar>
     </div>
     <div class="emulator-column">
       <div ref="emulator" class="emulator" />
@@ -52,14 +67,24 @@
         </div>
       </div>
     </div>
+    <div class="save-container">
+      <div>
+        <label>Name:</label>
+        <input class="name">
+        <button class="ayva-button primary">
+          Save to Library
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import Ayva, { TempestStroke } from 'ayvajs';
+import Ayva, { WebSerialDevice, TempestStroke } from 'ayvajs';
 import OSREmulator from 'osr-emu';
 import { h, nextTick } from 'vue';
 import AyvaSlider from './widgets/AyvaSlider.vue';
+import AyvaCheckbox from './widgets/AyvaCheckbox.vue';
 import TempestMotion from './TempestMotion.vue';
 import { formatter } from '../lib/util.js';
 import Storage from '../lib/ayva-storage.js';
@@ -91,6 +116,7 @@ export default {
   components: {
     TempestMotion,
     AyvaSlider,
+    AyvaCheckbox,
     ChevronLeftIcon,
     ChevronRightIcon,
     CloseIcon,
@@ -100,6 +126,11 @@ export default {
     edit: {
       type: Boolean,
       default: false,
+    },
+
+    device: {
+      type: WebSerialDevice,
+      default: null,
     },
   },
 
@@ -145,6 +176,10 @@ export default {
       presetIndex: 0,
 
       presetLabel: 'Presets',
+
+      previewOnDevice: false,
+
+      axisScrollTop: 0,
     };
   },
 
@@ -173,7 +208,10 @@ export default {
     strokeLibraryDropdownOptions () {
       return [{
         key: 'default',
-        label: 'default',
+        label: 'Default',
+        props: {
+          class: 'default-option',
+        },
       }, {
         key: 'header',
         type: 'render',
@@ -212,6 +250,21 @@ export default {
         }
       },
     },
+
+    previewOnDevice () {
+      if (this.previewOnDevice) {
+        ayva.addOutputDevice(this.device);
+      } else {
+        ayva.removeOutputDevice(this.device);
+      }
+    },
+
+    'device.connected' (connected) {
+      if (!connected) {
+        ayva.removeOutputDevice(this.device);
+        this.previewOnDevice = false;
+      }
+    },
   },
 
   beforeMount () {
@@ -225,6 +278,12 @@ export default {
     ayva.updateLimits('twist', 0.25, 0.75);
     ayva.updateLimits('roll', 0.25, 0.75);
     ayva.updateLimits('pitch', 0.25, 0.75);
+
+    window.addEventListener('scroll', this.onAxisScroll, { passive: true, capture: true });
+  },
+
+  unmounted () {
+    window.removeEventListener('scroll', this.onAxisScroll);
   },
 
   methods: {
@@ -235,9 +294,7 @@ export default {
       const angleSlice = Math.PI / granularity;
       const moves = [];
 
-      const emulatorAxes = this.availableAxes.filter((axis) => axis.emulator);
-
-      for (const axis of emulatorAxes) {
+      for (const axis of this.availableAxes) {
         moves.push({
           axis: axis.name,
           value: this.createPreviewValueProvider(axis),
@@ -289,7 +346,7 @@ export default {
         this.active = false;
         this.previewAngle = 0;
 
-        this.$refs.axisScroll.scrollTop = 0;
+        this.$refs.axisScroll.scrollTo(0);
 
         nextTick(() => {
           // Perform the transition move on next tick so Ayva has time to stop().
@@ -366,6 +423,10 @@ export default {
         };
       }).filter((axis) => key === 'default' || !(axis.parameters.from === 0.5 && axis.parameters.to === 0.5));
     },
+
+    onAxisScroll () {
+      this.axisScrollTop = this.$el.querySelector('.n-scrollbar-container').scrollTop;
+    },
   },
 };
 </script>
@@ -376,17 +437,19 @@ export default {
   height: 700px;
   display: grid;
   grid-template-columns: 45% 55%;
-  grid-template-rows: 1fr 82% 50px;
+  grid-template-rows: 80px 550px 1fr;
 }
 
 .header {
   grid-column: span 2;
+  display: grid;
+  grid-template-rows: 30px 50px;
 }
 
 .toolbar {
   background-color: rgb(17, 17, 17);
   height: 30px;
-  font-size: 14px;
+  font-size: 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -416,7 +479,7 @@ export default {
 }
 
 .emulator {
-  width: 600px;
+  width: 620px;
   height: 100%;
 }
 
@@ -439,7 +502,11 @@ export default {
 }
 
 .tempest-motion-container {
-  padding: 0px 10px 20px 10px;
+  padding: 0px 10px 19px 10px;
+}
+
+.tempest-motion-container:nth-last-child(1) {
+  padding-bottom: 0;
 }
 
 .preview-bpm {
@@ -476,5 +543,77 @@ export default {
 
 .close.icon {
   margin-left: 5px;
+}
+
+.main-inputs {
+  display: flex;
+  justify-content: space-between;
+}
+
+.main-inputs > * {
+  display: flex;
+  align-items: center;
+}
+
+.main-inputs .device,
+.main-inputs .setup {
+  margin-right: 40px;
+  /* margin-bottom: 10px; */
+  /* align-items: end; */
+}
+
+.main-inputs .setup {
+  margin-left: 30px;
+}
+
+.main-inputs .device label {
+  cursor: pointer;
+}
+
+.main-inputs .device label[disabled] {
+  cursor: not-allowed;
+}
+
+.main-inputs .device > span,
+.main-inputs .setup > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--ayva-text-color-light-gray)
+}
+
+input.name {
+  width: 200px;
+  background: var(--ayva-background-dark);
+}
+
+.save-container {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  font-size: 16px;
+  color: var(--ayva-text-color-off-white);
+  justify-content: end;
+}
+
+.save-container input {
+  font-size: 12px;
+  min-width: 200px;
+  height: 30px;
+  color: var(--ayva-text-color-light-gray);
+  margin-left: 5px;
+  padding: 0 5px;
+}
+
+.save-container button {
+  min-width: 150px;
+  margin-left: 10px;
+  margin-right: 28px;
+}
+
+.save-container div {
+  display: flex;
+  align-items: center;
 }
 </style>

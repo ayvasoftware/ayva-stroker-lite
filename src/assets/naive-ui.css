@@ -1,4 +1,8 @@
 /* Naive UI Style Overrides */
+.n-scrollbar {
+  --n-scrollbar-width: 8px !important;
+}
+
 .n-dropdown-menu {
   max-height: 600px;
   overflow: scroll;
@@ -11,8 +15,13 @@
   padding-left: 5px;
 }
 
+.default-option .n-dropdown-option-body__label {
+  color: var(--ayva-text-color-light-gray);
+  margin-left: -14px;
+}
+
 .n-dropdown-menu .n-dropdown-option .n-dropdown-option-body.n-dropdown-option-body--pending:not(.n-dropdown-option-body--disabled) {
-  background-color: black;
+  background-color: var(--ayva-background-dark);
 }
 
 .n-dropdown-menu .n-dropdown-option .n-dropdown-option-body.n-dropdown-option-body--pending:not(.n-dropdown-option-body--disabled)
@@ -21,7 +30,15 @@
 }
 
 .n-dropdown-menu .stroke-library-heading {
-  background-color: black;
+  background-color: var(--ayva-background-dark);
   padding: 5px;
   cursor: default;
+}
+
+.axis-column .n-scrollbar {
+  border-top: 3px groove var(--ayva-background-medium);
+}
+
+.axis-column .n-scrollbar[data-scroll="0"] {
+  border-top: none;
 }
