@@ -123,6 +123,14 @@
                   {{ stroke.name }}
                 </button>
               </div>
+              <div class="stroke-actions">
+                <n-popover trigger="hover" raw :show-arrow="false" :delay="250" @update:show="previewStroke(stroke.name, $event)">
+                  <template #trigger>
+                    <eye-icon class="preview icon" />
+                  </template>
+                  <div class="preview-popup" :data-preview-stroke="stroke.name" />
+                </n-popover>
+              </div>
             </div>
           </template>
         </div>
@@ -132,16 +140,24 @@
 </template>
 
 <script>
-import { TempestStroke } from 'ayvajs';
+import Ayva, { TempestStroke } from 'ayvajs';
+import OSREmulator from 'osr-emu';
 import AyvaSlider from './widgets/AyvaSlider.vue';
 import AyvaCheckbox from './widgets/AyvaCheckbox.vue';
 import { makeCollapsible, formatter } from '../lib/util.js';
+import EyeIcon from '../assets/icons/eye.svg';
+
+let previewAyva = null;
+let previewEmulator = null;
 
 export default {
   components: {
     AyvaSlider,
     AyvaCheckbox,
+    EyeIcon,
   },
+
+  inject: ['globalAyva'],
 
   props: {
     currentStrokeName: {
@@ -159,7 +175,7 @@ export default {
       bpmOptions: {
         range: {
           min: 0,
-          max: 120,
+          max: 150,
         },
         start: [20, 60],
         padding: [10],
@@ -217,6 +233,9 @@ export default {
       })),
 
       initialParameters: {},
+
+      previewEmulator: null,
+      previewAyva: null,
     };
   },
 
@@ -268,6 +287,56 @@ export default {
     fireSelectStroke (stroke) {
       this.$emit('select-stroke', stroke);
     },
+
+    previewStroke (stroke, show) {
+      this.destroyPreview();
+
+      if (show) {
+        setTimeout(() => {
+          const element = document.querySelector(`[data-preview-stroke="${stroke}"]`);
+
+          previewEmulator = new OSREmulator(element);
+          previewAyva = this.createPreviewAyva();
+          previewAyva.addOutputDevice(previewEmulator);
+          previewAyva.do(new TempestStroke(stroke)); // TODO: Support custom strokes too...
+        }, 100);
+      }
+    },
+
+    createPreviewAyva () {
+      const ayva = new Ayva().defaultConfiguration();
+
+      // Copy all axis limits from global Ayva instance.
+      Object.keys(ayva.axes).forEach((name) => {
+        ayva.updateLimits(name, this.globalAyva.$[name].min, this.globalAyva.$[name].max);
+      });
+
+      return ayva;
+    },
+
+    destroyPreview () {
+      if (previewAyva) {
+        previewAyva.stop();
+        previewAyva = null;
+      }
+
+      if (previewEmulator) {
+        previewEmulator.destroy();
+        previewEmulator = null;
+      }
+    },
   },
 };
 </script>
+
+<style scoped>
+.preview.icon {
+  color: var(--ayva-text-color-off-white);
+  margin-top: 0;
+  height: 20px;
+}
+
+.stroke-actions {
+  padding-left: 10px;
+}
+</style>

@@ -219,7 +219,7 @@ button[disabled] {
 
 .tempest-stroke {
   display: grid;
-  grid-template-columns: 30% 240px;
+  grid-template-columns: 1fr 240px 1fr;
   padding-top: 7px;
 }
 
@@ -268,3 +268,28 @@ button[disabled] {
   text-decoration: none;
 }
 
+.icon {
+  width: 25px;
+  cursor: pointer;
+  margin-top: 2px;
+}
+
+.icon:hover {
+  opacity: var(--ayva-hover-opacity)
+}
+
+.icon:active {
+  opacity: var(--ayva-active-opacity);
+}
+
+.preview-popup {
+  width: 150px;
+  height: 150px;
+  box-shadow:0 0 8px 3px black;
+  border-radius: 75px;
+  background-color: black;
+}
+
+.preview-popup > * {
+  border-radius: 75px;
+}

@@ -103,7 +103,12 @@ export default {
     AyvaSlider,
   },
 
+  provide: {
+    globalAyva: ayva,
+  },
+
   props: [],
+
   data () {
     return {
       stopped: true,
@@ -125,7 +130,7 @@ export default {
         step: 1,
         range: {
           min: 0,
-          max: 120,
+          max: 150,
         },
         format: formatter(),
       },
