@@ -293,3 +293,8 @@ button[disabled] {
 .preview-popup > * {
   border-radius: 75px;
 }
+
+.preview-popup-container {
+  left: -75px;
+  top: 25px;
+}

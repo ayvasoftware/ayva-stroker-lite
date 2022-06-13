@@ -40,7 +40,7 @@
 
         <div class="limit twist">
           <div class="axis">
-            Enable Twist
+            Default Twist
           </div>
           <div>
             <ayva-checkbox v-model="twist" storage-key="free-play-enable-twist" />
@@ -124,11 +124,17 @@
                 </button>
               </div>
               <div class="stroke-actions">
-                <n-popover trigger="hover" raw :show-arrow="false" :delay="250" @update:show="previewStroke(stroke.name, $event)">
+                <n-popover
+                  trigger="hover"
+                  raw
+                  :show-arrow="false"
+                  :delay="250"
+                  @update:show="previewStroke(stroke.name, $event)"
+                >
                   <template #trigger>
                     <eye-icon class="preview icon" />
                   </template>
-                  <div class="preview-popup" :data-preview-stroke="stroke.name" />
+                  <div :data-preview-stroke="stroke.name" />
                 </n-popover>
               </div>
             </div>
@@ -234,8 +240,8 @@ export default {
 
       initialParameters: {},
 
-      previewEmulator: null,
-      previewAyva: null,
+      previewElement: null,
+      previewParent: null,
     };
   },
 
@@ -265,6 +271,11 @@ export default {
     this.$el.querySelectorAll('.free-play-container').forEach((element) => {
       makeCollapsible(element);
     });
+
+    this.previewElement = document.createElement('div');
+    this.previewElement.classList.add('preview-popup');
+
+    previewEmulator = new OSREmulator(this.previewElement);
   },
 
   methods: {
@@ -293,9 +304,11 @@ export default {
 
       if (show) {
         setTimeout(() => {
-          const element = document.querySelector(`[data-preview-stroke="${stroke}"]`);
+          this.previewParent = document.querySelector(`[data-preview-stroke="${stroke}"]`);
+          this.previewParent.appendChild(this.previewElement);
+          const container = this.previewParent.closest('.v-binder-follower-content');
+          container.classList.add('preview-popup-container');
 
-          previewEmulator = new OSREmulator(element);
           previewAyva = this.createPreviewAyva();
           previewAyva.addOutputDevice(previewEmulator);
           previewAyva.do(new TempestStroke(stroke)); // TODO: Support custom strokes too...
@@ -320,9 +333,9 @@ export default {
         previewAyva = null;
       }
 
-      if (previewEmulator) {
-        previewEmulator.destroy();
-        previewEmulator = null;
+      if (this.previewParent) {
+        this.previewParent.removeChild(this.previewElement);
+        this.previewParent = null;
       }
     },
   },
