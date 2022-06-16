@@ -18,6 +18,9 @@ export default {
       default: () => {},
     },
 
+    /**
+     * Only show tooltips when slider is active or hovered over.
+     */
     activeTooltips: {
       type: Boolean,
       default: false,

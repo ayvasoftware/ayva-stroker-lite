@@ -32,6 +32,14 @@ export default {
     };
   },
 
+  watch: {
+    modelValue (value) {
+      if (this.storageKey) {
+        storage.save(this.storageKey, value);
+      }
+    },
+  },
+
   beforeMount () {
     if (this.storageKey) {
       this.initialValue = storage.load(this.storageKey);

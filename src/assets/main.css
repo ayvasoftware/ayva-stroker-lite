@@ -229,16 +229,6 @@ button[disabled] {
   justify-content: center;
 }
 
-.info {
-  content: "Empty";
-  padding: 0 var(--padding);
-  margin: var(--spacing) 0;
-  display: block;
-  font-style: italic;
-  line-height: var(--widget-height);
-  opacity: 0.75;
-}
-
 .current-stroke-container {
   float: right;
 }
@@ -268,18 +258,25 @@ button[disabled] {
   text-decoration: none;
 }
 
+.icon:not([disabled]) {
+  cursor: pointer;
+}
+
 .icon {
   width: 25px;
-  cursor: pointer;
   margin-top: 2px;
 }
 
-.icon:hover {
+.icon:hover:not([disabled]) {
   opacity: var(--ayva-hover-opacity)
 }
 
-.icon:active {
+.icon:active:not([disabled]) {
   opacity: var(--ayva-active-opacity);
+}
+
+.icon {
+  outline: none;
 }
 
 .preview-popup {
@@ -295,6 +292,6 @@ button[disabled] {
 }
 
 .preview-popup-container {
-  left: -75px;
-  top: 25px;
+  left: -80px;
+  top: 20px;
 }

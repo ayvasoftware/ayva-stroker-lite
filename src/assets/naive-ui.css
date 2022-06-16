@@ -42,3 +42,7 @@
 .axis-column .n-scrollbar[data-scroll="0"] {
   border-top: none;
 }
+
+.n-modal-mask {
+  background-color: rgba(0, 0, 0, .75);
+}

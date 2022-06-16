@@ -21,7 +21,7 @@
             </span>
           </span>
           <span>
-            <close-icon class="close icon" />
+            <close-icon class="close icon" @click="$emit('close')" />
           </span>
         </span>
       </div>
@@ -70,7 +70,7 @@
     <div class="save-container">
       <div>
         <label>Name:</label>
-        <input class="name">
+        <input v-model="strokeName" class="name">
         <button class="ayva-button primary">
           Save to Library
         </button>
@@ -80,7 +80,7 @@
 </template>
 
 <script>
-import Ayva, { WebSerialDevice, TempestStroke } from 'ayvajs';
+import Ayva, { TempestStroke } from 'ayvajs';
 import OSREmulator from 'osr-emu';
 import { h, nextTick } from 'vue';
 import AyvaSlider from './widgets/AyvaSlider.vue';
@@ -88,9 +88,6 @@ import AyvaCheckbox from './widgets/AyvaCheckbox.vue';
 import TempestMotion from './TempestMotion.vue';
 import { formatter } from '../lib/util.js';
 import Storage from '../lib/ayva-storage.js';
-import ChevronLeftIcon from '../assets/icons/chevron-left.svg';
-import ChevronRightIcon from '../assets/icons/chevron-right.svg';
-import CloseIcon from '../assets/icons/close.svg';
 
 const storage = new Storage('custom-tempest-strokes');
 
@@ -117,9 +114,12 @@ export default {
     TempestMotion,
     AyvaSlider,
     AyvaCheckbox,
-    ChevronLeftIcon,
-    ChevronRightIcon,
-    CloseIcon,
+  },
+
+  inject: {
+    device: {
+      from: 'globalDevice',
+    },
   },
 
   props: {
@@ -127,12 +127,9 @@ export default {
       type: Boolean,
       default: false,
     },
-
-    device: {
-      type: WebSerialDevice,
-      default: null,
-    },
   },
+
+  emits: ['close'],
 
   data () {
     return {
@@ -171,7 +168,7 @@ export default {
 
       customStrokeLibrary: {},
 
-      transitionDuration: 0.75,
+      transitionDuration: 0.5,
 
       presetIndex: 0,
 
@@ -180,6 +177,8 @@ export default {
       previewOnDevice: false,
 
       axisScrollTop: 0,
+
+      strokeName: '',
     };
   },
 
@@ -460,6 +459,10 @@ export default {
   display: flex;
 }
 
+.toolbar-left {
+  align-items: center;
+}
+
 [disabled] > * {
   pointer-events: none;
 }
@@ -527,22 +530,15 @@ export default {
   font-weight: 700;
 }
 
-.icon {
-  width: 25px;
-  cursor: pointer;
-  margin-top: 2px;
-}
-
-.icon:hover {
-  opacity: var(--ayva-hover-opacity)
-}
-
-.icon:active {
-  opacity: var(--ayva-active-opacity);
-}
-
 .close.icon {
   margin-left: 5px;
+}
+
+.settings.icon {
+  width: 20px;
+  margin-top: 5px;
+  margin-right: 7.5px;
+  outline: none;
 }
 
 .main-inputs {
@@ -616,4 +612,5 @@ input.name {
   display: flex;
   align-items: center;
 }
+
 </style>

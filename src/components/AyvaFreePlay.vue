@@ -102,13 +102,36 @@
           <span class="current-stroke">{{ currentStrokeName }}</span>
         </span>
       </div>
-      <div class="limits lil-gui children">
-        <div class="info">
+      <div class="limits lil-gui children" style="padding-top: 0;">
+        <!-- <div class="info">
           Select what strokes to include in free play mode, or click buttons to manually trigger a stroke
           (manually triggering a stroke will transition out of free play mode).
-        </div>
+        </div> -->
 
         <div class="tempest-stroke-container">
+          <div class="tempest-stroke">
+            <div class="checkbox">
+              <ayva-checkbox v-model="selectAllStrokes" />
+            </div>
+            <div>
+              <div class="info">
+                Select or manually trigger a stroke.
+                <question-icon class="question icon" />
+              </div>
+            </div>
+            <div class="stroke-actions">
+              <span><n-dropdown
+                placement="left"
+                trigger="click"
+                size="small"
+                :options="settingsOptions"
+                :disabled="mode !== 'Stopped'"
+                @select="onSettings"
+              >
+                <settings-icon :disabled="mode !== 'Stopped' ? '' : null" class="settings icon" />
+              </n-dropdown></span>
+            </div>
+          </div>
           <template v-for="stroke of strokes" :key="stroke.name">
             <div class="tempest-stroke">
               <div class="checkbox">
@@ -142,6 +165,14 @@
         </div>
       </div>
     </div>
+
+    <n-modal :show="showStrokeEditor" :auto-focus="false">
+      <div>
+        <div class="lil-gui">
+          <tempest-stroke-editor ref="strokeEditor" @close="showStrokeEditor = false" />
+        </div>
+      </div>
+    </n-modal>
   </div>
 </template>
 
@@ -150,8 +181,8 @@ import Ayva, { TempestStroke } from 'ayvajs';
 import OSREmulator from 'osr-emu';
 import AyvaSlider from './widgets/AyvaSlider.vue';
 import AyvaCheckbox from './widgets/AyvaCheckbox.vue';
+import TempestStrokeEditor from './TempestStrokeEditor.vue';
 import { makeCollapsible, formatter } from '../lib/util.js';
-import EyeIcon from '../assets/icons/eye.svg';
 
 let previewAyva = null;
 let previewEmulator = null;
@@ -160,13 +191,18 @@ export default {
   components: {
     AyvaSlider,
     AyvaCheckbox,
-    EyeIcon,
+    TempestStrokeEditor,
   },
 
   inject: ['globalAyva'],
 
   props: {
     currentStrokeName: {
+      type: String,
+      default: null,
+    },
+
+    mode: {
       type: String,
       default: null,
     },
@@ -242,12 +278,37 @@ export default {
 
       previewElement: null,
       previewParent: null,
+
+      showStrokeEditor: false,
+
+      settingsOptions: [{
+        key: 'create',
+        label: 'Create',
+      }, {
+        key: 'import',
+        label: 'Import',
+      }, {
+        key: 'export',
+        label: 'Export',
+      }],
     };
   },
 
   computed: {
     disableTwist () {
       return !this.twist ? '' : null;
+    },
+
+    selectAllStrokes: {
+      get () {
+        return this.strokes.reduce((enabled, stroke) => enabled && stroke.enabled, true);
+      },
+
+      set (value) {
+        this.strokes.forEach((stroke) => {
+          stroke.enabled = !!value;
+        });
+      },
     },
   },
 
@@ -265,6 +326,10 @@ export default {
         this.fireUpdateStrokes();
       },
     },
+
+    selectAllStrokes () {
+      this.fireUpdateStrokes();
+    },
   },
 
   mounted () {
@@ -281,6 +346,32 @@ export default {
   methods: {
     onUpdate (name, value) {
       this.fireUpdateParameter(name, value);
+    },
+
+    onSettings (key) {
+      if (key === 'create') {
+        this.showStrokeEditor = true;
+        this.animateEditorResize(350);
+      } else if (key === 'import') {
+        // TODO: Implement
+      } else if (key === 'export') {
+        // TODO: Implement
+      }
+    },
+
+    animateEditorResize (delay, lastTime) {
+      window.dispatchEvent(new Event('resize'));
+
+      if (!lastTime) {
+        requestAnimationFrame(this.animateEditorResize.bind(this, delay, performance.now()));
+      } else {
+        const elapsed = performance.now() - lastTime;
+        const remaining = delay - elapsed;
+
+        if (remaining > 0) {
+          requestAnimationFrame(this.animateEditorResize.bind(this, remaining, performance.now()));
+        }
+      }
     },
 
     fireUpdateStrokes () {
@@ -347,9 +438,39 @@ export default {
   color: var(--ayva-text-color-off-white);
   margin-top: 0;
   height: 20px;
+  cursor: default;
 }
 
 .stroke-actions {
   padding-left: 10px;
+}
+
+.settings.icon {
+  width: 20px;
+  margin-left: 2px;
+  margin-right: 7.5px;
+  outline: none;
+}
+
+.settings.icon[disabled] {
+  opacity: 0.25;
+}
+
+.question.icon {
+  width: 15px;
+}
+
+.info {
+  content: "Empty";
+  padding: 0 var(--padding);
+  margin: 2px 0;
+  display: block;
+  font-style: italic;
+  line-height: var(--widget-height);
+  opacity: 0.75;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  gap: 10px;
 }
 </style>

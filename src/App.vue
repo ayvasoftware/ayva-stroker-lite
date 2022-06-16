@@ -1,6 +1,7 @@
 <template>
   <ayva-limits @update-limits="updateLimits" />
   <ayva-free-play
+    :mode="mode"
     :current-stroke-name="currentStrokeName"
     @update-parameters="updateParameters"
     @update-strokes="updateStrokes"
@@ -79,6 +80,7 @@
 <script>
 import OSREmulator from 'osr-emu';
 import Ayva, { WebSerialDevice } from 'ayvajs';
+import { computed } from 'vue';
 import AyvaSlider from './components/widgets/AyvaSlider.vue';
 import AyvaLimits from './components/AyvaLimits.vue';
 import AyvaFreePlay from './components/AyvaFreePlay.vue';
@@ -103,8 +105,11 @@ export default {
     AyvaSlider,
   },
 
-  provide: {
-    globalAyva: ayva,
+  provide () {
+    return {
+      globalAyva: ayva,
+      globalDevice: computed(() => this.device),
+    };
   },
 
   props: [],
