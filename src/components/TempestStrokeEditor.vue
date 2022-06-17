@@ -81,7 +81,7 @@
           A stroke with that name already exists.
         </n-tooltip>
         <button class="ayva-button primary" :disabled="!strokeNameValid" @click="save">
-          Save to Library
+          {{ saveText }}
         </button>
       </div>
     </div>
@@ -126,9 +126,9 @@ export default {
   },
 
   props: {
-    edit: {
-      type: Boolean,
-      default: false,
+    editStroke: {
+      type: String,
+      default: null,
     },
   },
 
@@ -185,6 +185,14 @@ export default {
   },
 
   computed: {
+    edit () {
+      return !!this.editStroke;
+    },
+
+    saveText () {
+      return this.edit ? 'Save' : 'Add to Library';
+    },
+
     axesByAlias () {
       return (this.axes || []).reduce((map, axis) => {
         map[axis.alias] = axis;
@@ -279,11 +287,19 @@ export default {
     },
 
     strokeNameDuplicate () {
+      if (this.editStroke && this.strokeName === this.editStroke) {
+        return false;
+      }
+
       return !!this.tempestStrokeLibrary[this.strokeName] || !!this.customStrokeLibrary[this.strokeName];
     },
 
     strokeNameValid () {
-      return this.strokeName.length && !this.strokeNameDuplicate;
+      return this.strokeName.length && !this.strokeNameDuplicate && !this.strokeNameReserved;
+    },
+
+    strokeNameReserved () {
+      return this.strokeName === 'default' || this.strokeName === 'header';
     },
   },
 
@@ -335,6 +351,13 @@ export default {
     });
 
     window.addEventListener('scroll', this.onAxisScroll, { passive: true, capture: true });
+
+    if (this.editStroke) {
+      this.strokeName = this.editStroke;
+
+      const item = this.strokeLibraryOptions.find((option) => option.key === this.editStroke);
+      this.selectPreset(this.editStroke, item);
+    }
   },
 
   unmounted () {
@@ -493,6 +516,9 @@ export default {
     },
 
     save () {
+      if (this.editStroke) {
+        customStrokeStorage.delete(this.editStroke);
+      }
       const stroke = this.axes.reduce((obj, axis) => {
         obj[axis.name] = axis.parameters;
         return obj;

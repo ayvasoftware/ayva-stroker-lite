@@ -12,6 +12,14 @@ class CustomStrokeStorage {
     library[name] = stroke;
     storage.save('all', library);
   }
+
+  delete (name) {
+    const library = this.load();
+    delete library[name];
+    storage.save('all', library);
+
+    localStorage.removeItem(`checkbox-value--free-play-pattern-${name}`);
+  }
 }
 
 export default CustomStrokeStorage;

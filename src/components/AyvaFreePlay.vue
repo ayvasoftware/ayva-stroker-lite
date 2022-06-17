@@ -101,16 +101,17 @@
           <span class="label">Playing:</span>
           <span class="current-stroke">{{ currentStrokeName }}</span>
         </span>
-        <span v-show="currentStrokeName === 'None'" class="settings-container" @click.stop><n-dropdown
-          placement="bottom-start"
-          trigger="click"
-          size="small"
-          :options="settingsOptions"
-          :disabled="mode !== 'Stopped'"
-          @select="onSettings"
-        >
-          <settings-icon :disabled="mode !== 'Stopped' ? '' : null" class="settings icon" @click.stop />
-        </n-dropdown></span>
+        <span v-show="currentStrokeName === 'None'" class="settings-container" @click.stop>
+          <n-dropdown
+            placement="bottom-start"
+            trigger="click"
+            size="small"
+            :options="settingsOptions"
+            :disabled="mode !== 'Stopped'"
+            @select="onSettings"
+          >
+            <settings-icon :disabled="mode !== 'Stopped' ? '' : null" class="settings icon" @click.stop />
+          </n-dropdown></span>
       </div>
       <div class="limits lil-gui children" style="padding-top: 0;">
         <!-- <div class="info">
@@ -157,6 +158,16 @@
                   </template>
                   <div :data-preview-stroke="stroke.name" />
                 </n-popover>
+                <n-dropdown
+                  placement="bottom-start"
+                  trigger="click"
+                  size="small"
+                  :options="customStrokeActions"
+                  :disabled="mode !== 'Stopped'"
+                  @select="onCustomStrokeAction(stroke, $event)"
+                >
+                  <settings-icon v-show="stroke.custom" class="settings icon" :disabled="mode !== 'Stopped' ? '' : null" />
+                </n-dropdown>
               </div>
             </div>
           </template>
@@ -167,7 +178,7 @@
     <n-modal :show="showStrokeEditor" :auto-focus="false">
       <div>
         <div class="lil-gui">
-          <tempest-stroke-editor ref="strokeEditor" @close="showStrokeEditor = false" @save="refreshStrokes" />
+          <tempest-stroke-editor ref="strokeEditor" :edit-stroke="editStroke" @close="showStrokeEditor = false" @save="refreshStrokes" />
         </div>
       </div>
     </n-modal>
@@ -281,6 +292,8 @@ export default {
 
       showStrokeEditor: false,
 
+      editStroke: null,
+
       settingsOptions: [{
         key: 'create',
         label: 'Create',
@@ -290,6 +303,14 @@ export default {
       }, {
         key: 'export',
         label: 'Export',
+      }],
+
+      customStrokeActions: [{
+        key: 'edit',
+        label: 'Edit',
+      }, {
+        key: 'delete',
+        label: 'Delete',
       }],
     };
   },
@@ -347,15 +368,21 @@ export default {
 
   methods: {
     refreshStrokes () {
+      const enabledMap = this.strokes.reduce((map, next) => {
+        map[next.name] = next.enabled;
+        return map;
+      }, {});
+
       this.customStrokeLibrary = customStrokeStorage.load();
 
-      const makeLibraryList = (library) => Object.keys(library).sort().map((name) => ({
+      const makeLibraryList = (library, custom = false) => Object.keys(library).sort().map((name) => ({
         name,
-        enabled: true,
+        custom,
+        enabled: enabledMap[name] ?? true,
       }));
 
       this.strokes = [
-        ...makeLibraryList(this.customStrokeLibrary),
+        ...makeLibraryList(this.customStrokeLibrary, true),
         ...makeLibraryList(TempestStroke.library)];
     },
 
@@ -365,13 +392,27 @@ export default {
 
     onSettings (key) {
       if (key === 'create') {
-        this.showStrokeEditor = true;
-        this.animateEditorResize(350);
+        this.openStrokeEditor();
       } else if (key === 'import') {
         // TODO: Implement
       } else if (key === 'export') {
         // TODO: Implement
       }
+    },
+
+    onCustomStrokeAction (stroke, action) {
+      if (action === 'delete') {
+        customStrokeStorage.delete(stroke.name);
+        this.refreshStrokes();
+      } else if (action === 'edit') {
+        this.openStrokeEditor(stroke.name);
+      }
+    },
+
+    openStrokeEditor (editStroke = null) {
+      this.editStroke = editStroke;
+      this.showStrokeEditor = true;
+      this.animateEditorResize(350);
     },
 
     animateEditorResize (delay, lastTime) {
@@ -417,6 +458,18 @@ export default {
 
           previewAyva = this.createPreviewAyva();
           previewAyva.addOutputDevice(previewEmulator);
+
+          const uniqueAxes = Object.keys(previewAyva.axes).reduce((map, axisName) => {
+            const axis = previewAyva.axes[axisName];
+            map[axis.name] = axis;
+            return map;
+          }, {});
+
+          Object.entries(uniqueAxes).forEach(([name]) => {
+            // Reset all preview axes.
+            previewAyva.$[name].value = 0.5;
+          });
+
           previewAyva.do(new TempestStroke(this.customStrokeLibrary[stroke] || stroke)); // TODO: Support custom strokes too...
         }, 100);
       }
@@ -470,6 +523,11 @@ export default {
 
 .settings.icon[disabled] {
   opacity: 0.25;
+}
+
+.stroke-actions .settings.icon {
+  top: -1px;
+  margin-left: 5px;
 }
 
 .question.icon {
