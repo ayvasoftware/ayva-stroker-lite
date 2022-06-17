@@ -34,11 +34,22 @@ body {
   background-color: var(--ayva-button-primary-color-hover);
 }
 
-.ayva-button.primary:active,
-.lil-gui .ayva-button.primary:active {
+.ayva-button.primary:active:not([disabled]),
+.lil-gui .ayva-button.primary:active:not([disabled]) {
   background-color: var(--ayva-button-primary-color-active);
 }
 
+button[disabled] {
+  cursor: not-allowed;
+}
+
+.lil-gui button:active[disabled] {
+  background: var(--widget-color);
+}
+
+.lil-gui button:hover[disabled] {
+  background: var(--widget-color);
+}
 @font-face {
   font-family: locust;
   src: url(fonts/cgf-locust-resistance.regular.ttf);
@@ -64,7 +75,7 @@ body {
 }
 
 button[disabled] {
-  pointer-events: none !important;
+  /* pointer-events: none !important; */
   opacity: 50%;
 }
 
@@ -221,7 +232,7 @@ button[disabled] {
 
 .tempest-stroke {
   display: grid;
-  grid-template-columns: 1fr 240px 1fr;
+  grid-template-columns: 1fr 210px 1fr;
   padding-top: 7px;
 }
 
@@ -234,6 +245,10 @@ button[disabled] {
 .current-stroke-container .current-stroke {
   padding: 0 5px;
   color: var(--ayva-text-color-blue);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 250px;
 }
 
 [disabled] {
@@ -292,4 +307,8 @@ button[disabled] {
 .preview-popup-container {
   left: -80px;
   top: 20px;
+}
+
+input.error {
+  border: 1px solid red;
 }

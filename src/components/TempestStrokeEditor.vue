@@ -74,8 +74,13 @@
     <div class="save-container">
       <div>
         <label>Name:</label>
-        <input v-model="strokeName" class="name">
-        <button class="ayva-button primary">
+        <n-tooltip :show="strokeNameDuplicate" class="error-tooltip">
+          <template #trigger>
+            <input v-model="strokeName" class="name" :class="strokeNameDuplicate ? 'error' : ''">
+          </template>
+          A stroke with that name already exists.
+        </n-tooltip>
+        <button class="ayva-button primary" :disabled="!strokeNameValid" @click="save">
           Save to Library
         </button>
       </div>
@@ -91,10 +96,9 @@ import AyvaSlider from './widgets/AyvaSlider.vue';
 import AyvaCheckbox from './widgets/AyvaCheckbox.vue';
 import TempestMotion from './TempestMotion.vue';
 import { formatter } from '../lib/util.js';
-import Storage from '../lib/ayva-storage.js';
+import CustomStrokeStorage from '../lib/custom-stroke-storage.js';
 
-const storage = new Storage('custom-tempest-strokes');
-
+const customStrokeStorage = new CustomStrokeStorage();
 const ayva = new Ayva().defaultConfiguration();
 let emulator;
 
@@ -128,7 +132,7 @@ export default {
     },
   },
 
-  emits: ['close'],
+  emits: ['close', 'save'],
 
   data () {
     return {
@@ -273,6 +277,14 @@ export default {
       // to do this hacky thing...
       return this.active ? undefined : '';
     },
+
+    strokeNameDuplicate () {
+      return !!this.tempestStrokeLibrary[this.strokeName] || !!this.customStrokeLibrary[this.strokeName];
+    },
+
+    strokeNameValid () {
+      return this.strokeName.length && !this.strokeNameDuplicate;
+    },
   },
 
   watch: {
@@ -303,10 +315,14 @@ export default {
         this.previewOnDevice = false;
       }
     },
+
+    strokeName (value) {
+      this.strokeName = value.replaceAll(/[^a-zA-Z0-9-]/g, '').toLowerCase();
+    },
   },
 
   beforeMount () {
-    this.customStrokeLibrary = storage.load('all') || {};
+    this.customStrokeLibrary = customStrokeStorage.load();
   },
 
   mounted () {
@@ -474,6 +490,17 @@ export default {
 
     onAxisScroll () {
       this.axisScrollTop = this.$el.querySelector('.n-scrollbar-container').scrollTop;
+    },
+
+    save () {
+      const stroke = this.axes.reduce((obj, axis) => {
+        obj[axis.name] = axis.parameters;
+        return obj;
+      }, {});
+
+      customStrokeStorage.save(this.strokeName, stroke);
+      this.$emit('close');
+      this.$emit('save');
     },
   },
 };
@@ -650,7 +677,7 @@ input.name {
 }
 
 .save-container button {
-  min-width: 150px;
+  width: 150px;
   margin-left: 10px;
   margin-right: 28px;
 }
@@ -658,6 +685,8 @@ input.name {
 .save-container div {
   display: flex;
   align-items: center;
+  width: 100%;
+  justify-content: end;
 }
 
 .select-axes .icon:hover {

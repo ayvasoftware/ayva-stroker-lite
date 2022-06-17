@@ -59,3 +59,12 @@
 .n-modal-mask {
   background-color: rgba(0, 0, 0, .75);
 }
+
+.error-tooltip.n-popover {
+  background-color: var(--ayva-background-dark);
+  color: var(--ayva-text-color-off-white);
+}
+
+.error-tooltip.n-popover .n-popover-arrow {
+  background-color: var(--ayva-background-dark);
+}

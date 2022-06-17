@@ -1,6 +1,9 @@
 import Ayva, { AyvaBehavior, TempestStroke, VariableDuration } from 'ayvajs';
+import CustomStrokeStorage from './custom-stroke-storage';
 
 export default class Controller extends AyvaBehavior {
+  #customStrokeStorage = new CustomStrokeStorage();
+
   #currentStroke = null;
 
   #duration = null;
@@ -78,7 +81,8 @@ export default class Controller extends AyvaBehavior {
 
   #createStrokeConfig (stroke) {
     if (typeof stroke === 'string') {
-      const config = TempestStroke.library[stroke];
+      const customStrokeLibrary = this.#customStrokeStorage.load();
+      const config = customStrokeLibrary[stroke] || TempestStroke.library[stroke];
 
       if (this.parameters.twist) {
         const [from, to] = this.parameters['twist-range'];

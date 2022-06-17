@@ -101,8 +101,8 @@
           <span class="label">Playing:</span>
           <span class="current-stroke">{{ currentStrokeName }}</span>
         </span>
-        <span v-show="currentStrokeName === 'None'" class="settings-container"><n-dropdown
-          placement="left"
+        <span v-show="currentStrokeName === 'None'" class="settings-container" @click.stop><n-dropdown
+          placement="bottom-start"
           trigger="click"
           size="small"
           :options="settingsOptions"
@@ -140,7 +140,7 @@
                 />
               </div>
               <div>
-                <button @click="fireSelectStroke(stroke.name)">
+                <button :title="stroke.name" @click="fireSelectStroke(stroke.name)">
                   {{ stroke.name }}
                 </button>
               </div>
@@ -167,7 +167,7 @@
     <n-modal :show="showStrokeEditor" :auto-focus="false">
       <div>
         <div class="lil-gui">
-          <tempest-stroke-editor ref="strokeEditor" @close="showStrokeEditor = false" />
+          <tempest-stroke-editor ref="strokeEditor" @close="showStrokeEditor = false" @save="refreshStrokes" />
         </div>
       </div>
     </n-modal>
@@ -181,9 +181,12 @@ import AyvaSlider from './widgets/AyvaSlider.vue';
 import AyvaCheckbox from './widgets/AyvaCheckbox.vue';
 import TempestStrokeEditor from './TempestStrokeEditor.vue';
 import { makeCollapsible, formatter } from '../lib/util.js';
+import CustomStrokeStorage from '../lib/custom-stroke-storage.js';
 
 let previewAyva = null;
 let previewEmulator = null;
+
+const customStrokeStorage = new CustomStrokeStorage();
 
 export default {
   components: {
@@ -267,10 +270,9 @@ export default {
         start: [0],
       },
 
-      strokes: Object.keys(TempestStroke.library).sort().map((name) => ({
-        name,
-        enabled: true,
-      })),
+      strokes: [],
+
+      customStrokeLibrary: {},
 
       initialParameters: {},
 
@@ -339,9 +341,24 @@ export default {
     this.previewElement.classList.add('preview-popup');
 
     previewEmulator = new OSREmulator(this.previewElement);
+
+    this.refreshStrokes();
   },
 
   methods: {
+    refreshStrokes () {
+      this.customStrokeLibrary = customStrokeStorage.load();
+
+      const makeLibraryList = (library) => Object.keys(library).sort().map((name) => ({
+        name,
+        enabled: true,
+      }));
+
+      this.strokes = [
+        ...makeLibraryList(this.customStrokeLibrary),
+        ...makeLibraryList(TempestStroke.library)];
+    },
+
     onUpdate (name, value) {
       this.fireUpdateParameter(name, value);
     },
@@ -400,7 +417,7 @@ export default {
 
           previewAyva = this.createPreviewAyva();
           previewAyva.addOutputDevice(previewEmulator);
-          previewAyva.do(new TempestStroke(stroke)); // TODO: Support custom strokes too...
+          previewAyva.do(new TempestStroke(this.customStrokeLibrary[stroke] || stroke)); // TODO: Support custom strokes too...
         }, 100);
       }
     },
@@ -484,6 +501,22 @@ export default {
 }
 
 .current-stroke-container, .settings-container {
+  padding-left: 25px;
   margin-left: auto;
+}
+
+.current-stroke-container {
+  display: flex;
+}
+
+.tempest-stroke button:focus {
+  border: none;
+}
+
+.tempest-stroke button {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: 0 10px;
 }
 </style>
