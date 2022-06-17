@@ -97,10 +97,20 @@
     <div class="free-play-container lil-gui root">
       <div class="title">
         <span>Strokes</span>
-        <span class="current-stroke-container">
+        <span v-show="currentStrokeName !== 'None'" class="current-stroke-container">
           <span class="label">Playing:</span>
           <span class="current-stroke">{{ currentStrokeName }}</span>
         </span>
+        <span v-show="currentStrokeName === 'None'" class="settings-container"><n-dropdown
+          placement="left"
+          trigger="click"
+          size="small"
+          :options="settingsOptions"
+          :disabled="mode !== 'Stopped'"
+          @select="onSettings"
+        >
+          <settings-icon :disabled="mode !== 'Stopped' ? '' : null" class="settings icon" @click.stop />
+        </n-dropdown></span>
       </div>
       <div class="limits lil-gui children" style="padding-top: 0;">
         <!-- <div class="info">
@@ -116,21 +126,9 @@
             <div>
               <div class="info">
                 Select or manually trigger a stroke.
-                <question-icon class="question icon" />
               </div>
             </div>
-            <div class="stroke-actions">
-              <span><n-dropdown
-                placement="left"
-                trigger="click"
-                size="small"
-                :options="settingsOptions"
-                :disabled="mode !== 'Stopped'"
-                @select="onSettings"
-              >
-                <settings-icon :disabled="mode !== 'Stopped' ? '' : null" class="settings icon" />
-              </n-dropdown></span>
-            </div>
+            <div class="stroke-actions" />
           </div>
           <template v-for="stroke of strokes" :key="stroke.name">
             <div class="tempest-stroke">
@@ -446,10 +444,11 @@ export default {
 }
 
 .settings.icon {
-  width: 20px;
-  margin-left: 2px;
-  margin-right: 7.5px;
+  width: 18px;
   outline: none;
+  position: relative;
+  top: 2px;
+  margin-right: 3px;
 }
 
 .settings.icon[disabled] {
@@ -472,5 +471,19 @@ export default {
   justify-content: center;
   display: flex;
   gap: 10px;
+}
+
+.free-play-container .title {
+  display: flex;
+  align-items: flex-start;
+}
+
+.free-play-container .title > *:not(.settings-container) {
+  position: relative;
+  top: 2px;
+}
+
+.current-stroke-container, .settings-container {
+  margin-left: auto;
 }
 </style>

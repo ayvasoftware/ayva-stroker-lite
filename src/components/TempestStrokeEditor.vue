@@ -27,7 +27,11 @@
       </div>
       <div class="main-inputs">
         <div class="setup">
-          <span />
+          <n-popselect v-model:value="selectedAxes" trigger="click" multiple :options="availableAxes">
+            <span class="select-axes">
+              <axis-icon class="icon" />Axes
+            </span>
+          </n-popselect>
         </div>
         <div v-if="device && device.connected" class="device">
           <span>
@@ -41,12 +45,12 @@
       </div>
     </div>
     <div class="axis-column">
-      <n-scrollbar ref="axisScroll" :data-scroll="axisScrollTop">
+      <n-scrollbar ref="axisScroll" :data-scroll="axisScrollTop" trigger="none">
         <div class="axis-scroll">
           <div v-for="axis in axes" :key="axis.name" class="tempest-motion-container">
             <tempest-motion
               v-model="axis.parameters"
-              :display-name="axis.displayName"
+              :display-name="axis.label"
               :angle="previewAngle"
               :disabled="disabled"
             />
@@ -98,15 +102,6 @@ const defaultStroke = {
   stroke: {
     from: 0.5, to: 0.5, phase: 0, ecc: 0,
   },
-  twist: {
-    from: 0.5, to: 0.5, phase: 0, ecc: 0,
-  },
-  roll: {
-    from: 0.5, to: 0.5, phase: 0, ecc: 0,
-  },
-  pitch: {
-    from: 0.5, to: 0.5, phase: 0, ecc: 0,
-  },
 };
 
 export default {
@@ -117,6 +112,10 @@ export default {
   },
 
   inject: {
+    globalAyva: {
+      from: 'globalAyva',
+    },
+
     device: {
       from: 'globalDevice',
     },
@@ -141,10 +140,9 @@ export default {
       axes: this.createAxes('default', defaultStroke),
 
       availableAxes: Ayva.defaultConfiguration.axes.map((axis) => ({
-        name: axis.name,
-        alias: axis.alias,
-        checked: false,
-        displayName: `${axis.alias} (${axis.name})`,
+        ...axis,
+        label: `${axis.alias} (${axis.name})`,
+        value: axis.name,
         emulator: ['L0', 'R0', 'R1', 'R2'].indexOf(axis.name) !== -1,
       })),
 
@@ -188,6 +186,47 @@ export default {
         map[axis.alias] = axis;
         return map;
       }, {});
+    },
+
+    selectedAxes: {
+      get () {
+        return this.axes.map((axis) => axis.name);
+      },
+
+      set (value) {
+        const newAxisSet = new Set(value);
+        const oldAxisSet = new Set(this.axes.map((axis) => axis.name));
+
+        const removed = new Set([...oldAxisSet].filter((v) => !newAxisSet.has(v)));
+
+        const oldAxisMap = this.axes.reduce((map, next) => {
+          map.set(next.name, next);
+          return map;
+        }, new Map());
+
+        this.axes = this.availableAxes.filter((axis) => newAxisSet.has(axis.name))
+          .map((axis) => {
+            const existing = oldAxisMap.get(axis.name);
+
+            if (!existing) {
+              const defaultValue = ayva.getAxis(axis.name).type === 'auxiliary' ? 0 : 0.5;
+
+              return this.createAxis(axis.name, {
+                from: defaultValue, to: defaultValue, phase: 0, ecc: 0,
+              });
+            }
+
+            return existing;
+          });
+
+        for (const oldAxis of removed) {
+          // TODO: Make sure save is disabled if there are no axes selected.
+          const defaultValue = ayva.getAxis(oldAxis).type === 'auxiliary' ? 0 : 0.5;
+
+          // Immediately send removed axis to default.
+          ayva.$[oldAxis].value = defaultValue;
+        }
+      },
     },
 
     tempestStrokeOptions () {
@@ -273,15 +312,19 @@ export default {
   mounted () {
     emulator = new OSREmulator(this.$refs.emulator);
     ayva.addOutputDevice(emulator);
-    ayva.updateLimits('stroke', 0.25, 0.75);
-    ayva.updateLimits('twist', 0.25, 0.75);
-    ayva.updateLimits('roll', 0.25, 0.75);
-    ayva.updateLimits('pitch', 0.25, 0.75);
+
+    // Copy all axis limits from global Ayva instance.
+    Object.keys(ayva.axes).forEach((name) => {
+      ayva.updateLimits(name, this.globalAyva.$[name].min, this.globalAyva.$[name].max);
+    });
 
     window.addEventListener('scroll', this.onAxisScroll, { passive: true, capture: true });
   },
 
   unmounted () {
+    ayva.stop();
+    ayva.removeOutputDevice(emulator);
+    emulator.destroy();
     window.removeEventListener('scroll', this.onAxisScroll);
   },
 
@@ -410,17 +453,23 @@ export default {
       const axisNames = Object.keys(stroke);
 
       return axisNames.map((axisName) => {
-        // Note: axisName might be alias or machine name...
         const parameters = { ...stroke[axisName] };
-        const { alias, name } = ayva.getAxis(axisName);
+        return this.createAxis(axisName, parameters);
 
-        return {
-          alias,
-          name,
-          parameters,
-          displayName: `${alias} (${name})`,
-        };
+        // TODO: Do we also want to filter out auxiliary axes with value zero here?
       }).filter((axis) => key === 'default' || !(axis.parameters.from === 0.5 && axis.parameters.to === 0.5));
+    },
+
+    createAxis (axisName, parameters) {
+      // Note: axisName might be alias or machine name...
+      const { alias, name } = ayva.getAxis(axisName);
+
+      return {
+        alias,
+        name,
+        parameters,
+        label: `${alias} (${name})`,
+      };
     },
 
     onAxisScroll () {
@@ -554,12 +603,10 @@ export default {
 .main-inputs .device,
 .main-inputs .setup {
   margin-right: 40px;
-  /* margin-bottom: 10px; */
-  /* align-items: end; */
 }
 
 .main-inputs .setup {
-  margin-left: 30px;
+  margin-left: 45px;
 }
 
 .main-inputs .device label {
@@ -611,6 +658,24 @@ input.name {
 .save-container div {
   display: flex;
   align-items: center;
+}
+
+.select-axes .icon:hover {
+  opacity: 1;
+}
+
+.select-axes {
+  font-size: 14px;
+  margin-left: 390px; /* No... */
+}
+
+.select-axes:hover:not([disabled]) {
+  cursor: pointer;
+  opacity: var(--ayva-hover-opacity);
+}
+
+.select-axes:active:not([disabled]) {
+  opacity: var(--ayva-active-opacity);
 }
 
 </style>
