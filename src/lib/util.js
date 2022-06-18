@@ -12,6 +12,7 @@ export function makeCollapsible (element) {
 
     // wait for next frame to measure $children
     requestAnimationFrame(() => {
+      this.domElement.style.height = null;
       // explicitly set initial height for transition
       const initialHeight = this.$children.clientHeight;
       this.$children.style.height = `${initialHeight}px`;
@@ -23,6 +24,7 @@ export function makeCollapsible (element) {
         this.$children.style.height = '';
         this.domElement.classList.remove('transition');
         this.$children.removeEventListener('transitionend', onTransitionEnd);
+        window.dispatchEvent(new Event('resize'));
       };
 
       this.$children.addEventListener('transitionend', onTransitionEnd);
@@ -71,4 +73,14 @@ export function has (obj, prop) {
 
 export function clamp (value, min, max) {
   return Math.max(min, Math.min(max, value));
+}
+
+/**
+ * Size an element to extend to the bottom of the viewport.
+ */
+export function clampHeight (element, min, max) {
+  const rect = element.getBoundingClientRect();
+  const height = rect.height + (window.innerHeight - (rect.y + rect.height));
+
+  element.style.height = `${clamp(height, min, max)}px`;
 }

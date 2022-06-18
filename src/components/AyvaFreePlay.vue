@@ -2,7 +2,10 @@
   <div class="free-play">
     <div class="free-play-container lil-gui root">
       <div class="title">
-        Free Play Parameters
+        <span>Free Play Parameters</span>
+        <span class="guide" @click.stop>
+          <a href="https://ayvajs.github.io/ayvajs-docs/tutorial-ayva-stroker-lite.html" target="_blank">Help</a>
+        </span>
       </div>
       <div class="limits lil-gui children">
         <div class="limit">
@@ -94,7 +97,7 @@
         </div>
       </div>
     </div>
-    <div class="free-play-container lil-gui root">
+    <div ref="strokesContainer" class="free-play-container lil-gui root">
       <div class="title">
         <span>Strokes</span>
         <span v-show="currentStrokeName !== 'None'" class="current-stroke-container">
@@ -119,7 +122,7 @@
           (manually triggering a stroke will transition out of free play mode).
         </div> -->
 
-        <div class="tempest-stroke-container">
+        <div ref="tempestStrokeContainer" class="tempest-stroke-container">
           <div class="tempest-stroke">
             <div class="checkbox">
               <ayva-checkbox v-model="selectAllStrokes" />
@@ -189,11 +192,11 @@
 import Ayva, { TempestStroke } from 'ayvajs';
 import OSREmulator from 'osr-emu';
 import { useNotification } from 'naive-ui';
-import { h } from 'vue';
+import { h, nextTick } from 'vue';
 import AyvaSlider from './widgets/AyvaSlider.vue';
 import AyvaCheckbox from './widgets/AyvaCheckbox.vue';
 import TempestStrokeEditor from './TempestStrokeEditor.vue';
-import { makeCollapsible, formatter } from '../lib/util.js';
+import { makeCollapsible, formatter, clampHeight } from '../lib/util.js';
 import CustomStrokeStorage from '../lib/custom-stroke-storage.js';
 
 let previewAyva = null;
@@ -376,7 +379,15 @@ export default {
 
     previewEmulator = new OSREmulator(this.previewElement);
 
+    window.addEventListener('resize', this.onResize);
+
     this.refreshStrokes();
+
+    this.onResize();
+  },
+
+  unmounted () {
+    window.removeEventListener('resize', this.onResize);
   },
 
   methods: {
@@ -397,6 +408,17 @@ export default {
       this.strokes = [
         ...makeLibraryList(this.customStrokeLibrary, true),
         ...makeLibraryList(TempestStroke.library)];
+
+      this.onResize();
+    },
+
+    onResize () {
+      nextTick(() => {
+        if (!this.$refs.strokesContainer.classList.contains('closed')) {
+          const childHeight = this.$refs.tempestStrokeContainer.getBoundingClientRect().height;
+          clampHeight(this.$refs.strokesContainer, 200, childHeight + 50);
+        }
+      });
     },
 
     onUpdate (name, value) {
@@ -605,5 +627,14 @@ export default {
   white-space: nowrap;
   text-overflow: ellipsis;
   padding: 0 10px;
+}
+
+.guide {
+  margin-left: auto;
+  padding-left: 25px;
+}
+
+.guide a {
+  color: var(--ayva-blue);
 }
 </style>
