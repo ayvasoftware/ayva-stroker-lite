@@ -23,6 +23,16 @@
         console.warn('Google analytics disabled on localhost.');
       }
     </script>
+
+    <script type="module">
+      import { showOpenFilePicker, showSaveFilePicker } from 'https://unpkg.com/native-file-system-adapter@2.0.4/mod.js';
+
+      if (!window.showOpenFilePicker) {
+        console.warn('Using ponyfills for File System Access API');
+        window.showOpenFilePicker = showOpenFilePicker;
+        window.showSaveFilePicker = showSaveFilePicker
+      }
+    </script>
   </head>
 
   <body>
