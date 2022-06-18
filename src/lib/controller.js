@@ -84,7 +84,10 @@ export default class Controller extends AyvaBehavior {
       const customStrokeLibrary = this.#customStrokeStorage.load();
       const config = customStrokeLibrary[stroke] || TempestStroke.library[stroke];
 
-      if (this.parameters.twist) {
+      const existingTwist = config.twist || config.R0;
+      const noTwist = !existingTwist || (existingTwist.from === 0.5 && existingTwist.to === 0.5);
+
+      if (this.parameters.twist && noTwist) {
         const [from, to] = this.parameters['twist-range'];
         const phase = this.parameters['twist-phase'];
         const ecc = this.parameters['twist-ecc'];
