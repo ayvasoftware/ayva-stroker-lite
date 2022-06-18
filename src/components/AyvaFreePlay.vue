@@ -581,10 +581,6 @@ export default {
   margin-left: 5px;
 }
 
-.question.icon {
-  width: 15px;
-}
-
 .info {
   content: "Empty";
   padding: 0 var(--padding);
