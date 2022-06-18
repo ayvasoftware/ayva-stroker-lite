@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="/ayva.ico" />
+    <link rel="stylesheet" href="./src/assets/lil-gui.css" />
+    <link rel="stylesheet" href="./src/assets/main.css" />
+    <link rel="stylesheet" href="./src/assets/naive-ui.css" />
+
     <title>Ayva Stroker Lite</title>
 
     <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -17,6 +21,16 @@
         gtag('config', 'G-JSZQ3E5LY2');
       } else {
         console.warn('Google analytics disabled on localhost.');
+      }
+    </script>
+
+    <script type="module">
+      import { showOpenFilePicker, showSaveFilePicker } from 'https://unpkg.com/native-file-system-adapter@2.0.4/mod.js';
+
+      if (!window.showOpenFilePicker) {
+        console.warn('Using ponyfills for File System Access API');
+        window.showOpenFilePicker = showOpenFilePicker;
+        window.showSaveFilePicker = showSaveFilePicker
       }
     </script>
   </head>

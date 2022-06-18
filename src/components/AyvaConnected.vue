@@ -13,10 +13,6 @@
   </div>
 </template>
 
-<script setup>
-import ConnectIcon from '../assets/connect-icon.svg';
-</script>
-
 <script>
 export default {
   props: {

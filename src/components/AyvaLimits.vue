@@ -12,7 +12,11 @@
           <div class="axis">
             {{ axis }}
           </div>
-          <div class="slider" />
+          <ayva-slider
+            :options="sliderOptions"
+            :storage-key="`${axis}-limit`"
+            @update="onUpdate(axis, $event)"
+          />
         </div>
       </template>
     </div>
@@ -20,25 +24,20 @@
 </template>
 
 <script>
-import Slider from 'nouislider';
-import { makeCollapsible, has } from '../util.js';
+import AyvaSlider from './widgets/AyvaSlider.vue';
+import { makeCollapsible } from '../lib/util.js';
 
 export default {
+  components: {
+    AyvaSlider,
+  },
+
   emits: ['update-limits'],
 
   data () {
     return {
       axes: ['stroke', 'forward', 'left', 'twist', 'roll', 'pitch'],
-    };
-  },
-
-  mounted () {
-    const savedLimits = this.load();
-
-    this.axes.forEach((axis) => {
-      const element = this.$el.querySelector(`.limit.${axis} .slider`);
-
-      Slider.create(element, {
+      sliderOptions: {
         start: [0, 1],
         tooltips: true,
         margin: 0.1,
@@ -47,34 +46,18 @@ export default {
           min: [0],
           max: [1],
         },
-      });
+      },
+    };
+  },
 
-      if (has(savedLimits, axis)) {
-        element.noUiSlider.set(savedLimits[axis]);
-      }
-
-      element.noUiSlider.on('update', ([min, max]) => {
-        this.updateLimit(axis, min, max);
-      });
-
-      element.noUiSlider.on('change', ([min, max]) => {
-        this.updateLimit(axis, min, max);
-      });
-    });
-
+  mounted () {
     makeCollapsible(this.$el);
   },
 
   methods: {
-    load () {
-      return JSON.parse(localStorage.getItem('limits') || '{}');
-    },
-
-    save (axis, limits) {
-      const axes = this.load();
-      axes[axis] = limits;
-
-      localStorage.setItem('limits', JSON.stringify(axes));
+    onUpdate (axis, values) {
+      const [min, max] = values;
+      this.updateLimit(axis, min, max);
     },
 
     updateLimit (axis, min, max) {
@@ -82,8 +65,6 @@ export default {
         min: Number(min),
         max: Number(max),
       };
-
-      this.save(axis, [min, max]);
 
       this.$emit('update-limits', {
         name: axis,

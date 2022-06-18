@@ -1,91 +1,101 @@
 <template>
-  <ayva-limits @update-limits="updateLimits" />
-  <ayva-free-play
-    :current-stroke-name="currentStrokeName"
-    @update-parameters="updateParameters"
-    @update-strokes="updateStrokes"
-    @select-stroke="selectStroke"
-  />
-  <ayva-mode :mode="mode" />
+  <n-notification-provider placement="bottom-right">
+    <ayva-limits @update-limits="updateLimits" />
 
-  <div
-    id="main"
-    class="lil-gui"
-  >
-    <div
-      id="emulator"
-      ref="emulator"
-    />
-
-    <ayva-connected
-      :connected="connected"
+    <ayva-free-play
       :mode="mode"
-      @request-connection="requestConnection"
+      :current-stroke-name="currentStrokeName"
+      @update-parameters="updateParameters"
+      @update-strokes="updateStrokes"
+      @select-stroke="selectStroke"
     />
 
-    <div class="actions">
-      <button
-        id="home"
-        @click="home()"
-      >
-        Home Device
-      </button>
+    <ayva-mode :mode="mode" />
 
-      <button
-        id="start-free-play"
-        :disabled="mode === 'Free Play' || !strokes.length"
-        @click="freePlay()"
-      >
-        Free Play
-      </button>
-
-      <button
-        id="stop"
-        :disabled="mode === 'Stopped'"
-        @click="stop"
-      >
-        Stop (Esc)
-      </button>
-    </div>
-
-    <div id="current-bpm">
+    <div
+      id="main"
+      class="lil-gui"
+    >
       <div
-        ref="bpmSlider"
-        class="slider"
-        :disabled="bpmDisabled ? '' : null"
+        id="emulator"
+        ref="emulator"
       />
-      <div
-        class="label"
-        :disabled="bpmDisabled ? '' : null"
-      >
-        <span>Current BPM</span>
+
+      <ayva-connected
+        :connected="device.connected"
+        :mode="mode"
+        @request-connection="requestConnection"
+      />
+
+      <div class="actions">
+        <button
+          id="home"
+          @click="home()"
+        >
+          Home Device
+        </button>
+
+        <button
+          id="start-free-play"
+          :disabled="mode === 'Free Play' || !strokes.length"
+          @click="freePlay()"
+        >
+          Free Play
+        </button>
+
+        <button
+          id="stop"
+          :disabled="mode === 'Stopped'"
+          @click="stop"
+        >
+          Stop (Esc)
+        </button>
+      </div>
+
+      <div id="current-bpm">
+        <ayva-slider
+          ref="bpmSlider"
+          :options="bpmSliderOptions"
+          :disabled="bpmDisabled ? '' : null"
+          @update="currentBpm = $event"
+          @start="bpmActive = true"
+          @end="bpmActive = false"
+          @change="onChange"
+        />
+        <div
+          class="label"
+          :disabled="bpmDisabled ? '' : null"
+        >
+          <span>Current BPM</span>
+        </div>
+      </div>
+
+      <div class="logo">
+        Powered By <a
+          class="ayva"
+          href="https://ayvajs.github.io/ayvajs-docs"
+          target="_blank"
+        >Ayva</a>
       </div>
     </div>
-
-    <div class="logo">
-      Powered By <a
-        class="ayva"
-        href="https://ayvajs.github.io/ayvajs-docs"
-        target="_blank"
-      >Ayva</a>
-    </div>
-  </div>
+  </n-notification-provider>
 </template>
 
 <script>
-import Slider from 'nouislider';
 import OSREmulator from 'osr-emu';
 import Ayva, { WebSerialDevice } from 'ayvajs';
+import { computed } from 'vue';
+import AyvaSlider from './components/widgets/AyvaSlider.vue';
 import AyvaLimits from './components/AyvaLimits.vue';
 import AyvaFreePlay from './components/AyvaFreePlay.vue';
 import AyvaMode from './components/AyvaMode.vue';
 import AyvaConnected from './components/AyvaConnected.vue';
-import AyvaController from './controller.js';
-import { formatter } from './util.js';
+import AyvaController from './lib/controller.js';
+import { formatter } from './lib/util.js';
 
 // These need to be "globals" so they aren't proxied by Vue... because issues with private members :(
 const ayva = new Ayva().defaultConfiguration();
-const device = new WebSerialDevice();
+
 let controller;
 let emulator;
 
@@ -96,13 +106,21 @@ export default {
     AyvaFreePlay,
     AyvaMode,
     AyvaConnected,
+    AyvaSlider,
+  },
+
+  provide () {
+    return {
+      globalAyva: ayva,
+      globalDevice: computed(() => this.device),
+    };
   },
 
   props: [],
+
   data () {
     return {
       stopped: true,
-      connected: false,
       disconnectInterval: null,
       mode: 'Stopped',
       strokes: [],
@@ -112,46 +130,37 @@ export default {
       currentStrokeName: 'None',
       bpmDisabled: false,
       bpmAnimationFrame: null,
+
+      bpmSliderOptions: {
+        start: [60],
+        tooltips: true,
+        connect: true,
+        padding: [10],
+        step: 1,
+        range: {
+          min: 0,
+          max: 150,
+        },
+        format: formatter(),
+      },
+
+      device: new WebSerialDevice(),
     };
+  },
+
+  watch: {
+    'device.connected' (connected) {
+      if (!connected) {
+        ayva.removeOutputDevice(this.device);
+        this.stop();
+      }
+    },
   },
 
   mounted () {
     emulator = new OSREmulator(this.$refs.emulator);
 
     ayva.addOutputDevice(emulator);
-
-    Slider.create(this.$refs.bpmSlider, {
-      start: [60],
-      tooltips: true,
-      connect: true,
-      padding: [10],
-      step: 1,
-      range: {
-        min: 0,
-        max: 120,
-      },
-      format: formatter(),
-    });
-
-    this.$refs.bpmSlider.noUiSlider.on('start', () => {
-      this.bpmActive = true;
-    });
-
-    this.$refs.bpmSlider.noUiSlider.on('end', () => {
-      this.bpmActive = false;
-    });
-
-    this.$refs.bpmSlider.noUiSlider.on('update', ([bpm]) => {
-      this.currentBpm = Number(bpm);
-    });
-
-    this.$refs.bpmSlider.noUiSlider.on('change', ([bpm]) => {
-      this.currentBpm = Number(bpm);
-
-      if (controller) {
-        controller.updatedBpm = true;
-      }
-    });
 
     const watchProperties = [
       'bpmActive',
@@ -170,6 +179,13 @@ export default {
   },
 
   methods: {
+    onChange () {
+      // Triggered when user clicks a location on slider without dragging...
+      if (controller) {
+        controller.updatedBpm = true;
+      }
+    },
+
     updateLimits (axis) {
       ayva.updateLimits(axis.name, axis.limits.min, axis.limits.max);
     },
@@ -204,11 +220,11 @@ export default {
     },
 
     getBpm () {
-      return Number(this.$refs.bpmSlider.noUiSlider.get());
+      return Number(this.$refs.bpmSlider.get());
     },
 
     setBpm (bpm) {
-      this.$refs.bpmSlider.noUiSlider.set(bpm);
+      this.$refs.bpmSlider.set(bpm);
     },
 
     createBpmAnimation (duration, targetBpm) {
@@ -266,19 +282,8 @@ export default {
     },
 
     requestConnection () {
-      device.requestConnection().then(() => {
-        ayva.addOutputDevice(device);
-        this.connected = true;
-
-        // TODO: Use the disconnect listener instead of polling once WebSerialDevice is updated to support it.
-        this.disconnectInterval = setInterval(() => {
-          if (!device.connected) {
-            clearInterval(this.disconnectInterval);
-            this.connected = false;
-            ayva.removeOutputDevice(device);
-            this.stop();
-          }
-        }, 1000);
+      this.device.requestConnection().then(() => {
+        ayva.addOutputDevice(this.device);
       }).catch((error) => {
         /* Do nothing if no port was selected. */
         console.warn(error); // eslint-disable-line no-console
@@ -288,6 +293,4 @@ export default {
 };
 </script>
 
-<style src="./assets/lil-gui.css"></style>
-<style src="./assets/nouislider.css"></style>
 <style src="./assets/main.css"></style>

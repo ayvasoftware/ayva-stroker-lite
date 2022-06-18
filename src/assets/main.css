@@ -1,9 +1,56 @@
 body {
-  --custom-value-color: #6784bb;
+  --ayva-blue: #6784bb;
+  --ayva-color-error: #A80000;
+  --ayva-text-color-blue: #6784bb;
+  --ayva-text-color-off-white: rgb(235, 235, 235);
+  --ayva-text-color-light-gray: rgb(176, 176, 176);
+  --ayva-background-dark: rgb(17, 17, 17);
+  --ayva-background-medium: rgb(24, 24, 24);
+  --ayva-background-light: rgb(31, 31, 31);
+  --ayva-hover-opacity: 0.85;
+  --ayva-active-opacity: 0.75;
+  --ayva-button-primary-color: #374f7b;
+  --ayva-button-primary-color-hover: #3a5281;
+  --ayva-button-primary-color-active: #2f436a;
+  --ayva-tempest-axis-color: rgb(138, 99, 131);
   background: black;
   margin: 0
 }
 
+.ayva-button,
+.lil-gui .ayva-button {
+  height: 30px;
+  font-size: 16px;
+  border: none;
+}
+
+.ayva-button.primary,
+.lil-gui .ayva-button.primary {
+  background-color: var(--ayva-button-primary-color);
+  color: var(--ayva-text-color-off-white);
+}
+
+.ayva-button.primary:hover,
+.lil-gui .ayva-button.primary:hover{
+  background-color: var(--ayva-button-primary-color-hover);
+}
+
+.ayva-button.primary:active:not([disabled]),
+.lil-gui .ayva-button.primary:active:not([disabled]) {
+  background-color: var(--ayva-button-primary-color-active);
+}
+
+button[disabled] {
+  cursor: not-allowed;
+}
+
+.lil-gui button:active[disabled] {
+  background: var(--widget-color);
+}
+
+.lil-gui button:hover[disabled] {
+  background: var(--widget-color);
+}
 @font-face {
   font-family: locust;
   src: url(fonts/cgf-locust-resistance.regular.ttf);
@@ -29,7 +76,7 @@ body {
 }
 
 button[disabled] {
-  pointer-events: none !important;
+  /* pointer-events: none !important; */
   opacity: 50%;
 }
 
@@ -108,7 +155,7 @@ button[disabled] {
   display: flex;
   justify-content: center;
   padding: 5px;
-  color: var(--custom-value-color);
+  color: var(--ayva-text-color-blue);
   font-weight: bold;
 }
 
@@ -148,7 +195,7 @@ button[disabled] {
 }
 
 .manual-mode {
-  color: var(--custom-value-color);
+  color: var(--ayva-text-color-blue);
 }
 
 .limits-container {
@@ -186,7 +233,7 @@ button[disabled] {
 
 .tempest-stroke {
   display: grid;
-  grid-template-columns: 30% 240px;
+  grid-template-columns: 1fr 210px 1fr;
   padding-top: 7px;
 }
 
@@ -196,76 +243,13 @@ button[disabled] {
   justify-content: center;
 }
 
-.slider {
-  height: 3px;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
-  top: 7px;
-}
-
-.slider .noUi-connect {
-  background: var(--custom-value-color)
-}
-
-.slider .noUi-handle {
-  height: 12px;
-  width: 12px;
-  top: -5px;
-  right: -12px;
-  border-radius: 9px;
-  background: var(--custom-value-color);
-  box-shadow: none;
-  border: none;
-  cursor: pointer;
-}
-
-.slider[disabled] .noUi-handle {
-  cursor: not-allowed;
-}
-
-.slider[disabled], .axis[disabled] {
-  opacity: 0.5;
-}
-
-.slider .noUi-connects, 
-.slider {
-  background-color: rgb(66, 66, 66);
-}
-
-.noUi-handle:after {
-  display: none;
-}
-
-.noUi-handle:before {
-  display: none;
-}
-
-.noUi-tooltip {
-  font-size: 10px;
-  background-color: transparent;
-  border: none;
-  color: var(--custom-value-color);
-  font-weight: bold;
-}
-
-.info {
-  content: "Empty";
-  padding: 0 var(--padding);
-  margin: var(--spacing) 0;
-  display: block;
-  font-style: italic;
-  line-height: var(--widget-height);
-  opacity: 0.75;
-}
-
-.current-stroke-container {
-  float: right;
-}
-
 .current-stroke-container .current-stroke {
   padding: 0 5px;
-  color: var(--custom-value-color);
+  color: var(--ayva-text-color-blue);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 250px;
 }
 
 [disabled] {
@@ -279,11 +263,53 @@ button[disabled] {
   left: 20px;
   font-family: locust;
   font-size: 12px;
-  color: var(--custom-value-color);
+  color: var(--ayva-text-color-blue);
 }
 
 .logo .ayva {
   color: indigo;
   font-size: 20px;
   text-decoration: none;
+}
+
+.icon:not([disabled]) {
+  cursor: pointer;
+}
+
+.icon {
+  width: 25px;
+  margin-top: 2px;
+}
+
+.icon:hover:not([disabled]) {
+  opacity: var(--ayva-hover-opacity)
+}
+
+.icon:active:not([disabled]) {
+  opacity: var(--ayva-active-opacity);
+}
+
+.icon {
+  outline: none;
+}
+
+.preview-popup {
+  width: 150px;
+  height: 150px;
+  box-shadow:0 0 8px 3px black;
+  border-radius: 75px;
+  background-color: black;
+}
+
+.preview-popup > * {
+  border-radius: 75px;
+}
+
+.preview-popup-container {
+  left: -80px;
+  top: 20px;
+}
+
+input.error {
+  border: 1px solid var(--ayva-color-error);
 }
