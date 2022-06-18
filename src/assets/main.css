@@ -1,5 +1,6 @@
 body {
   --ayva-blue: #6784bb;
+  --ayva-color-error: #A80000;
   --ayva-text-color-blue: #6784bb;
   --ayva-text-color-off-white: rgb(235, 235, 235);
   --ayva-text-color-light-gray: rgb(176, 176, 176);
@@ -310,5 +311,5 @@ button[disabled] {
 }
 
 input.error {
-  border: 1px solid red;
+  border: 1px solid var(--ayva-color-error);
 }

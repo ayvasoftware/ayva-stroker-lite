@@ -188,6 +188,8 @@
 <script>
 import Ayva, { TempestStroke } from 'ayvajs';
 import OSREmulator from 'osr-emu';
+import { useNotification } from 'naive-ui';
+import { h } from 'vue';
 import AyvaSlider from './widgets/AyvaSlider.vue';
 import AyvaCheckbox from './widgets/AyvaCheckbox.vue';
 import TempestStrokeEditor from './TempestStrokeEditor.vue';
@@ -200,6 +202,7 @@ let previewEmulator = null;
 const customStrokeStorage = new CustomStrokeStorage();
 
 export default {
+
   components: {
     AyvaSlider,
     AyvaCheckbox,
@@ -221,6 +224,13 @@ export default {
   },
 
   emits: ['update-parameters', 'update-strokes', 'select-stroke'],
+
+  setup () {
+    const notification = useNotification();
+    return {
+      notify: notification,
+    };
+  },
 
   data () {
     return {
@@ -309,6 +319,9 @@ export default {
         key: 'edit',
         label: 'Edit',
       }, {
+        key: 'export',
+        label: 'Export',
+      }, {
         key: 'delete',
         label: 'Delete',
       }],
@@ -394,9 +407,23 @@ export default {
       if (key === 'create') {
         this.openStrokeEditor();
       } else if (key === 'import') {
-        // TODO: Implement
+        const onConflicts = (conflicts) => {
+          this.notify.warning({
+            content: 'Some strokes renamed due to conflicts:',
+            meta: () => h('div', conflicts.map((c) => h('div', c))),
+          });
+        };
+
+        customStrokeStorage.import(onConflicts).then(() => {
+          this.refreshStrokes();
+        }).catch((error) => {
+          this.notify.error({
+            content: 'Error importing stroke:',
+            meta: error.message,
+          });
+        });
       } else if (key === 'export') {
-        // TODO: Implement
+        customStrokeStorage.export();
       }
     },
 
@@ -406,6 +433,8 @@ export default {
         this.refreshStrokes();
       } else if (action === 'edit') {
         this.openStrokeEditor(stroke.name);
+      } else if (action === 'export') {
+        customStrokeStorage.exportOne(stroke.name);
       }
     },
 

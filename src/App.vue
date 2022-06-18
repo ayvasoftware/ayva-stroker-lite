@@ -1,80 +1,84 @@
 <template>
-  <ayva-limits @update-limits="updateLimits" />
-  <ayva-free-play
-    :mode="mode"
-    :current-stroke-name="currentStrokeName"
-    @update-parameters="updateParameters"
-    @update-strokes="updateStrokes"
-    @select-stroke="selectStroke"
-  />
-  <ayva-mode :mode="mode" />
+  <n-notification-provider placement="bottom-right">
+    <ayva-limits @update-limits="updateLimits" />
 
-  <div
-    id="main"
-    class="lil-gui"
-  >
-    <div
-      id="emulator"
-      ref="emulator"
-    />
-
-    <ayva-connected
-      :connected="device.connected"
+    <ayva-free-play
       :mode="mode"
-      @request-connection="requestConnection"
+      :current-stroke-name="currentStrokeName"
+      @update-parameters="updateParameters"
+      @update-strokes="updateStrokes"
+      @select-stroke="selectStroke"
     />
 
-    <div class="actions">
-      <button
-        id="home"
-        @click="home()"
-      >
-        Home Device
-      </button>
+    <ayva-mode :mode="mode" />
 
-      <button
-        id="start-free-play"
-        :disabled="mode === 'Free Play' || !strokes.length"
-        @click="freePlay()"
-      >
-        Free Play
-      </button>
-
-      <button
-        id="stop"
-        :disabled="mode === 'Stopped'"
-        @click="stop"
-      >
-        Stop (Esc)
-      </button>
-    </div>
-
-    <div id="current-bpm">
-      <ayva-slider
-        ref="bpmSlider"
-        :options="bpmSliderOptions"
-        :disabled="bpmDisabled ? '' : null"
-        @update="currentBpm = $event"
-        @start="bpmActive = true"
-        @end="bpmActive = false"
-        @change="onChange"
-      />
+    <div
+      id="main"
+      class="lil-gui"
+    >
       <div
-        class="label"
-        :disabled="bpmDisabled ? '' : null"
-      >
-        <span>Current BPM</span>
+        id="emulator"
+        ref="emulator"
+      />
+
+      <ayva-connected
+        :connected="device.connected"
+        :mode="mode"
+        @request-connection="requestConnection"
+      />
+
+      <div class="actions">
+        <button
+          id="home"
+          @click="home()"
+        >
+          Home Device
+        </button>
+
+        <button
+          id="start-free-play"
+          :disabled="mode === 'Free Play' || !strokes.length"
+          @click="freePlay()"
+        >
+          Free Play
+        </button>
+
+        <button
+          id="stop"
+          :disabled="mode === 'Stopped'"
+          @click="stop"
+        >
+          Stop (Esc)
+        </button>
+      </div>
+
+      <div id="current-bpm">
+        <ayva-slider
+          ref="bpmSlider"
+          :options="bpmSliderOptions"
+          :disabled="bpmDisabled ? '' : null"
+          @update="currentBpm = $event"
+          @start="bpmActive = true"
+          @end="bpmActive = false"
+          @change="onChange"
+        />
+        <div
+          class="label"
+          :disabled="bpmDisabled ? '' : null"
+        >
+          <span>Current BPM</span>
+        </div>
+      </div>
+
+      <div class="logo">
+        Powered By <a
+          class="ayva"
+          href="https://ayvajs.github.io/ayvajs-docs"
+          target="_blank"
+        >Ayva</a>
       </div>
     </div>
-
-    <div class="logo">
-      Powered By <a
-        class="ayva"
-        href="https://ayvajs.github.io/ayvajs-docs"
-        target="_blank"
-      >Ayva</a>
-    </div>
-  </div>
+  </n-notification-provider>
 </template>
 
 <script>

@@ -111,8 +111,8 @@ export default {
       phase: 0,
       ecc: 0,
 
-      lastFromDirection: -1,
-      lastToDirection: 1,
+      lastFromDirection: 1,
+      lastToDirection: -1,
     };
   },
 

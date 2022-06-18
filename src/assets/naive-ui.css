@@ -68,3 +68,20 @@
 .error-tooltip.n-popover .n-popover-arrow {
   background-color: var(--ayva-background-dark);
 }
+
+.n-notification-container .n-notification {
+  background-color: var(--ayva-background-dark);
+}
+
+.n-notification-container .n-notification .n-notification-main .n-notification-main__content {
+  color: var(--ayva-text-color-light-gray);
+}
+
+.n-notification-container .n-notification .n-notification-main .n-notification-main-footer .n-notification-main-footer__meta {
+  color: var(--ayva-text-color-light-gray);
+  opacity: 0.75;
+}
+
+.n-notification-container .n-notification .n-notification__avatar .n-base-icon {
+  color: var(--ayva-color-error);
+}
