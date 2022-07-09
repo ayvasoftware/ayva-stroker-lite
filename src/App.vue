@@ -150,7 +150,12 @@ export default {
 
   watch: {
     'device.connected' (connected) {
-      if (!connected) {
+      if (connected) {
+        for (const axis in ayva.$) { // eslint-disable-line guard-for-in
+          // Insta home....
+          ayva.$[axis].value = ayva.$[axis].defaultValue;
+        }
+      } else {
         ayva.removeOutputDevice(this.device);
         this.stop();
       }
