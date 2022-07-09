@@ -363,6 +363,7 @@ export default {
   unmounted () {
     ayva.stop();
     ayva.removeOutputDevice(emulator);
+    ayva.removeOutputDevice(this.device);
     emulator.destroy();
     window.removeEventListener('scroll', this.onAxisScroll);
   },
