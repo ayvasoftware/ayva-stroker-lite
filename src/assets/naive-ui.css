@@ -24,6 +24,10 @@
   background-color: var(--ayva-background-dark);
 }
 
+.n-base-select-menu.motion .n-base-select-option {
+  padding: 0 8px;
+}
+
 .n-base-select-menu .n-base-select-option .n-base-icon.n-base-select-option__check {
   color: var(--ayva-tempest-axis-color);
 }

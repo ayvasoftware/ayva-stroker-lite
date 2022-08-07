@@ -34,7 +34,7 @@
       />
     </div>
 
-    <n-popselect v-model:value="selectedMotion" trigger="click" :options="motionOptions">
+    <n-popselect v-model:value="selectedMotion" class="motion" trigger="click" :options="motionOptions" :render-label="renderMotionLabel">
       <function-icon class="function icon" />
     </n-popselect>
   </div>
@@ -42,9 +42,12 @@
 
 <script>
 import Ayva from 'ayvajs';
-import { nextTick } from 'vue';
+import { h, nextTick } from 'vue';
 import AyvaSlider from './widgets/AyvaSlider.vue';
 import { clamp } from '../lib/util.js';
+import SineIcon from '../assets/icons/sine.svg';
+import ParabolaIcon from '../assets/icons/parabola.svg';
+import LinearIcon from '../assets/icons/linear.svg';
 
 export default {
   components: {
@@ -344,6 +347,27 @@ export default {
 
     changed (updated) {
       return !!Object.keys(updated).filter((param) => updated[param] !== this[param]).length;
+    },
+
+    renderMotionLabel (option) {
+      let icon;
+
+      switch (option.label) {
+        case 'Sinusoidal':
+          icon = SineIcon;
+          break;
+        case 'Parabolic':
+          icon = ParabolaIcon;
+          break;
+        case 'Linear':
+          icon = LinearIcon;
+          break;
+        default:
+      }
+
+      return h('div', { style: 'display: flex' }, [h(icon, {
+        style: 'width: 25px; height: 20px; position: relative; left: -2px;',
+      }), h('span', [option.label])]);
     },
   },
 };
