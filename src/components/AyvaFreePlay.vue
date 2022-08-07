@@ -463,7 +463,7 @@ export default {
     openStrokeEditor (editStroke = null) {
       this.editStroke = editStroke;
       this.showStrokeEditor = true;
-      this.animateEditorResize(500);
+      this.animateEditorResize(1000);
     },
 
     animateEditorResize (delay, lastTime) {
