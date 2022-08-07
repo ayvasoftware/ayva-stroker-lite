@@ -33,12 +33,15 @@
         active-tooltips
       />
     </div>
+
+    <n-popselect v-model:value="selectedMotion" trigger="click" :options="motionOptions">
+      <function-icon class="function icon" />
+    </n-popselect>
   </div>
 </template>
 
 <script>
 import Ayva from 'ayvajs';
-import _ from 'lodash';
 import { nextTick } from 'vue';
 import AyvaSlider from './widgets/AyvaSlider.vue';
 import { clamp } from '../lib/util.js';
@@ -50,7 +53,7 @@ export default {
 
   props: {
     /**
-     * The model value of a TempestMotion is a parameters object with from, to, phase, and ecc properties.
+     * The model value of a TempestMotion is a parameters object with from, to, phase, ecc, and motion properties.
      */
     modelValue: {
       type: Object,
@@ -59,6 +62,7 @@ export default {
         to: 0.5,
         phase: 0,
         ecc: 0,
+        motion: Ayva.tempestMotion,
       }),
     },
 
@@ -105,11 +109,24 @@ export default {
         start: [0],
         step: 0.05,
       },
+      motionOptions: [{
+        label: 'Sinusoidal',
+        value: 'Ayva.tempestMotion',
+      }, {
+        label: 'Parabolic',
+        value: 'Ayva.parabolicMotion',
+      }, {
+        label: 'Linear',
+        value: 'Ayva.linearMotion',
+      }],
 
       from: 0.5,
       to: 0.5,
       phase: 0,
       ecc: 0,
+      motion: Ayva.tempestMotion,
+
+      selectedMotion: 'Ayva.tempestMotion',
 
       lastFromDirection: 1,
       lastToDirection: -1,
@@ -135,18 +152,20 @@ export default {
       handler (updated) {
         nextTick(() => {
           // TODO: Truly understand why this must be done on the next tick to work...
-          const {
-            from, to, phase, ecc,
-          } = this;
-
-          if (!_.isEqual(updated, {
-            from, to, phase, ecc,
-          })) {
+          if (this.changed(updated)) {
             const { rangeSlider, phaseSlider, eccSlider } = this.$refs;
 
             rangeSlider.set(updated.from, updated.to);
             phaseSlider.set(updated.phase);
             eccSlider.set(updated.ecc);
+
+            this.motion = updated.motion;
+
+            if (this.motion) {
+              this.selectedMotion = `Ayva.${this.motion.name}`;
+            } else {
+              this.selectedMotion = 'Ayva.tempestMotion';
+            }
           }
         });
       },
@@ -155,6 +174,11 @@ export default {
 
     angle () {
       this.plot();
+    },
+
+    selectedMotion (updatedMotion) {
+      this.motion = eval(updatedMotion); // eslint-disable-line no-eval
+      this.updateModelValue();
     },
   },
 
@@ -215,18 +239,20 @@ export default {
      */
     plot () {
       const {
-        from, to, phase, ecc,
+        from, to, phase, ecc, motion,
       } = this;
 
       const fn = (x) => {
-        const value = -Math.cos(x + (Math.PI * phase) / 2 + ecc * Math.sin(x + (Math.PI * phase) / 2));
+        if (motion && motion.name === 'parabolicMotion') {
+          return this.parabolicMotion(from, to, phase, ecc, x);
+        } else if (motion && motion.name === 'linearMotion') {
+          return this.linearMotion(from, to, phase, ecc, x);
+        }
 
-        const upperLimit = Ayva.map(from, 1, 0, 1, -1);
-        const lowerLimit = Ayva.map(to, 1, 0, 1, -1);
-        return Ayva.map(value, -1, 1, upperLimit, lowerLimit);
+        return this.sinMotion(from, to, phase, ecc, x);
       };
 
-      const range = [0, Math.PI * 2, -1, 1];
+      const range = [0, Math.PI * 2, 0, 1];
 
       const canvas = this.$refs.wave;
       const context = canvas.getContext('2d');
@@ -271,13 +297,53 @@ export default {
       context.fill();
     },
 
+    sinMotion (from, to, phase, ecc, startAngle) {
+      const scale = 0.5 * (to - from);
+      const midpoint = 0.5 * (to + from);
+
+      const angle = startAngle + (0.5 * Math.PI * phase);
+      return midpoint - scale * Math.cos(angle + (ecc * Math.sin(angle)));
+    },
+
+    parabolicMotion (from, to, phase, ecc, startAngle) {
+      const { sin, PI } = Math;
+
+      const scale = to - from;
+      const offset = to;
+      const angle = startAngle + (0.5 * PI * phase);
+
+      const x = (this.mod(angle, (2 * PI)) / PI) - 1 + (ecc / PI) * sin(angle);
+
+      return offset - scale * x * x;
+    },
+
+    linearMotion (from, to, phase, ecc, startAngle) {
+      const { abs, sin, PI } = Math;
+
+      const scale = to - from;
+      const offset = to;
+      const angle = startAngle + (0.5 * PI * phase);
+
+      const x = (this.mod(angle, (2 * PI)) / PI) - 1 + (ecc / PI) * sin(angle);
+
+      return offset - scale * abs(x);
+    },
+
+    mod (a, b) {
+      return ((a % b) + b) % b; // Proper mathematical modulus operator.
+    },
+
     updateModelValue () {
       const {
-        from, to, phase, ecc,
+        from, to, phase, ecc, motion,
       } = this;
       this.$emit('update:modelValue', {
-        from, to, phase, ecc,
+        from, to, phase, ecc, motion,
       });
+    },
+
+    changed (updated) {
+      return !!Object.keys(updated).filter((param) => updated[param] !== this[param]).length;
     },
   },
 };
@@ -286,7 +352,7 @@ export default {
 <style scoped>
   .tempest-motion {
     display: grid;
-    grid-template-columns: 15px 60px 1fr 20px 1fr;
+    grid-template-columns: 15px 60px 1fr 20px 1fr 20px 20px;
     grid-template-rows: 100px 20px;
     width: 450px;
   }
@@ -305,6 +371,12 @@ export default {
 
   .ecc {
     grid-column: 5;
+  }
+
+  .function {
+    width: 16px;
+    grid-column: 7;
+    color: var(--ayva-text-color-light-gray);
   }
 
   .display-name {

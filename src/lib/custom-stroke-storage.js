@@ -1,3 +1,5 @@
+import Ayva from 'ayvajs';
+import _ from 'lodash';
 import Storage from './ayva-storage.js';
 import validator from './custom-stroke-validator.js';
 
@@ -19,13 +21,15 @@ const fileOptions = {
 
 class CustomStrokeStorage {
   load () {
-    return storage.load('all') || {};
+    const library = storage.load('all') || {};
+    return this.deserialize(library);
   }
 
   save (name, stroke) {
     const library = this.load();
     library[name] = stroke;
-    storage.save('all', library);
+
+    storage.save('all', this.serialize(library));
   }
 
   delete (name) {
@@ -96,7 +100,7 @@ class CustomStrokeStorage {
 
     const writable = await fileHandle.createWritable();
 
-    const library = this.load();
+    const library = this.serialize(this.load());
 
     const strokeFileObject = Object.entries(library).map(([name, data]) => ({
       name,
@@ -120,7 +124,7 @@ class CustomStrokeStorage {
 
     const writable = await fileHandle.createWritable();
 
-    const library = this.load();
+    const library = this.serialize(this.load());
     const data = library[name];
 
     const strokeFileObject = [{
@@ -131,6 +135,67 @@ class CustomStrokeStorage {
 
     await writable.write(JSON.stringify(strokeFileObject, null, 2));
     await writable.close();
+  }
+
+  serialize (library) {
+    const result = _.cloneDeep(library);
+
+    Object.values(result).forEach((stroke) => {
+      Object.values(stroke).forEach((params) => {
+        // Translate motion properties to strings.
+        // TODO: Handle differently when custom functions are available.
+        if (params.motion instanceof Function) {
+          switch (params.motion.name) {
+            case 'tempestMotion':
+              params.motion = 'Ayva.tempestMotion';
+              break;
+            case 'parabolicMotion':
+              params.motion = 'Ayva.parabolicMotion';
+              break;
+            case 'linearMotion':
+              params.motion = 'Ayva.linearMotion';
+              break;
+            default:
+              console.warn('Invalid motion property:', params.motion); // eslint-disable-line no-console
+              delete params.motion;
+          }
+        } else if (params.motion !== undefined && typeof params.motion !== 'string') {
+          console.warn('Invalid motion property:', params.motion); // eslint-disable-line no-console
+          delete params.motion;
+        }
+      });
+    });
+
+    return result;
+  }
+
+  deserialize (library) {
+    const result = _.cloneDeep(library);
+
+    Object.values(result).forEach((stroke) => {
+      Object.values(stroke).forEach((params) => {
+        // Translate motion properties to actual functions.
+        // TODO: Convert this to eval() or new Function() once custom motion is supported.
+        switch (params.motion) {
+          case 'Ayva.tempestMotion':
+            params.motion = Ayva.tempestMotion;
+            break;
+          case 'Ayva.parabolicMotion':
+            params.motion = Ayva.parabolicMotion;
+            break;
+          case 'Ayva.linearMotion':
+            params.motion = Ayva.linearMotion;
+            break;
+          default:
+            if (params.motion) {
+              console.warn('Invalid motion property:', params.motion); // eslint-disable-line no-console
+              delete params.motion;
+            }
+        }
+      });
+    });
+
+    return result;
   }
 }
 

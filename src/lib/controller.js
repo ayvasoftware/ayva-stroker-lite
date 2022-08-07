@@ -1,7 +1,9 @@
-import Ayva, { AyvaBehavior, TempestStroke, VariableDuration } from 'ayvajs';
+import {
+  Ayva, GeneratorBehavior, TempestStroke, VariableDuration
+} from 'ayvajs';
 import CustomStrokeStorage from './custom-stroke-storage';
 
-export default class Controller extends AyvaBehavior {
+export default class Controller extends GeneratorBehavior {
   #customStrokeStorage = new CustomStrokeStorage();
 
   #currentStroke = null;
@@ -10,21 +12,21 @@ export default class Controller extends AyvaBehavior {
 
   #bpm;
 
-  generateActions (ayva) {
+  * generate (ayva) {
     if (this.strokeCommand) {
       // Transition into user selected stroke and take us out of random mode.
       const stroke = this.strokeCommand;
       this.#clearState();
-      this.#queueTransition(ayva, stroke);
+      yield* this.#createTransition(ayva, stroke);
     } else if (this.random && this.#readyForNextStroke()) {
-      this.#queueTransition(ayva, this.randomStroke());
+      yield* this.#createTransition(ayva, this.randomStroke());
     }
 
     if (this.#currentStroke) {
-      this.queueBehavior(this.#currentStroke, 1);
+      yield* this.#currentStroke;
     } else {
       // Waiting for a command.
-      this.queueSleep(0.1);
+      yield 0.1;
     }
   }
 
@@ -37,7 +39,7 @@ export default class Controller extends AyvaBehavior {
   /**
    * Add transition moves to the queue and create the current stroke.
    */
-  #queueTransition (ayva, strokeConfig) {
+  * #createTransition (ayva, strokeConfig) {
     this.#bpm = this.#generateNextBpm();
 
     const bpmProvider = () => {
@@ -52,30 +54,37 @@ export default class Controller extends AyvaBehavior {
     if (this.#currentStroke) {
       // Create smooth transition to the next stroke.
       const duration = this.#generateTransitionDuration();
+      this.#currentStroke = this.#currentStroke
+        .transition(this.#createStrokeConfig(strokeConfig), bpmProvider, duration, this.#startTransition.bind(this), (config, bpm) => {
+          // Make sure we use the pretransformed stroke config for the event.
+          this.#endTransition(strokeConfig, bpm);
+        });
 
-      const { transitionStroke, nextStroke } = this.#currentStroke.createTransition(
-        duration,
-        this.#createStrokeConfig(strokeConfig),
-        bpmProvider,
-      );
-
-      this.#currentStroke = nextStroke;
-      this.#queueTransitionStartEvent(duration, nextStroke.bpm);
-      this.queueBehavior(transitionStroke, 1, ayva);
+      yield* this.#currentStroke;
     } else {
       // Just move to the start position for the new stroke.
-      this.#currentStroke = new TempestStroke(this.#createStrokeConfig(strokeConfig), bpmProvider);
-      this.#queueTransitionStartEvent(1, this.#currentStroke.bpm);
-      this.queueMove(...this.#currentStroke.getStartMoves(ayva, { duration: 1 }));
+      this.#currentStroke = new TempestStroke(this.#createStrokeConfig(strokeConfig), bpmProvider).bind(ayva);
+
+      this.#startTransition(1, this.#currentStroke.bpm);
+      yield* this.#currentStroke.start({ duration: 1 });
+      this.#endTransition(strokeConfig, this.#currentStroke.bpm);
+    }
+  }
+
+  #startTransition (duration, bpm) {
+    if (this.onTransitionStart) {
+      this.onTransitionStart(duration, bpm);
+    }
+  }
+
+  #endTransition (strokeConfig, bpm) {
+    if (this.onTransitionEnd) {
+      this.onTransitionEnd(strokeConfig, bpm);
     }
 
-    this.#queueTransitionEndEvent(strokeConfig, this.#currentStroke.bpm);
-
     if (this.random) {
-      this.queueFunction(() => {
-        // Start the timer for the next stroke after finishing the transition.
-        this.#startTimer();
-      });
+      // Start the timer for the next stroke after finishing the transition.
+      this.#startTimer();
     }
   }
 
@@ -101,22 +110,6 @@ export default class Controller extends AyvaBehavior {
     }
 
     return stroke;
-  }
-
-  #queueTransitionStartEvent (duration, targetBpm) {
-    this.queueFunction(() => {
-      if (this.onTransitionStart) {
-        this.onTransitionStart(duration, targetBpm);
-      }
-    });
-  }
-
-  #queueTransitionEndEvent (strokeConfig, bpm) {
-    this.queueFunction(() => {
-      if (this.onTransitionEnd) {
-        this.onTransitionEnd(strokeConfig, bpm);
-      }
-    });
   }
 
   #readyForNextStroke () {

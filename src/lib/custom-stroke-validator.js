@@ -7,6 +7,7 @@ const parametersSchema = Joi.object({
   to: Joi.number().required().min(0).max(1),
   phase: Joi.number(),
   ecc: Joi.number(),
+  motion: Joi.string(),
 }).required();
 
 const strokeSchema = Joi.object({

@@ -400,9 +400,10 @@ export default {
 
         if (mappedAxis && mappedAxis.parameters) {
           const {
-            from, to, phase, ecc,
+            from, to, phase, ecc, motion,
           } = mappedAxis.parameters;
-          return Ayva.tempestMotion(
+
+          return (motion || Ayva.tempestMotion)(
             from,
             to,
             phase,
