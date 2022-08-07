@@ -322,6 +322,7 @@ export default {
         ayva.addOutputDevice(this.device);
       } else {
         ayva.removeOutputDevice(this.device);
+        this.resetGlobalDevicePosition();
       }
     },
 
@@ -363,8 +364,13 @@ export default {
   unmounted () {
     ayva.stop();
     ayva.removeOutputDevice(emulator);
+    ayva.removeOutputDevice(this.device);
     emulator.destroy();
     window.removeEventListener('scroll', this.onAxisScroll);
+
+    if (this.previewOnDevice) {
+      this.resetGlobalDevicePosition();
+    }
   },
 
   methods: {
@@ -528,6 +534,12 @@ export default {
       customStrokeStorage.save(this.strokeName, stroke);
       this.$emit('close');
       this.$emit('save');
+    },
+
+    resetGlobalDevicePosition () {
+      for (const axis in ayva.$) { // eslint-disable-line guard-for-in
+        this.globalAyva.$[axis].value = ayva.$[axis].value;
+      }
     },
   },
 };

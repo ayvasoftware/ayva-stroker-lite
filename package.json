@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --port 8080",
     "build": "vite build --base=/ayva-stroker-lite/",
-    "preview": "vite preview --port 5050",
+    "preview": "vite preview --port 5050 --base=/ayva-stroker-lite/",
     "lint": "eslint . --format html -o test-output/eslint.html --ext .vue,.js,.jsx,.cjs,.mjs --fix",
     "deploy": "git subtree push --prefix dist origin gh-pages"
   },
@@ -39,7 +39,7 @@
     "lodash": "^4.17.21",
     "naive-ui": "2.29.0",
     "nouislider": "^15.6.0",
-    "osr-emu": "^0.2.3",
+    "osr-emu": "^0.2.5",
     "prettier": "^2.5.1",
     "vite": "^2.9.5",
     "vite-svg-loader": "^3.3.0",

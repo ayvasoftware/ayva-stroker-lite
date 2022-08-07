@@ -313,3 +313,25 @@ button[disabled] {
 input.error {
   border: 1px solid var(--ayva-color-error);
 }
+
+@media only screen and (max-width: 1280px) {  
+  #app {
+    display: none;
+  }
+}
+
+@media only screen and (max-width: 1280px) {  
+  #mobile-splash {
+    display: flex !important;
+    height: 100vh;
+    color: var(--ayva-text-color-blue);
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+@media only screen and (min-width: 1280px) {  
+  #mobile-splash {
+    display: none;
+  }
+}
