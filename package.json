@@ -39,7 +39,7 @@
     "lodash": "^4.17.21",
     "naive-ui": "2.29.0",
     "nouislider": "^15.6.0",
-    "osr-emu": "^0.2.5",
+    "osr-emu": "^0.3.0",
     "prettier": "^2.5.1",
     "vite": "^2.9.5",
     "vite-svg-loader": "^3.3.0",
