@@ -189,14 +189,17 @@
 </template>
 
 <script>
-import Ayva, { TempestStroke } from 'ayvajs';
+import { TempestStroke } from 'ayvajs';
 import OSREmulator from 'osr-emu';
 import { useNotification } from 'naive-ui';
 import { h, nextTick } from 'vue';
+import { createAyva } from '../lib/ayva-config.js';
 import AyvaSlider from './widgets/AyvaSlider.vue';
 import AyvaCheckbox from './widgets/AyvaCheckbox.vue';
 import TempestStrokeEditor from './TempestStrokeEditor.vue';
-import { makeCollapsible, formatter, clampHeight } from '../lib/util.js';
+import {
+  makeCollapsible, formatter, clampHeight
+} from '../lib/util.js';
 import CustomStrokeStorage from '../lib/custom-stroke-storage.js';
 
 let previewAyva = null;
@@ -527,7 +530,7 @@ export default {
     },
 
     createPreviewAyva () {
-      const ayva = new Ayva().defaultConfiguration();
+      const ayva = createAyva();
 
       // Copy all axis limits from global Ayva instance.
       Object.keys(ayva.axes).forEach((name) => {

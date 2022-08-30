@@ -89,9 +89,10 @@
 </template>
 
 <script>
-import Ayva, { TempestStroke } from 'ayvajs';
+import { Ayva, TempestStroke } from 'ayvajs';
 import OSREmulator from 'osr-emu';
 import { h, nextTick } from 'vue';
+import { ayvaConfig, createAyva } from '../lib/ayva-config.js';
 import AyvaSlider from './widgets/AyvaSlider.vue';
 import AyvaCheckbox from './widgets/AyvaCheckbox.vue';
 import TempestMotion from './TempestMotion.vue';
@@ -99,7 +100,7 @@ import { formatter } from '../lib/util.js';
 import CustomStrokeStorage from '../lib/custom-stroke-storage.js';
 
 const customStrokeStorage = new CustomStrokeStorage();
-const ayva = new Ayva().defaultConfiguration();
+const ayva = createAyva();
 let emulator;
 
 const defaultStroke = {
@@ -143,7 +144,7 @@ export default {
 
       axes: this.createAxes('default', defaultStroke),
 
-      availableAxes: Ayva.defaultConfiguration.axes.map((axis) => ({
+      availableAxes: ayvaConfig.axes.map((axis) => ({
         ...axis,
         label: `${axis.alias} (${axis.name})`,
         value: axis.name,
@@ -481,7 +482,7 @@ export default {
         return set;
       }, new Set());
 
-      const unusedAxes = Ayva.defaultConfiguration.axes
+      const unusedAxes = ayvaConfig.axes
         .filter((axis) => !usedAxesSet.has(axis.name) && !usedAxesSet.has(axis.alias));
 
       const unusedMoves = unusedAxes.map((axis) => {

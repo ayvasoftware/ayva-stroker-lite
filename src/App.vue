@@ -83,8 +83,9 @@
 
 <script>
 import OSREmulator from 'osr-emu';
-import Ayva, { WebSerialDevice } from 'ayvajs';
+import { Ayva, WebSerialDevice } from 'ayvajs';
 import { computed } from 'vue';
+import { createAyva } from './lib/ayva-config.js';
 import AyvaSlider from './components/widgets/AyvaSlider.vue';
 import AyvaLimits from './components/AyvaLimits.vue';
 import AyvaFreePlay from './components/AyvaFreePlay.vue';
@@ -94,7 +95,7 @@ import AyvaController from './lib/controller.js';
 import { formatter } from './lib/util.js';
 
 // These need to be "globals" so they aren't proxied by Vue... because issues with private members :(
-const ayva = new Ayva().defaultConfiguration();
+const ayva = createAyva();
 
 let controller;
 let emulator;
@@ -252,6 +253,7 @@ export default {
     },
 
     startController () {
+      // TODO: Check if Ayva's current behavior is equal to the controller as well.
       if (!controller) {
         controller = new AyvaController();
         controller.onTransitionStart = (duration, targetBpm) => {

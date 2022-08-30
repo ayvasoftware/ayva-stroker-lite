@@ -1,4 +1,4 @@
-import Ayva from 'ayvajs';
+import { Ayva } from 'ayvajs';
 import _ from 'lodash';
 import Storage from './ayva-storage.js';
 import validator from './custom-stroke-validator.js';

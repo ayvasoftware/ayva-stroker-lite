@@ -41,7 +41,7 @@
 </template>
 
 <script>
-import Ayva from 'ayvajs';
+import { Ayva } from 'ayvajs';
 import { h, nextTick } from 'vue';
 import AyvaSlider from './widgets/AyvaSlider.vue';
 import { clamp } from '../lib/util.js';
