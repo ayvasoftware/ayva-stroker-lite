@@ -76,6 +76,24 @@ export function clamp (value, min, max) {
 }
 
 /**
+ * Check if a value is numeric and within a certain range.
+ */
+export function validNumber (value, min, max) {
+  if (!Number.isFinite(value)) {
+    return false;
+  }
+
+  if (min !== undefined && value < min) {
+    return false;
+  }
+
+  if (max !== undefined && value > max) {
+    return false;
+  }
+
+  return true;
+}
+/**
  * Size an element to extend to the bottom of the viewport.
  */
 export function clampHeight (element, min, max) {
