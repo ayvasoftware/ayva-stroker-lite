@@ -34,7 +34,16 @@
       />
     </div>
 
-    <n-popselect v-model:value="selectedMotion" class="motion" trigger="click" :options="motionOptions" :render-label="renderMotionLabel">
+    <ayva-knob v-model="noise.from" class="noise from" />
+    <ayva-knob v-model="noise.to" class="noise to" />
+
+    <n-popselect
+      v-model:value="selectedMotion"
+      placement="bottom-start"
+      class="motion" trigger="click"
+      :options="motionOptions"
+      :render-label="renderMotionLabel"
+    >
       <function-icon class="function icon" />
     </n-popselect>
   </div>
@@ -44,6 +53,7 @@
 import { Ayva } from 'ayvajs';
 import { h, nextTick } from 'vue';
 import AyvaSlider from './widgets/AyvaSlider.vue';
+import AyvaKnob from './widgets/AyvaKnob.vue';
 import { clamp } from '../lib/util.js';
 import SineIcon from '../assets/icons/sine.svg';
 import ParabolaIcon from '../assets/icons/parabola.svg';
@@ -52,6 +62,7 @@ import LinearIcon from '../assets/icons/linear.svg';
 export default {
   components: {
     AyvaSlider,
+    AyvaKnob,
   },
 
   props: {
@@ -65,6 +76,10 @@ export default {
         to: 0.5,
         phase: 0,
         ecc: 0,
+        noise: {
+          from: 0,
+          to: 0,
+        },
         motion: Ayva.tempestMotion,
       }),
     },
@@ -128,6 +143,10 @@ export default {
       phase: 0,
       ecc: 0,
       motion: Ayva.tempestMotion,
+      noise: {
+        from: 0,
+        to: 0,
+      },
 
       selectedMotion: 'Ayva.tempestMotion',
 
@@ -163,6 +182,10 @@ export default {
             eccSlider.set(updated.ecc);
 
             this.motion = updated.motion;
+            this.noise = typeof updated.noise === 'object' ? updated.noise : {
+              from: updated.noise,
+              to: updated.noise,
+            };
 
             if (this.motion) {
               this.selectedMotion = `Ayva.${this.motion.name}`;
@@ -186,7 +209,7 @@ export default {
   },
 
   mounted () {
-    const watchProperties = ['from', 'to', 'phase', 'ecc'];
+    const watchProperties = ['from', 'to', 'phase', 'ecc', 'noise.from', 'noise.to'];
 
     watchProperties.forEach((prop) => this.$watch(prop, () => {
       this.plot();
@@ -338,10 +361,11 @@ export default {
 
     updateModelValue () {
       const {
-        from, to, phase, ecc, motion,
+        from, to, phase, ecc, motion, noise,
       } = this;
+
       this.$emit('update:modelValue', {
-        from, to, phase, ecc, motion,
+        from, to, phase, ecc, motion, noise,
       });
     },
 
@@ -376,7 +400,7 @@ export default {
 <style scoped>
   .tempest-motion {
     display: grid;
-    grid-template-columns: 15px 60px 1fr 20px 1fr 20px 20px;
+    grid-template-columns: 15px 60px 1fr 20px 1fr 20px 20px 20px;
     grid-template-rows: 100px 20px;
     width: 450px;
   }
@@ -397,9 +421,22 @@ export default {
     grid-column: 5;
   }
 
+  .noise {
+    top: 1px;
+    position: relative;
+  }
+
+  .noise.from {
+    grid-column: 7
+  }
+
+  .noise.to {
+    grid-column: 8
+  }
+
   .function {
     width: 16px;
-    grid-column: 7;
+    grid-column: 9;
     color: var(--ayva-text-color-light-gray);
   }
 

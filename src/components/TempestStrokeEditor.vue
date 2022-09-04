@@ -27,6 +27,8 @@
       </div>
       <div class="main-inputs">
         <div class="setup">
+          <span class="context-clue" />
+
           <n-popselect v-model:value="selectedAxes" trigger="click" multiple :options="availableAxes">
             <span class="select-axes">
               <axis-icon class="icon" />Axes
@@ -674,6 +676,7 @@ export default {
 
 .main-inputs .setup {
   margin-left: 45px;
+  position: relative;
 }
 
 .main-inputs .device label {
@@ -690,6 +693,13 @@ export default {
   align-items: center;
   gap: 5px;
   color: var(--ayva-text-color-light-gray)
+}
+
+.main-inputs .setup > .context-clue {
+  position: relative;
+  left: -20px;
+  opacity: 0.5;
+  color: var(--text-color);
 }
 
 input.name {
