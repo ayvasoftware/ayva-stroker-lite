@@ -9,6 +9,7 @@
     class="container"
     @mousedown="start"
     @mousemove="update"
+    @mousewheel="wheel"
   >
     <defs>
       <radialGradient id="trackGradient">
@@ -152,6 +153,12 @@ export default {
         this.active = false;
         document.exitPointerLock();
       }
+    },
+
+    wheel (event) {
+      const tweakValue = clamp(Number((-event.deltaY / 200).toFixed(2)), -1, 1);
+      const newValue = clamp(this.modelValue + tweakValue, 0, 1);
+      this.setValue(newValue);
     },
 
     onPointerLockChange () {
