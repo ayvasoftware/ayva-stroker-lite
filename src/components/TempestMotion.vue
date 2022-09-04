@@ -265,35 +265,42 @@ export default {
      */
     plot () {
       const {
-        from, to, phase, ecc, motion,
+        from, to, phase, ecc, motion, noise,
       } = this;
 
-      const fn = (x) => {
-        if (motion && motion.name === 'parabolicMotion') {
-          return this.parabolicMotion(from, to, phase, ecc, x);
-        } else if (motion && motion.name === 'linearMotion') {
-          return this.linearMotion(from, to, phase, ecc, x);
+      const mainFn = this.createPlotFunction(from, to, phase, ecc, motion);
+
+      const { width, height } = this.getScale();
+
+      const context = this.getContext();
+      context.clearRect(0, 0, width, height);
+
+      this.plotMotion(mainFn, this.getPlotColor());
+      this.plotProgressDot(mainFn);
+
+      if (noise.from || noise.to) {
+        for (let delta = 0; delta < 1; delta += 0.1) {
+          const fromNoisy = from + ((to - from) / 2) * ((noise.from || 0) * delta);
+          const toNoisy = to + ((from - to) / 2) * ((noise.to || 0) * (1 - delta));
+
+          const noiseFn = this.createPlotFunction(fromNoisy, toNoisy, phase, ecc, motion);
+          this.plotMotion(noiseFn, this.getPlotColor(0.1));
         }
+      }
+    },
 
-        return this.sinMotion(from, to, phase, ecc, x);
-      };
+    plotMotion (fn, style) {
+      const context = this.getContext();
+      const {
+        width, height, widthScale, heightScale,
+      } = this.getScale();
 
-      const range = [0, Math.PI * 2, 0, 1];
-
-      const canvas = this.$refs.wave;
-      const context = canvas.getContext('2d');
-      const { width, height } = canvas;
-
-      const widthScale = (width / (range[1] - range[0]));
-      const heightScale = ((height - 12) / (range[3] - range[2]));
-
-      context.clearRect(0, 0, canvas.width, canvas.height);
       context.beginPath();
 
       let firstPoint = true;
       for (let x = 0; x < width; x++) {
-        const xFnVal = (x / widthScale) - range[0];
-        let yGVal = (fn(xFnVal) - range[2]) * heightScale;
+        const xFnVal = (x / widthScale);
+        let yGVal = (fn(xFnVal) - 0) * heightScale;
 
         yGVal = height - 6 - yGVal;
 
@@ -307,20 +314,56 @@ export default {
 
       context.lineCap = 'round';
       context.setLineDash([3, 3]);
-      context.strokeStyle = 'rgb(138, 99, 131)';
+      context.strokeStyle = style;
       context.lineWidth = 2;
       context.stroke();
       context.closePath();
+    },
 
-      // Plot angle.
+    plotProgressDot (fn) {
+      const context = this.getContext();
+      const {
+        width, height, widthScale, heightScale,
+      } = this.getScale();
+
       const angleScale = (this.angle % (Math.PI * 2)) / (Math.PI * 2);
       const x = angleScale * width;
-      const y = height - 6 - (fn((x / widthScale) - range[0]) - range[2]) * heightScale;
+      const y = height - 6 - (fn((x / widthScale)) - 0) * heightScale;
 
       context.beginPath();
       context.arc(x, y, 4, 0, 2 * Math.PI);
-      context.fillStyle = 'rgb(138, 99, 131)'; // '#6784bb';
+      context.fillStyle = this.getPlotColor();
       context.fill();
+    },
+
+    createPlotFunction (from, to, phase, ecc, motion) {
+      return (x) => {
+        if (motion && motion.name === 'parabolicMotion') {
+          return this.parabolicMotion(from, to, phase, ecc, x);
+        } else if (motion && motion.name === 'linearMotion') {
+          return this.linearMotion(from, to, phase, ecc, x);
+        }
+
+        return this.sinMotion(from, to, phase, ecc, x);
+      };
+    },
+
+    getContext () {
+      return this.$refs.wave.getContext('2d');
+    },
+
+    getScale () {
+      const { width, height } = this.$refs.wave;
+      const widthScale = (width / (Math.PI * 2));
+      const heightScale = height - 12;
+
+      return {
+        width, height, widthScale, heightScale,
+      };
+    },
+
+    getPlotColor (opacity = 1) {
+      return `rgba(138, 99, 131, ${opacity})`;
     },
 
     sinMotion (from, to, phase, ecc, startAngle) {
@@ -456,6 +499,10 @@ export default {
     top: 6px;
     left: 6px;
     height: 89%;
+  }
+
+  .slider.horizontal {
+    top: 9px;
   }
 
   .wave canvas {
