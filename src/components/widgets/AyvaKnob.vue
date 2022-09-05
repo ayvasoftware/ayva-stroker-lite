@@ -9,7 +9,7 @@
     class="container"
     @mousedown="start"
     @mousemove="update"
-    @mousewheel="wheel"
+    @wheel.prevent="wheel"
   >
     <defs>
       <radialGradient id="trackGradient">

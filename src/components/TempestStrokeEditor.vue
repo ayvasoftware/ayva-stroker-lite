@@ -98,7 +98,7 @@ import { ayvaConfig, createAyva } from '../lib/ayva-config.js';
 import AyvaSlider from './widgets/AyvaSlider.vue';
 import AyvaCheckbox from './widgets/AyvaCheckbox.vue';
 import TempestMotion from './TempestMotion.vue';
-import { formatter } from '../lib/util.js';
+import { formatter, validNumber } from '../lib/util.js';
 import CustomStrokeStorage from '../lib/custom-stroke-storage.js';
 
 const customStrokeStorage = new CustomStrokeStorage();
@@ -409,23 +409,55 @@ export default {
 
         if (mappedAxis && mappedAxis.parameters) {
           const {
-            from, to, phase, ecc, motion,
+            from, to, phase, ecc, motion, $current,
           } = mappedAxis.parameters;
 
-          return (motion || Ayva.tempestMotion)(
-            from,
-            to,
+          const result = (motion || Ayva.tempestMotion)(
+            $current?.from || from,
+            $current?.to || to,
             phase,
             ecc,
             this.previewBpm,
             this.previewAngle
           )(valueParameters);
+
+          if ($current && mappedAxis.parameters.noise) {
+            this.generateNoise(mappedAxis.parameters);
+          }
+
+          return result;
         }
 
         return null;
       };
 
       return (valueParameters) => tempestMotion(valueParameters);
+    },
+
+    generateNoise (params) {
+      // TODO: This is basically a rip from Ayva.js. In the future do not reimplement this.
+      //       Use TempestStroke somehow...
+      const { PI } = Math;
+      const angleSlice = PI / TempestStroke.granularity;
+      const deg = (radians) => (radians * 180) / PI;
+      const getNoise = (which) => (validNumber(params.noise) ? params.noise : params.noise[which] || 0);
+      const phaseAngle = (params.phase * PI) / 2;
+      const absoluteAngle = phaseAngle + this.previewAngle;
+
+      const startDegrees = Math.round(deg(absoluteAngle % (PI * 2)));
+      const endDegrees = Math.round(startDegrees + deg(angleSlice));
+      const movingToStart = startDegrees < 360 && endDegrees >= 360;
+      const movingToMid = startDegrees < 180 && endDegrees >= 180;
+
+      if (movingToStart) {
+        const noise = getNoise('to');
+        const noiseRange = (params.from - params.to) / 2;
+        params.$current.to = params.to + noise * noiseRange * Math.random();
+      } else if (movingToMid) {
+        const noise = getNoise('from');
+        const noiseRange = (params.to - params.from) / 2;
+        params.$current.from = params.from + noise * noiseRange * Math.random();
+      }
     },
 
     selectPreset (key, item) {
@@ -513,6 +545,11 @@ export default {
       // Note: axisName might be alias or machine name...
       const { alias, name } = ayva.getAxis(axisName);
 
+      parameters.$current = {
+        from: parameters.from,
+        to: parameters.to,
+      };
+
       return {
         alias,
         name,
@@ -531,6 +568,8 @@ export default {
       }
       const stroke = this.axes.reduce((obj, axis) => {
         obj[axis.name] = axis.parameters;
+        delete obj[axis.name].$current;
+
         return obj;
       }, {});
 

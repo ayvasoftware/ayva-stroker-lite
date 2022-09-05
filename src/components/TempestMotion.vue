@@ -147,6 +147,10 @@ export default {
         from: 0,
         to: 0,
       },
+      current: {
+        from: 0.5,
+        to: 0.5,
+      },
 
       selectedMotion: 'Ayva.tempestMotion',
 
@@ -187,6 +191,8 @@ export default {
               to: updated.noise,
             };
 
+            this.current = updated.$current;
+
             if (this.motion) {
               this.selectedMotion = `Ayva.${this.motion.name}`;
             } else {
@@ -211,7 +217,13 @@ export default {
   mounted () {
     const watchProperties = ['from', 'to', 'phase', 'ecc', 'noise.from', 'noise.to'];
 
-    watchProperties.forEach((prop) => this.$watch(prop, () => {
+    watchProperties.forEach((prop) => this.$watch(prop, (value) => {
+      if (prop === 'from') {
+        this.current.from = value;
+      } else if (prop === 'to') {
+        this.current.to = value;
+      }
+
       this.plot();
       this.updateModelValue();
     }));
@@ -265,7 +277,7 @@ export default {
      */
     plot () {
       const {
-        from, to, phase, ecc, motion, noise,
+        from, to, phase, ecc, motion, noise, current,
       } = this;
 
       const mainFn = this.createPlotFunction(from, to, phase, ecc, motion);
@@ -276,7 +288,7 @@ export default {
       context.clearRect(0, 0, width, height);
 
       this.plotMotion(mainFn, this.getPlotColor());
-      this.plotProgressDot(mainFn);
+      this.plotProgressDot(this.createPlotFunction(current.from, current.to, phase, ecc, motion));
 
       if (noise.from || noise.to) {
         for (let delta = 0; delta < 1; delta += 0.1) {
@@ -404,16 +416,26 @@ export default {
 
     updateModelValue () {
       const {
-        from, to, phase, ecc, motion, noise,
+        from, to, phase, ecc, motion, noise, current,
       } = this;
 
       this.$emit('update:modelValue', {
-        from, to, phase, ecc, motion, noise,
+        from, to, phase, ecc, motion, noise, $current: current,
       });
     },
 
     changed (updated) {
-      return !!Object.keys(updated).filter((param) => updated[param] !== this[param]).length;
+      const changedProps = Object.keys(updated).filter(
+        (param) => {
+          if (param === '$current') {
+            return updated.$current.from !== this.current.from || updated.$current.to !== this.current.to;
+          }
+
+          return updated[param] !== this[param];
+        }
+      );
+
+      return !!changedProps.length;
     },
 
     renderMotionLabel (option) {
