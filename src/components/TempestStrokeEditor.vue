@@ -1,6 +1,6 @@
 <template>
-  <div class="modal-body">
-    <div class="header">
+  <div class="modal-body" @mouseover="onHover">
+    <div class="header" hover-info="">
       <div class="toolbar">
         <span class="toolbar-left">
           <span>{{ edit ? 'Edit' : 'Create' }} Stroke</span>
@@ -27,7 +27,7 @@
       </div>
       <div class="main-inputs">
         <div class="setup">
-          <span class="context-clue" />
+          <span class="context-clue">{{ contextClue }}</span>
 
           <n-popselect v-model:value="selectedAxes" trigger="click" multiple :options="availableAxes">
             <span class="select-axes">
@@ -60,7 +60,7 @@
         </div>
       </n-scrollbar>
     </div>
-    <div class="emulator-column">
+    <div class="emulator-column" hover-info="">
       <div ref="emulator" class="emulator" />
       <div class="preview-bpm">
         <ayva-slider
@@ -73,7 +73,7 @@
         </div>
       </div>
     </div>
-    <div class="save-container">
+    <div class="save-container" hover-info="">
       <div>
         <label>Name:</label>
         <n-tooltip :show="strokeNameDuplicate" class="error-tooltip">
@@ -184,6 +184,10 @@ export default {
       axisScrollTop: 0,
 
       strokeName: '',
+
+      contextClue: '',
+
+      contextClueTimeout: null,
     };
   },
 
@@ -562,6 +566,14 @@ export default {
       this.axisScrollTop = this.$el.querySelector('.n-scrollbar-container').scrollTop;
     },
 
+    onHover (event) {
+      const infoElement = event.path.find((element) => element.hasAttribute && element.hasAttribute('hover-info'));
+
+      if (infoElement) {
+        this.contextClue = infoElement.getAttribute('hover-info');
+      }
+    },
+
     save () {
       if (this.editStroke) {
         customStrokeStorage.delete(this.editStroke);
@@ -735,7 +747,7 @@ export default {
 }
 
 .main-inputs .setup > .context-clue {
-  position: relative;
+  position: absolute;
   left: -20px;
   opacity: 0.5;
   color: var(--text-color);

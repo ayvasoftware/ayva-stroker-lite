@@ -6,6 +6,7 @@
         v-model="range"
         :options="rangeOptions"
         active-tooltips
+        hover-info="Range"
       />
     </div>
     <div class="wave">
@@ -22,6 +23,7 @@
         v-model="phase"
         :options="phaseOptions"
         active-tooltips
+        hover-info="Phase"
       />
     </div>
 
@@ -31,11 +33,12 @@
         v-model="ecc"
         :options="eccOptions"
         active-tooltips
+        hover-info="Eccentricity"
       />
     </div>
 
-    <ayva-knob v-model="noise.from" class="noise from" />
-    <ayva-knob v-model="noise.to" class="noise to" />
+    <ayva-knob v-model="noise.from" class="noise from" hover-info="Noise (From)" />
+    <ayva-knob v-model="noise.to" class="noise to" hover-info="Noise (To)" />
 
     <n-popselect
       v-model:value="selectedMotion"
@@ -44,7 +47,7 @@
       :options="motionOptions"
       :render-label="renderMotionLabel"
     >
-      <function-icon class="function icon" />
+      <function-icon class="function icon" hover-info="Function" />
     </n-popselect>
   </div>
 </template>
