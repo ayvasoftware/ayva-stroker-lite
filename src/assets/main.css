@@ -163,6 +163,11 @@ button[disabled] {
 
 #current-bpm .slider {
   width: 600px;
+  height: 20px;
+}
+
+#current-bpm .slider .noUi-connects, .slider {
+  background-color: transparent;
 }
 
 #current-bpm .label {
@@ -171,10 +176,24 @@ button[disabled] {
   padding: 5px;
   color: var(--ayva-text-color-blue);
   font-weight: bold;
+  position: relative;
+  top: 10px;
 }
 
 #current-bpm .label > * {
   padding-left: 10px;
+}
+
+#current-bpm .slider.horizontal .noUi-handle {
+  top: 3px;
+}
+
+#current-bpm .faux-bpm-track {
+  height: 3px;
+  width: 100%;
+  position: absolute;
+  background-color: rgb(66, 66, 66);
+  top: 15px;
 }
 
 #gui-container {

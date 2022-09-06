@@ -60,6 +60,8 @@
       </div>
 
       <div id="current-bpm" :style="hudStyle">
+        <div class="faux-bpm-track" />
+
         <ayva-slider
           ref="bpmSlider"
           :options="bpmSliderOptions"
