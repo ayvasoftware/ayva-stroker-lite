@@ -56,6 +56,20 @@ button[disabled] {
   src: url(fonts/cgf-locust-resistance.regular.ttf);
 }
 
+.hud-button {
+  width: 25px;
+  height: 25px;
+  color: var(--ayva-text-color-off-white);
+  position: relative;
+  top: 2px;
+  right: 10px;
+}
+
+.hud-button:hover {
+  cursor: pointer;
+  opacity: 0.75;
+}
+
 #main {
   background-color: black;
 }
@@ -227,7 +241,7 @@ button[disabled] {
 
 .limit {
   display: grid;
-  grid-template-columns: 30% 70%;
+  grid-template-columns: 32% 68%;
   padding: 15px 21px 15px 4px;
 }
 

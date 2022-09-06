@@ -1,10 +1,11 @@
 <template>
   <n-notification-provider placement="bottom-right">
-    <ayva-limits @update-limits="updateLimits" />
+    <ayva-limits :style="hudStyle" @update-limits="updateLimits" />
 
     <ayva-free-play
       :mode="mode"
       :current-stroke-name="currentStrokeName"
+      :style="hudStyle"
       @update-parameters="updateParameters"
       @update-strokes="updateStrokes"
       @select-stroke="selectStroke"
@@ -24,10 +25,16 @@
       <ayva-connected
         :connected="device.connected"
         :mode="mode"
+        :style="hudStyle"
         @request-connection="requestConnection"
       />
 
       <div class="actions">
+        <div class="hud-button" @click="showHud = !showHud">
+          <hud-on-icon v-show="showHud" />
+          <hud-off-icon v-show="!showHud" />
+        </div>
+
         <button
           id="home"
           @click="home()"
@@ -52,7 +59,7 @@
         </button>
       </div>
 
-      <div id="current-bpm">
+      <div id="current-bpm" :style="hudStyle">
         <ayva-slider
           ref="bpmSlider"
           :options="bpmSliderOptions"
@@ -70,7 +77,7 @@
         </div>
       </div>
 
-      <div class="logo">
+      <div class="logo" :style="hudStyle">
         Powered By <a
           class="ayva"
           href="https://ayvajs.github.io/ayvajs-docs"
@@ -135,6 +142,7 @@ export default {
       bpmSliderOptions: {
         start: [60],
         tooltips: true,
+        behaviour: 'snap',
         connect: true,
         padding: [10],
         step: 1,
@@ -146,7 +154,15 @@ export default {
       },
 
       device: new WebSerialDevice(),
+
+      showHud: true,
     };
+  },
+
+  computed: {
+    hudStyle () {
+      return this.showHud ? '' : 'visibility: hidden !important';
+    },
   },
 
   watch: {
@@ -266,6 +282,10 @@ export default {
           this.currentStrokeName = typeof stroke === 'string' ? stroke : 'Custom';
           this.bpmDisabled = false;
           this.clearBpmAnimation();
+          this.setBpm(bpm);
+        };
+
+        controller.onUpdateBpm = (bpm) => {
           this.setBpm(bpm);
         };
 

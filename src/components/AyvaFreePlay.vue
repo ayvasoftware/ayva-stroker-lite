@@ -10,12 +10,35 @@
       <div class="limits lil-gui children">
         <div class="limit">
           <div class="axis">
+            Change BPM
+          </div>
+          <ayva-bpm-select
+            v-model="bpmMode"
+            storage-key="free-play-bpm-mode"
+            @change="onUpdate('bpm-mode', $event)"
+          />
+        </div>
+
+        <div class="limit">
+          <div class="axis">
             BPM Range
           </div>
           <ayva-slider
             :options="bpmOptions"
             storage-key="free-play-bpm"
             @update="onUpdate('bpm', $event)"
+          />
+        </div>
+
+        <div class="limit">
+          <div class="axis" :disabled="disableAcceleration">
+            Acceleration (bpm/s)
+          </div>
+          <ayva-slider
+            :options="accelerationOptions"
+            :disabled="disableAcceleration"
+            storage-key="free-play-acceleration"
+            @update="onUpdate('acceleration', $event)"
           />
         </div>
 
@@ -196,6 +219,7 @@ import { h, nextTick } from 'vue';
 import { createAyva } from '../lib/ayva-config.js';
 import AyvaSlider from './widgets/AyvaSlider.vue';
 import AyvaCheckbox from './widgets/AyvaCheckbox.vue';
+import AyvaBpmSelect from './widgets/AyvaBpmSelect.vue';
 import TempestStrokeEditor from './TempestStrokeEditor.vue';
 import {
   makeCollapsible, formatter, clampHeight
@@ -212,6 +236,7 @@ export default {
   components: {
     AyvaSlider,
     AyvaCheckbox,
+    AyvaBpmSelect,
     TempestStrokeEditor,
   },
 
@@ -249,6 +274,15 @@ export default {
         },
         start: [20, 60],
         padding: [10],
+        step: 1,
+        format: formatter(),
+      },
+      accelerationOptions: {
+        range: {
+          min: 0,
+          max: 150,
+        },
+        start: [0, 20],
         step: 1,
         format: formatter(),
       },
@@ -310,6 +344,8 @@ export default {
 
       editStroke: null,
 
+      bpmMode: 'transition',
+
       settingsOptions: [{
         key: 'create',
         label: 'Create',
@@ -337,6 +373,10 @@ export default {
   computed: {
     disableTwist () {
       return !this.twist ? '' : null;
+    },
+
+    disableAcceleration () {
+      return this.bpmMode !== 'continuous' ? '' : null;
     },
 
     selectAllStrokes: {
@@ -556,6 +596,12 @@ export default {
 </script>
 
 <style scoped>
+
+.axis {
+  display: flex;
+  align-items: center;
+}
+
 .preview.icon {
   color: var(--ayva-text-color-off-white);
   margin-top: 0;

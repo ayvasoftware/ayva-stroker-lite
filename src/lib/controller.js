@@ -3,6 +3,8 @@ import {
 } from 'ayvajs';
 import CustomStrokeStorage from './custom-stroke-storage';
 
+import { clamp } from './util.js';
+
 export default class Controller extends GeneratorBehavior {
   #customStrokeStorage = new CustomStrokeStorage();
 
@@ -41,15 +43,7 @@ export default class Controller extends GeneratorBehavior {
    */
   * #createTransition (ayva, strokeConfig) {
     this.#bpm = this.#generateNextBpm();
-
-    const bpmProvider = () => {
-      if (!this.random || this.bpmActive || this.updatedBpm) {
-        this.#bpm = this.userBpm;
-        this.updatedBpm = null;
-      }
-
-      return this.#bpm;
-    };
+    const bpmProvider = this.#createBpmProvider();
 
     if (this.#currentStroke) {
       // Create smooth transition to the next stroke.
@@ -131,6 +125,57 @@ export default class Controller extends GeneratorBehavior {
   #generateNextBpm () {
     const [from, to] = this.parameters.bpm;
     return Math.floor(Ayva.map(Math.random(), 0, 1, from, to));
+  }
+
+  #generateNextContinuousBpm (startBpm) {
+    const [minBpm, maxBpm] = this.parameters.bpm;
+    const [minAcc, maxAcc] = this.parameters.acceleration;
+    const delta = Ayva.map(Math.random(), 0, 1, minAcc, maxAcc);
+    return clamp(startBpm + (Math.random() < 0.5 ? delta : -delta), minBpm, maxBpm);
+  }
+
+  #createBpmProvider () {
+    const bpmProvider = () => {
+      if (!this.random || this.bpmActive || this.updatedBpm) {
+        // Use user supplied bpm from slider.
+        this.#bpm = this.userBpm;
+        this.updatedBpm = null;
+      }
+
+      if (this.parameters['bpm-mode'] === 'continuous') {
+        if (!this.bpmActive && bpmProvider.initialized) {
+          const {
+            startBpm, endBpm, startTime, endTime,
+          } = bpmProvider;
+
+          const time = performance.now();
+
+          if (time >= endTime) {
+            this.#bpm = endBpm;
+            bpmProvider.startTime = performance.now();
+            bpmProvider.endTime = bpmProvider.startTime + 1000;
+            bpmProvider.startBpm = endBpm;
+            bpmProvider.endBpm = this.#generateNextContinuousBpm(endBpm);
+          } else {
+            this.#bpm = Ayva.map(time, startTime, endTime, startBpm, endBpm);
+          }
+
+          if (this.onUpdateBpm) {
+            this.onUpdateBpm(this.#bpm);
+          }
+        } else {
+          bpmProvider.startTime = 0;
+          bpmProvider.endTime = 0;
+          bpmProvider.startBpm = this.#bpm;
+          bpmProvider.endBpm = this.#bpm;
+          bpmProvider.initialized = true;
+        }
+      }
+
+      return this.#bpm;
+    };
+
+    return bpmProvider;
   }
 
   randomStroke () {
