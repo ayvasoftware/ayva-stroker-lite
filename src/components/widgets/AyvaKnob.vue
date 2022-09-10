@@ -7,7 +7,7 @@
     :width="size"
     :height="size"
     class="container"
-    @mousedown="start"
+    @mousedown.left="start"
     @mousemove="update"
     @wheel.prevent="wheel"
   >
