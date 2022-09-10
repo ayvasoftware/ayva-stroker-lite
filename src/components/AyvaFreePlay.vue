@@ -294,7 +294,6 @@ export default {
         start: [5, 10],
         padding: [1],
         step: 0.1,
-        margin: 3,
         format: formatter(1, 's'),
       },
       transitionDurationOptions: {
@@ -305,7 +304,6 @@ export default {
         start: [2, 5],
         padding: [1],
         step: 0.1,
-        margin: 3,
         format: formatter(1, 's'),
       },
       twistRangeOptions: {

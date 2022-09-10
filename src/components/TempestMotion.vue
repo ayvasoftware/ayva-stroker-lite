@@ -5,6 +5,7 @@
         ref="rangeSlider"
         v-model="range"
         :options="rangeOptions"
+        :merge-tooltips="false"
         active-tooltips
         hover-info="Range"
       />

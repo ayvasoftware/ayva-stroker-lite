@@ -114,7 +114,12 @@ export default class Controller extends GeneratorBehavior {
 
   #startTimer () {
     const [from, to] = this.parameters['pattern-duration'];
-    this.#duration = new VariableDuration(from, to);
+
+    if (from === to) {
+      this.#duration = new VariableDuration(from);
+    } else {
+      this.#duration = new VariableDuration(from, to);
+    }
   }
 
   #generateTransitionDuration () {
