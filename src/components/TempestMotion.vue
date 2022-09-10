@@ -96,6 +96,11 @@ export default {
       type: Number,
       default: 0,
     },
+
+    scrollElement: {
+      type: Object,
+      default: null,
+    },
   },
 
   emits: ['update:modelValue'],
@@ -279,6 +284,16 @@ export default {
      * Plot the sin wav graph.
      */
     plot () {
+      if (this.scrollElement) {
+        // Only plot motion and points if in view.
+        const scrollRect = this.scrollElement.getBoundingClientRect();
+        const rect = this.$refs.wave.getBoundingClientRect();
+
+        if (rect.top + rect.height < scrollRect.top || rect.top > scrollRect.top + scrollRect.height) {
+          return;
+        }
+      }
+
       const {
         from, to, phase, ecc, motion, noise, current,
       } = this;

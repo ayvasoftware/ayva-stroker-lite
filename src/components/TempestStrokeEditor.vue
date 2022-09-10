@@ -46,7 +46,7 @@
         </div>
       </div>
     </div>
-    <div class="axis-column">
+    <div ref="axisScrollParent" class="axis-column">
       <n-scrollbar ref="axisScroll" :data-scroll="axisScrollTop" trigger="none">
         <div class="axis-scroll">
           <div v-for="axis in axes" :key="axis.name" class="tempest-motion-container">
@@ -55,6 +55,7 @@
               :display-name="axis.label"
               :angle="previewAngle"
               :disabled="disabled"
+              :scroll-element="axisScrollElement"
             />
           </div>
         </div>
@@ -188,6 +189,8 @@ export default {
       contextClue: '',
 
       contextClueTimeout: null,
+
+      axisScrollElement: null,
     };
   },
 
@@ -366,6 +369,8 @@ export default {
       const item = this.strokeLibraryOptions.find((option) => option.key === this.editStroke);
       this.selectPreset(this.editStroke, item);
     }
+
+    this.axisScrollElement = this.$refs.axisScrollParent;
   },
 
   unmounted () {
