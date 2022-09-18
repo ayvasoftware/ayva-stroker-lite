@@ -5,7 +5,9 @@
         ref="rangeSlider"
         v-model="range"
         :options="rangeOptions"
+        :merge-tooltips="false"
         active-tooltips
+        hover-info="Range"
       />
     </div>
     <div class="wave">
@@ -22,6 +24,7 @@
         v-model="phase"
         :options="phaseOptions"
         active-tooltips
+        hover-info="Phase"
       />
     </div>
 
@@ -31,19 +34,30 @@
         v-model="ecc"
         :options="eccOptions"
         active-tooltips
+        hover-info="Eccentricity"
       />
     </div>
 
-    <n-popselect v-model:value="selectedMotion" class="motion" trigger="click" :options="motionOptions" :render-label="renderMotionLabel">
-      <function-icon class="function icon" />
+    <ayva-knob v-model="noise.from" class="noise from" hover-info="Noise (From)" />
+    <ayva-knob v-model="noise.to" class="noise to" hover-info="Noise (To)" />
+
+    <n-popselect
+      v-model:value="selectedMotion"
+      placement="bottom-start"
+      class="motion" trigger="click"
+      :options="motionOptions"
+      :render-label="renderMotionLabel"
+    >
+      <function-icon class="function icon" hover-info="Function" />
     </n-popselect>
   </div>
 </template>
 
 <script>
-import Ayva from 'ayvajs';
+import { Ayva } from 'ayvajs';
 import { h, nextTick } from 'vue';
 import AyvaSlider from './widgets/AyvaSlider.vue';
+import AyvaKnob from './widgets/AyvaKnob.vue';
 import { clamp } from '../lib/util.js';
 import SineIcon from '../assets/icons/sine.svg';
 import ParabolaIcon from '../assets/icons/parabola.svg';
@@ -52,6 +66,7 @@ import LinearIcon from '../assets/icons/linear.svg';
 export default {
   components: {
     AyvaSlider,
+    AyvaKnob,
   },
 
   props: {
@@ -65,6 +80,10 @@ export default {
         to: 0.5,
         phase: 0,
         ecc: 0,
+        noise: {
+          from: 0,
+          to: 0,
+        },
         motion: Ayva.tempestMotion,
       }),
     },
@@ -77,6 +96,11 @@ export default {
     angle: {
       type: Number,
       default: 0,
+    },
+
+    scrollElement: {
+      type: Object,
+      default: null,
     },
   },
 
@@ -128,6 +152,14 @@ export default {
       phase: 0,
       ecc: 0,
       motion: Ayva.tempestMotion,
+      noise: {
+        from: 0,
+        to: 0,
+      },
+      current: {
+        from: 0.5,
+        to: 0.5,
+      },
 
       selectedMotion: 'Ayva.tempestMotion',
 
@@ -163,6 +195,12 @@ export default {
             eccSlider.set(updated.ecc);
 
             this.motion = updated.motion;
+            this.noise = typeof updated.noise === 'object' ? updated.noise : {
+              from: updated.noise,
+              to: updated.noise,
+            };
+
+            this.current = updated.$current;
 
             if (this.motion) {
               this.selectedMotion = `Ayva.${this.motion.name}`;
@@ -186,9 +224,15 @@ export default {
   },
 
   mounted () {
-    const watchProperties = ['from', 'to', 'phase', 'ecc'];
+    const watchProperties = ['from', 'to', 'phase', 'ecc', 'noise.from', 'noise.to'];
 
-    watchProperties.forEach((prop) => this.$watch(prop, () => {
+    watchProperties.forEach((prop) => this.$watch(prop, (value) => {
+      if (prop === 'from') {
+        this.current.from = value;
+      } else if (prop === 'to') {
+        this.current.to = value;
+      }
+
       this.plot();
       this.updateModelValue();
     }));
@@ -241,36 +285,53 @@ export default {
      * Plot the sin wav graph.
      */
     plot () {
+      if (this.scrollElement) {
+        // Only plot motion and points if in view.
+        const scrollRect = this.scrollElement.getBoundingClientRect();
+        const rect = this.$refs.wave.getBoundingClientRect();
+
+        if (rect.top + rect.height < scrollRect.top || rect.top > scrollRect.top + scrollRect.height) {
+          return;
+        }
+      }
+
       const {
-        from, to, phase, ecc, motion,
+        from, to, phase, ecc, motion, noise, current,
       } = this;
 
-      const fn = (x) => {
-        if (motion && motion.name === 'parabolicMotion') {
-          return this.parabolicMotion(from, to, phase, ecc, x);
-        } else if (motion && motion.name === 'linearMotion') {
-          return this.linearMotion(from, to, phase, ecc, x);
+      const mainFn = this.createPlotFunction(from, to, phase, ecc, motion);
+
+      const { width, height } = this.getScale();
+
+      const context = this.getContext();
+      context.clearRect(0, 0, width, height);
+
+      this.plotMotion(mainFn, this.getPlotColor());
+      this.plotProgressDot(this.createPlotFunction(current.from, current.to, phase, ecc, motion));
+
+      if (noise.from || noise.to) {
+        for (let delta = 0; delta < 1; delta += 0.1) {
+          const fromNoisy = from + ((to - from) / 2) * ((noise.from || 0) * delta);
+          const toNoisy = to + ((from - to) / 2) * ((noise.to || 0) * (1 - delta));
+
+          const noiseFn = this.createPlotFunction(fromNoisy, toNoisy, phase, ecc, motion);
+          this.plotMotion(noiseFn, this.getPlotColor(0.1));
         }
+      }
+    },
 
-        return this.sinMotion(from, to, phase, ecc, x);
-      };
+    plotMotion (fn, style) {
+      const context = this.getContext();
+      const {
+        width, height, widthScale, heightScale,
+      } = this.getScale();
 
-      const range = [0, Math.PI * 2, 0, 1];
-
-      const canvas = this.$refs.wave;
-      const context = canvas.getContext('2d');
-      const { width, height } = canvas;
-
-      const widthScale = (width / (range[1] - range[0]));
-      const heightScale = ((height - 12) / (range[3] - range[2]));
-
-      context.clearRect(0, 0, canvas.width, canvas.height);
       context.beginPath();
 
       let firstPoint = true;
       for (let x = 0; x < width; x++) {
-        const xFnVal = (x / widthScale) - range[0];
-        let yGVal = (fn(xFnVal) - range[2]) * heightScale;
+        const xFnVal = (x / widthScale);
+        let yGVal = (fn(xFnVal) - 0) * heightScale;
 
         yGVal = height - 6 - yGVal;
 
@@ -284,20 +345,56 @@ export default {
 
       context.lineCap = 'round';
       context.setLineDash([3, 3]);
-      context.strokeStyle = 'rgb(138, 99, 131)';
+      context.strokeStyle = style;
       context.lineWidth = 2;
       context.stroke();
       context.closePath();
+    },
 
-      // Plot angle.
+    plotProgressDot (fn) {
+      const context = this.getContext();
+      const {
+        width, height, widthScale, heightScale,
+      } = this.getScale();
+
       const angleScale = (this.angle % (Math.PI * 2)) / (Math.PI * 2);
       const x = angleScale * width;
-      const y = height - 6 - (fn((x / widthScale) - range[0]) - range[2]) * heightScale;
+      const y = height - 6 - (fn((x / widthScale)) - 0) * heightScale;
 
       context.beginPath();
       context.arc(x, y, 4, 0, 2 * Math.PI);
-      context.fillStyle = 'rgb(138, 99, 131)'; // '#6784bb';
+      context.fillStyle = this.getPlotColor();
       context.fill();
+    },
+
+    createPlotFunction (from, to, phase, ecc, motion) {
+      return (x) => {
+        if (motion && motion.name === 'parabolicMotion') {
+          return this.parabolicMotion(from, to, phase, ecc, x);
+        } else if (motion && motion.name === 'linearMotion') {
+          return this.linearMotion(from, to, phase, ecc, x);
+        }
+
+        return this.sinMotion(from, to, phase, ecc, x);
+      };
+    },
+
+    getContext () {
+      return this.$refs.wave.getContext('2d');
+    },
+
+    getScale () {
+      const { width, height } = this.$refs.wave;
+      const widthScale = (width / (Math.PI * 2));
+      const heightScale = height - 12;
+
+      return {
+        width, height, widthScale, heightScale,
+      };
+    },
+
+    getPlotColor (opacity = 1) {
+      return `rgba(138, 99, 131, ${opacity})`;
     },
 
     sinMotion (from, to, phase, ecc, startAngle) {
@@ -338,15 +435,26 @@ export default {
 
     updateModelValue () {
       const {
-        from, to, phase, ecc, motion,
+        from, to, phase, ecc, motion, noise, current,
       } = this;
+
       this.$emit('update:modelValue', {
-        from, to, phase, ecc, motion,
+        from, to, phase, ecc, motion, noise, $current: current,
       });
     },
 
     changed (updated) {
-      return !!Object.keys(updated).filter((param) => updated[param] !== this[param]).length;
+      const changedProps = Object.keys(updated).filter(
+        (param) => {
+          if (param === '$current') {
+            return updated.$current.from !== this.current.from || updated.$current.to !== this.current.to;
+          }
+
+          return updated[param] !== this[param];
+        }
+      );
+
+      return !!changedProps.length;
     },
 
     renderMotionLabel (option) {
@@ -376,7 +484,7 @@ export default {
 <style scoped>
   .tempest-motion {
     display: grid;
-    grid-template-columns: 15px 60px 1fr 20px 1fr 20px 20px;
+    grid-template-columns: 15px 60px 1fr 20px 1fr 20px 20px 20px;
     grid-template-rows: 100px 20px;
     width: 450px;
   }
@@ -397,9 +505,22 @@ export default {
     grid-column: 5;
   }
 
+  .noise {
+    top: 1px;
+    position: relative;
+  }
+
+  .noise.from {
+    grid-column: 7
+  }
+
+  .noise.to {
+    grid-column: 8
+  }
+
   .function {
     width: 16px;
-    grid-column: 7;
+    grid-column: 9;
     color: var(--ayva-text-color-light-gray);
   }
 
@@ -419,6 +540,10 @@ export default {
     top: 6px;
     left: 6px;
     height: 89%;
+  }
+
+  .slider.horizontal {
+    top: 9px;
   }
 
   .wave canvas {

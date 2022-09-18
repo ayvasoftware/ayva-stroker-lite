@@ -10,12 +10,35 @@
       <div class="limits lil-gui children">
         <div class="limit">
           <div class="axis">
+            Change BPM
+          </div>
+          <ayva-bpm-select
+            v-model="bpmMode"
+            storage-key="free-play-bpm-mode"
+            @change="onUpdate('bpm-mode', $event)"
+          />
+        </div>
+
+        <div class="limit">
+          <div class="axis">
             BPM Range
           </div>
           <ayva-slider
             :options="bpmOptions"
             storage-key="free-play-bpm"
             @update="onUpdate('bpm', $event)"
+          />
+        </div>
+
+        <div class="limit">
+          <div class="axis" :disabled="disableAcceleration">
+            Acceleration (bpm/s)
+          </div>
+          <ayva-slider
+            :options="accelerationOptions"
+            :disabled="disableAcceleration"
+            storage-key="free-play-acceleration"
+            @update="onUpdate('acceleration', $event)"
           />
         </div>
 
@@ -189,14 +212,18 @@
 </template>
 
 <script>
-import Ayva, { TempestStroke } from 'ayvajs';
+import { TempestStroke } from 'ayvajs';
 import OSREmulator from 'osr-emu';
 import { useNotification } from 'naive-ui';
 import { h, nextTick } from 'vue';
+import { createAyva } from '../lib/ayva-config.js';
 import AyvaSlider from './widgets/AyvaSlider.vue';
 import AyvaCheckbox from './widgets/AyvaCheckbox.vue';
+import AyvaBpmSelect from './widgets/AyvaBpmSelect.vue';
 import TempestStrokeEditor from './TempestStrokeEditor.vue';
-import { makeCollapsible, formatter, clampHeight } from '../lib/util.js';
+import {
+  makeCollapsible, formatter, clampHeight
+} from '../lib/util.js';
 import CustomStrokeStorage from '../lib/custom-stroke-storage.js';
 
 let previewAyva = null;
@@ -209,6 +236,7 @@ export default {
   components: {
     AyvaSlider,
     AyvaCheckbox,
+    AyvaBpmSelect,
     TempestStrokeEditor,
   },
 
@@ -249,6 +277,15 @@ export default {
         step: 1,
         format: formatter(),
       },
+      accelerationOptions: {
+        range: {
+          min: 0,
+          max: 150,
+        },
+        start: [0, 20],
+        step: 1,
+        format: formatter(),
+      },
       patternDurationOptions: {
         range: {
           min: 0,
@@ -257,7 +294,6 @@ export default {
         start: [5, 10],
         padding: [1],
         step: 0.1,
-        margin: 3,
         format: formatter(1, 's'),
       },
       transitionDurationOptions: {
@@ -268,7 +304,6 @@ export default {
         start: [2, 5],
         padding: [1],
         step: 0.1,
-        margin: 3,
         format: formatter(1, 's'),
       },
       twistRangeOptions: {
@@ -307,6 +342,8 @@ export default {
 
       editStroke: null,
 
+      bpmMode: 'transition',
+
       settingsOptions: [{
         key: 'create',
         label: 'Create',
@@ -334,6 +371,10 @@ export default {
   computed: {
     disableTwist () {
       return !this.twist ? '' : null;
+    },
+
+    disableAcceleration () {
+      return this.bpmMode !== 'continuous' ? '' : null;
     },
 
     selectAllStrokes: {
@@ -527,7 +568,7 @@ export default {
     },
 
     createPreviewAyva () {
-      const ayva = new Ayva().defaultConfiguration();
+      const ayva = createAyva();
 
       // Copy all axis limits from global Ayva instance.
       Object.keys(ayva.axes).forEach((name) => {
@@ -553,6 +594,12 @@ export default {
 </script>
 
 <style scoped>
+
+.axis {
+  display: flex;
+  align-items: center;
+}
+
 .preview.icon {
   color: var(--ayva-text-color-off-white);
   margin-top: 0;

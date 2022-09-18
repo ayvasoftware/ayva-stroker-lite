@@ -1,10 +1,11 @@
 <template>
   <n-notification-provider placement="bottom-right">
-    <ayva-limits @update-limits="updateLimits" />
+    <ayva-limits :style="hudStyle" @update-limits="updateLimits" />
 
     <ayva-free-play
       :mode="mode"
       :current-stroke-name="currentStrokeName"
+      :style="hudStyle"
       @update-parameters="updateParameters"
       @update-strokes="updateStrokes"
       @select-stroke="selectStroke"
@@ -24,10 +25,16 @@
       <ayva-connected
         :connected="device.connected"
         :mode="mode"
+        :style="hudStyle"
         @request-connection="requestConnection"
       />
 
       <div class="actions">
+        <div class="hud-button" @click="showHud = !showHud">
+          <hud-on-icon v-show="showHud" />
+          <hud-off-icon v-show="!showHud" />
+        </div>
+
         <button
           id="home"
           @click="home()"
@@ -52,7 +59,9 @@
         </button>
       </div>
 
-      <div id="current-bpm">
+      <div id="current-bpm" :style="hudStyle">
+        <div class="faux-bpm-track" />
+
         <ayva-slider
           ref="bpmSlider"
           :options="bpmSliderOptions"
@@ -70,7 +79,7 @@
         </div>
       </div>
 
-      <div class="logo">
+      <div class="logo" :style="hudStyle">
         Powered By <a
           class="ayva"
           href="https://ayvajs.github.io/ayvajs-docs"
@@ -83,8 +92,9 @@
 
 <script>
 import OSREmulator from 'osr-emu';
-import Ayva, { WebSerialDevice } from 'ayvajs';
+import { Ayva, WebSerialDevice } from 'ayvajs';
 import { computed } from 'vue';
+import { createAyva } from './lib/ayva-config.js';
 import AyvaSlider from './components/widgets/AyvaSlider.vue';
 import AyvaLimits from './components/AyvaLimits.vue';
 import AyvaFreePlay from './components/AyvaFreePlay.vue';
@@ -94,7 +104,7 @@ import AyvaController from './lib/controller.js';
 import { formatter } from './lib/util.js';
 
 // These need to be "globals" so they aren't proxied by Vue... because issues with private members :(
-const ayva = new Ayva().defaultConfiguration();
+const ayva = createAyva();
 
 let controller;
 let emulator;
@@ -134,6 +144,7 @@ export default {
       bpmSliderOptions: {
         start: [60],
         tooltips: true,
+        behaviour: 'snap',
         connect: true,
         padding: [10],
         step: 1,
@@ -145,7 +156,15 @@ export default {
       },
 
       device: new WebSerialDevice(),
+
+      showHud: true,
     };
+  },
+
+  computed: {
+    hudStyle () {
+      return this.showHud ? '' : 'visibility: hidden !important';
+    },
   },
 
   watch: {
@@ -252,6 +271,7 @@ export default {
     },
 
     startController () {
+      // TODO: Check if Ayva's current behavior is equal to the controller as well.
       if (!controller) {
         controller = new AyvaController();
         controller.onTransitionStart = (duration, targetBpm) => {
@@ -264,6 +284,10 @@ export default {
           this.currentStrokeName = typeof stroke === 'string' ? stroke : 'Custom';
           this.bpmDisabled = false;
           this.clearBpmAnimation();
+          this.setBpm(bpm);
+        };
+
+        controller.onUpdateBpm = (bpm) => {
           this.setBpm(bpm);
         };
 

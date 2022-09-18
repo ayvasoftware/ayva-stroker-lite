@@ -6,6 +6,7 @@
 import Slider from 'nouislider';
 import _ from 'lodash';
 import Storage from '../../lib/ayva-storage.js';
+import { mergeTooltips } from '../../lib/util.js';
 
 const storage = new Storage('slider-value');
 
@@ -34,6 +35,11 @@ export default {
     modelValue: {
       type: [Number, Array],
       default: null,
+    },
+
+    mergeTooltips: {
+      type: Boolean,
+      default: true,
     },
   },
 
@@ -121,6 +127,10 @@ export default {
       }
 
       this.slider = Slider.create(element, this.mergedOptions);
+
+      if (this.mergeTooltips) {
+        mergeTooltips(element, 10, ' - ');
+      }
 
       this.slider.on('update', this.onUpdate);
       this.slider.on('change', (...args) => {

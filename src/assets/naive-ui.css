@@ -89,3 +89,8 @@
 .n-notification-container .n-notification .n-notification__avatar .n-base-icon {
   color: var(--ayva-color-error);
 }
+
+.n-dropdown-menu.bpm-select.n-popover-shared.n-dropdown {
+  margin-top: 0;
+  width: 250px;
+}

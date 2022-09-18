@@ -1,6 +1,6 @@
 <template>
-  <div class="modal-body">
-    <div class="header">
+  <div class="modal-body" @mouseover="onHover">
+    <div class="header" hover-info="">
       <div class="toolbar">
         <span class="toolbar-left">
           <span>{{ edit ? 'Edit' : 'Create' }} Stroke</span>
@@ -27,6 +27,8 @@
       </div>
       <div class="main-inputs">
         <div class="setup">
+          <span class="context-clue">{{ contextClue }}</span>
+
           <n-popselect v-model:value="selectedAxes" trigger="click" multiple :options="availableAxes">
             <span class="select-axes">
               <axis-icon class="icon" />Axes
@@ -44,7 +46,7 @@
         </div>
       </div>
     </div>
-    <div class="axis-column">
+    <div ref="axisScrollParent" class="axis-column">
       <n-scrollbar ref="axisScroll" :data-scroll="axisScrollTop" trigger="none">
         <div class="axis-scroll">
           <div v-for="axis in axes" :key="axis.name" class="tempest-motion-container">
@@ -53,12 +55,13 @@
               :display-name="axis.label"
               :angle="previewAngle"
               :disabled="disabled"
+              :scroll-element="axisScrollElement"
             />
           </div>
         </div>
       </n-scrollbar>
     </div>
-    <div class="emulator-column">
+    <div class="emulator-column" hover-info="">
       <div ref="emulator" class="emulator" />
       <div class="preview-bpm">
         <ayva-slider
@@ -71,7 +74,7 @@
         </div>
       </div>
     </div>
-    <div class="save-container">
+    <div class="save-container" hover-info="">
       <div>
         <label>Name:</label>
         <n-tooltip :show="strokeNameDuplicate" class="error-tooltip">
@@ -89,17 +92,18 @@
 </template>
 
 <script>
-import Ayva, { TempestStroke } from 'ayvajs';
+import { Ayva, TempestStroke } from 'ayvajs';
 import OSREmulator from 'osr-emu';
 import { h, nextTick } from 'vue';
+import { ayvaConfig, createAyva } from '../lib/ayva-config.js';
 import AyvaSlider from './widgets/AyvaSlider.vue';
 import AyvaCheckbox from './widgets/AyvaCheckbox.vue';
 import TempestMotion from './TempestMotion.vue';
-import { formatter } from '../lib/util.js';
+import { formatter, validNumber } from '../lib/util.js';
 import CustomStrokeStorage from '../lib/custom-stroke-storage.js';
 
 const customStrokeStorage = new CustomStrokeStorage();
-const ayva = new Ayva().defaultConfiguration();
+const ayva = createAyva();
 let emulator;
 
 const defaultStroke = {
@@ -143,7 +147,7 @@ export default {
 
       axes: this.createAxes('default', defaultStroke),
 
-      availableAxes: Ayva.defaultConfiguration.axes.map((axis) => ({
+      availableAxes: ayvaConfig.axes.map((axis) => ({
         ...axis,
         label: `${axis.alias} (${axis.name})`,
         value: axis.name,
@@ -181,6 +185,12 @@ export default {
       axisScrollTop: 0,
 
       strokeName: '',
+
+      contextClue: '',
+
+      contextClueTimeout: null,
+
+      axisScrollElement: null,
     };
   },
 
@@ -359,6 +369,8 @@ export default {
       const item = this.strokeLibraryOptions.find((option) => option.key === this.editStroke);
       this.selectPreset(this.editStroke, item);
     }
+
+    this.axisScrollElement = this.$refs.axisScrollParent;
   },
 
   unmounted () {
@@ -406,23 +418,55 @@ export default {
 
         if (mappedAxis && mappedAxis.parameters) {
           const {
-            from, to, phase, ecc, motion,
+            from, to, phase, ecc, motion, $current,
           } = mappedAxis.parameters;
 
-          return (motion || Ayva.tempestMotion)(
-            from,
-            to,
+          const result = (motion || Ayva.tempestMotion)(
+            $current?.from || from,
+            $current?.to || to,
             phase,
             ecc,
             this.previewBpm,
             this.previewAngle
           )(valueParameters);
+
+          if ($current && mappedAxis.parameters.noise) {
+            this.generateNoise(mappedAxis.parameters);
+          }
+
+          return result;
         }
 
         return null;
       };
 
       return (valueParameters) => tempestMotion(valueParameters);
+    },
+
+    generateNoise (params) {
+      // TODO: This is basically a rip from Ayva.js. In the future do not reimplement this.
+      //       Use TempestStroke somehow...
+      const { PI } = Math;
+      const angleSlice = PI / TempestStroke.granularity;
+      const deg = (radians) => (radians * 180) / PI;
+      const getNoise = (which) => (validNumber(params.noise) ? params.noise : params.noise[which] || 0);
+      const phaseAngle = (params.phase * PI) / 2;
+      const absoluteAngle = phaseAngle + this.previewAngle;
+
+      const startDegrees = Math.round(deg(absoluteAngle % (PI * 2)));
+      const endDegrees = Math.round(startDegrees + deg(angleSlice));
+      const movingToStart = startDegrees < 360 && endDegrees >= 360;
+      const movingToMid = startDegrees < 180 && endDegrees >= 180;
+
+      if (movingToStart) {
+        const noise = getNoise('to');
+        const noiseRange = (params.from - params.to) / 2;
+        params.$current.to = params.to + noise * noiseRange * Math.random();
+      } else if (movingToMid) {
+        const noise = getNoise('from');
+        const noiseRange = (params.to - params.from) / 2;
+        params.$current.from = params.from + noise * noiseRange * Math.random();
+      }
     },
 
     selectPreset (key, item) {
@@ -481,7 +525,7 @@ export default {
         return set;
       }, new Set());
 
-      const unusedAxes = Ayva.defaultConfiguration.axes
+      const unusedAxes = ayvaConfig.axes
         .filter((axis) => !usedAxesSet.has(axis.name) && !usedAxesSet.has(axis.alias));
 
       const unusedMoves = unusedAxes.map((axis) => {
@@ -510,6 +554,11 @@ export default {
       // Note: axisName might be alias or machine name...
       const { alias, name } = ayva.getAxis(axisName);
 
+      parameters.$current = {
+        from: parameters.from,
+        to: parameters.to,
+      };
+
       return {
         alias,
         name,
@@ -522,12 +571,22 @@ export default {
       this.axisScrollTop = this.$el.querySelector('.n-scrollbar-container').scrollTop;
     },
 
+    onHover (event) {
+      const infoElement = event.path.find((element) => element.hasAttribute && element.hasAttribute('hover-info'));
+
+      if (infoElement) {
+        this.contextClue = infoElement.getAttribute('hover-info');
+      }
+    },
+
     save () {
       if (this.editStroke) {
         customStrokeStorage.delete(this.editStroke);
       }
       const stroke = this.axes.reduce((obj, axis) => {
         obj[axis.name] = axis.parameters;
+        delete obj[axis.name].$current;
+
         return obj;
       }, {});
 
@@ -673,6 +732,7 @@ export default {
 
 .main-inputs .setup {
   margin-left: 45px;
+  position: relative;
 }
 
 .main-inputs .device label {
@@ -689,6 +749,13 @@ export default {
   align-items: center;
   gap: 5px;
   color: var(--ayva-text-color-light-gray)
+}
+
+.main-inputs .setup > .context-clue {
+  position: absolute;
+  left: -20px;
+  opacity: 0.5;
+  color: var(--text-color);
 }
 
 input.name {
