@@ -68,13 +68,13 @@
 }
 
 .slider.active-tooltips .noUi-tooltip {
-  display: none;
+  display: none !important;
 }
 
 .slider.active-tooltips:hover .noUi-tooltip {
-  display: block;
+  display: block !important;
 }
 
 .slider.active-tooltips .noUi-active .noUi-tooltip {
-  display: block;
+  display: block !important;
 }
