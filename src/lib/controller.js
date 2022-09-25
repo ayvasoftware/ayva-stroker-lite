@@ -60,7 +60,7 @@ export default class Controller extends GeneratorBehavior {
       this.#currentStroke = new TempestStroke(this.#createStrokeConfig(strokeConfig), bpmProvider).bind(ayva);
 
       this.#startTransition(1, this.#currentStroke.bpm);
-      yield* this.#currentStroke.start({ duration: 1 });
+      yield* this.#currentStroke.start({ duration: 1, value: Ayva.RAMP_PARABOLIC });
       this.#endTransition(strokeConfig, this.#currentStroke.bpm);
     }
   }
