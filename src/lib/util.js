@@ -93,6 +93,16 @@ export function validNumber (value, min, max) {
 
   return true;
 }
+
+export function createConstantProperty (object, name, value) {
+  Object.defineProperty(object, name, {
+    value: value,
+    writeable: false,
+    configurable: false,
+    enumerable: true,
+  });
+}
+
 /**
  * Size an element to extend to the bottom of the viewport.
  */

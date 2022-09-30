@@ -3,44 +3,100 @@ import {
 } from 'ayvajs';
 import CustomStrokeStorage from './custom-stroke-storage';
 
-import { clamp } from './util.js';
+import { clamp, createConstantProperty } from './util.js';
+
+const STATE = {
+  TRANSITION_MANUAL: 0,
+  TRANSITION_FREE_PLAY: 1,
+  STROKING: 2,
+};
 
 export default class Controller extends GeneratorBehavior {
   #customStrokeStorage = new CustomStrokeStorage();
 
   #currentStroke = null;
 
+  #manualStroke = null;
+
+  #freePlay = false;
+
   #duration = null;
 
   #bpm;
 
+  constructor () {
+    super();
+
+    createConstantProperty(this, 'bpmSliderState', {
+      active: false,
+      updated: false,
+      value: null,
+    });
+  }
+
   * generate (ayva) {
-    if (this.strokeCommand) {
-      // Transition into user selected stroke and take us out of random mode.
-      const stroke = this.strokeCommand;
-      this.#clearState();
-      yield* this.#createTransition(ayva, stroke);
-    } else if (this.random && this.#readyForNextStroke()) {
-      yield* this.#createTransition(ayva, this.randomStroke());
+    switch (this.#computeState()) {
+      case STATE.TRANSITION_MANUAL:
+        yield* this.#createTransition(ayva, this.#manualStroke);
+        this.#resetManualMode();
+
+        break;
+      case STATE.TRANSITION_FREE_PLAY:
+        yield* this.#createTransition(ayva, this.#freePlayStroke());
+
+        break;
+      case STATE.STROKING:
+        yield* this.#currentStroke;
+
+        break;
+      default:
+        // Waiting for a command.
+        yield 0.1;
+    }
+  }
+
+  startManualMode (stroke) {
+    this.#manualStroke = stroke;
+  }
+
+  startFreePlayMode () {
+    this.#freePlay = true;
+  }
+
+  resetTimer () {
+    if (this.#freePlay) {
+      const [from, to] = this.parameters['pattern-duration'];
+
+      if (from === to) {
+        this.#duration = new VariableDuration(from);
+      } else {
+        this.#duration = new VariableDuration(from, to);
+      }
+    }
+  }
+
+  #computeState () {
+    if (this.#manualStroke) {
+      return STATE.TRANSITION_MANUAL;
+    }
+
+    if (this.#freePlay && this.#readyForNextStroke()) {
+      return STATE.TRANSITION_FREE_PLAY;
     }
 
     if (this.#currentStroke) {
-      yield* this.#currentStroke;
-    } else {
-      // Waiting for a command.
-      yield 0.1;
+      return STATE.STROKING;
     }
+
+    return null;
   }
 
-  #clearState () {
-    this.strokeCommand = null;
+  #resetManualMode () {
+    this.#manualStroke = null;
     this.#duration = null;
-    this.random = false;
+    this.#freePlay = false;
   }
 
-  /**
-   * Add transition moves to the queue and create the current stroke.
-   */
   * #createTransition (ayva, strokeConfig) {
     this.#bpm = this.#generateNextBpm();
     const bpmProvider = this.#createBpmProvider();
@@ -49,7 +105,7 @@ export default class Controller extends GeneratorBehavior {
       // Create smooth transition to the next stroke.
       const duration = this.#generateTransitionDuration();
       this.#currentStroke = this.#currentStroke
-        .transition(this.#createStrokeConfig(strokeConfig), bpmProvider, duration, this.#startTransition.bind(this), (config, bpm) => {
+        .transition(this.#createStrokeConfig(strokeConfig), bpmProvider, duration, this.#startTransition.bind(this), (_, bpm) => {
           // Make sure we use the pretransformed stroke config for the event.
           this.#endTransition(strokeConfig, bpm);
         });
@@ -76,10 +132,8 @@ export default class Controller extends GeneratorBehavior {
       this.onTransitionEnd(strokeConfig, bpm);
     }
 
-    if (this.random) {
-      // Start the timer for the next stroke after finishing the transition.
-      this.#startTimer();
-    }
+    // Start the timer for the next stroke after finishing the transition.
+    this.resetTimer();
   }
 
   #createStrokeConfig (stroke) {
@@ -109,17 +163,7 @@ export default class Controller extends GeneratorBehavior {
   #readyForNextStroke () {
     // We're ready for the next stroke when the duration has elapsed, we have strokes available,
     // and also the user is not mucking about with the bpm slider.
-    return (!this.#duration || this.#duration.complete) && this.strokes.length && !this.bpmActive;
-  }
-
-  #startTimer () {
-    const [from, to] = this.parameters['pattern-duration'];
-
-    if (from === to) {
-      this.#duration = new VariableDuration(from);
-    } else {
-      this.#duration = new VariableDuration(from, to);
-    }
+    return (!this.#duration || this.#duration.complete) && this.strokes.length && !this.bpmSliderState.active;
   }
 
   #generateTransitionDuration () {
@@ -141,14 +185,14 @@ export default class Controller extends GeneratorBehavior {
 
   #createBpmProvider () {
     const bpmProvider = () => {
-      if (!this.random || this.bpmActive || this.updatedBpm) {
+      if (!this.#freePlay || this.bpmSliderState.active || this.bpmSliderState.updated) {
         // Use user supplied bpm from slider.
-        this.#bpm = this.userBpm;
-        this.updatedBpm = null;
+        this.#bpm = this.bpmSliderState.value;
+        this.bpmSliderState.updated = false;
       }
 
       if (this.parameters['bpm-mode'] === 'continuous') {
-        if (!this.bpmActive && bpmProvider.initialized) {
+        if (!this.bpmSliderState.active && bpmProvider.initialized) {
           const {
             startBpm, endBpm, startTime, endTime,
           } = bpmProvider;
@@ -183,7 +227,7 @@ export default class Controller extends GeneratorBehavior {
     return bpmProvider;
   }
 
-  randomStroke () {
+  #freePlayStroke () {
     return this.strokes[Math.floor(Math.random() * this.strokes.length)];
   }
 }

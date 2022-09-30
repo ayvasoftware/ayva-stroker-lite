@@ -67,8 +67,8 @@
           :options="bpmSliderOptions"
           :disabled="bpmDisabled ? '' : null"
           @update="currentBpm = $event"
-          @start="bpmActive = true"
-          @end="bpmActive = false"
+          @start="bpmSliderActive = true"
+          @end="bpmSliderActive = false"
           @change="onChange"
         />
         <div
@@ -135,7 +135,7 @@ export default {
       mode: 'Stopped',
       strokes: [],
       parameters: {},
-      bpmActive: false,
+      bpmSliderActive: false,
       currentBpm: 60,
       currentStrokeName: 'None',
       bpmDisabled: false,
@@ -175,7 +175,7 @@ export default {
           ayva.$[axis].value = ayva.$[axis].defaultValue;
         }
       } else {
-        ayva.removeOutputDevice(this.device);
+        ayva.removeOutput(this.device);
         this.stop();
       }
     },
@@ -184,10 +184,10 @@ export default {
   mounted () {
     emulator = new OSREmulator(this.$refs.emulator);
 
-    ayva.addOutputDevice(emulator);
+    ayva.addOutput(emulator);
 
     const watchProperties = [
-      'bpmActive',
+      'bpmSliderActive',
       'currentBpm',
       'strokes',
       'parameters',
@@ -206,7 +206,7 @@ export default {
     onChange () {
       // Triggered when user clicks a location on slider without dragging...
       if (controller) {
-        controller.updatedBpm = true;
+        controller.bpmSliderState.updated = true;
       }
     },
 
@@ -226,20 +226,20 @@ export default {
       if (controller) {
         controller.strokes = this.strokes;
         controller.parameters = this.parameters;
-        controller.bpmActive = this.bpmActive;
-        controller.userBpm = this.currentBpm;
+        controller.bpmSliderState.active = this.bpmSliderActive;
+        controller.bpmSliderState.value = this.currentBpm;
       }
     },
 
     selectStroke (stroke) {
       this.startController();
-      controller.strokeCommand = stroke;
+      controller.startManualMode(stroke);
       this.mode = 'Manual';
     },
 
     freePlay () {
       this.startController();
-      controller.random = true;
+      controller.startFreePlayMode();
       this.mode = 'Free Play';
     },
 
