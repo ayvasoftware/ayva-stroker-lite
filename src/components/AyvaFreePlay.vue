@@ -208,6 +208,14 @@
         </div>
       </div>
     </n-modal>
+
+    <n-modal :show="showScriptEditor" :auto-focus="false">
+      <div>
+        <div class="lil-gui">
+          <ayva-script-editor ref="strokeEditor" :edit-script="editScript" @close="showScriptEditor = false" @save="refreshStrokes" />
+        </div>
+      </div>
+    </n-modal>
   </div>
 </template>
 
@@ -220,6 +228,7 @@ import { createAyva } from '../lib/ayva-config.js';
 import AyvaSlider from './widgets/AyvaSlider.vue';
 import AyvaCheckbox from './widgets/AyvaCheckbox.vue';
 import AyvaBpmSelect from './widgets/AyvaBpmSelect.vue';
+import AyvaScriptEditor from './AyvaScriptEditor.vue';
 import TempestStrokeEditor from './TempestStrokeEditor.vue';
 import {
   makeCollapsible, formatter, clampHeight
@@ -237,6 +246,7 @@ export default {
     AyvaSlider,
     AyvaCheckbox,
     AyvaBpmSelect,
+    AyvaScriptEditor,
     TempestStrokeEditor,
   },
 
@@ -338,6 +348,10 @@ export default {
       previewElement: null,
       previewParent: null,
 
+      showScriptEditor: false,
+
+      editScript: null,
+
       showStrokeEditor: false,
 
       editStroke: null,
@@ -345,8 +359,11 @@ export default {
       bpmMode: 'transition',
 
       settingsOptions: [{
-        key: 'create',
-        label: 'Create',
+        key: 'create-stroke',
+        label: 'Create Stroke',
+      }, {
+        key: 'create-script',
+        label: 'Create AyvaScript',
       }, {
         key: 'import',
         label: 'Import',
@@ -467,8 +484,10 @@ export default {
     },
 
     onSettings (key) {
-      if (key === 'create') {
+      if (key === 'create-stroke') {
         this.openStrokeEditor();
+      } else if (key === 'create-script') {
+        this.openScriptEditor();
       } else if (key === 'import') {
         const onConflicts = (conflicts) => {
           this.notify.warning({
@@ -499,6 +518,12 @@ export default {
       } else if (action === 'export') {
         customStrokeStorage.exportOne(stroke.name);
       }
+    },
+
+    openScriptEditor (editScript = null) {
+      this.editScript = editScript;
+      this.showScriptEditor = true;
+      this.animateEditorResize(1000);
     },
 
     openStrokeEditor (editStroke = null) {
@@ -549,7 +574,7 @@ export default {
           container.classList.add('preview-popup-container');
 
           previewAyva = this.createPreviewAyva();
-          previewAyva.addOutputDevice(previewEmulator);
+          previewAyva.addOutput(previewEmulator);
 
           const uniqueAxes = Object.keys(previewAyva.axes).reduce((map, axisName) => {
             const axis = previewAyva.axes[axisName];

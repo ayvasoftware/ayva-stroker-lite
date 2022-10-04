@@ -324,7 +324,7 @@ export default {
 
     requestConnection () {
       this.device.requestConnection().then(() => {
-        ayva.addOutputDevice(this.device);
+        ayva.addOutput(this.device);
       }).catch((error) => {
         /* Do nothing if no port was selected. */
         console.warn(error); // eslint-disable-line no-console

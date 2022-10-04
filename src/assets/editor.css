@@ -1,0 +1,7 @@
+.editor.readonly {
+  cursor: not-allowed;
+}
+
+.editor.readonly .view-lines.monaco-mouse-cursor-text {
+  pointer-events: none;
+}
