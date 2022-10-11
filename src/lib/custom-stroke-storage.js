@@ -8,7 +8,7 @@ const storage = new Storage('custom-tempest-strokes');
 const fileOptions = {
   types: [
     {
-      description: 'Strokes',
+      description: 'Ayva Files',
       accept: {
         'application/json': ['.json'],
       },
@@ -16,7 +16,7 @@ const fileOptions = {
   ],
   excludeAcceptAllOption: true,
   multiple: false,
-  suggestedName: 'ayva-strokes.json',
+  suggestedName: 'ayva-stroker.json',
 };
 
 class CustomStrokeStorage {

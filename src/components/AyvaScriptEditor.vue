@@ -13,12 +13,12 @@
       </div>
       <div class="main-inputs">
         <div class="setup">
-          <button class="play" @click="togglePlaying">
+          <button class="play" :disabled="!script.trim()" @click="togglePlaying">
             <span>
-              <play-icon v-show="!playingScript" class="play-icon" />
-              <stop-icon v-show="playingScript" class="stop-icon" />
+              <play-icon v-show="!playing" class="play-icon" />
+              <stop-icon v-show="playing" class="stop-icon" />
             </span>
-            <span>{{ playingScript ? 'Stop' : 'Play' }}</span>
+            <span>{{ playing ? 'Stop' : 'Play' }}</span>
           </button>
         </div>
         <div v-if="device && device.connected" class="device">
@@ -33,7 +33,7 @@
       </div>
     </div>
     <div class="editor-column">
-      <div ref="editor" class="editor" :class="playingScript ? 'readonly' : ''" />
+      <div ref="editor" class="editor" :class="playing ? 'readonly' : ''" />
     </div>
     <div class="emulator-column" hover-info="">
       <div ref="emulator" class="emulator" />
@@ -47,7 +47,7 @@
           </template>
           A behavior with that name already exists.
         </n-tooltip>
-        <button class="ayva-button primary" :disabled="!scriptNameValid" @click="save">
+        <button class="ayva-button primary" :disabled="!scriptNameValid || !scriptValid || playing" @click="save">
           {{ saveText }}
         </button>
       </div>
@@ -56,7 +56,9 @@
 </template>
 
 <script>
-import { Ayva, ScriptBehavior, TempestStroke } from 'ayvajs';
+import { useNotification } from 'naive-ui';
+import { ScriptBehavior, TempestStroke } from 'ayvajs';
+import { h } from 'vue';
 import OSREmulator from 'osr-emu';
 import { createAyva } from '../lib/ayva-config.js';
 import AyvaCheckbox from './widgets/AyvaCheckbox.vue';
@@ -67,6 +69,41 @@ const customStrokeStorage = new CustomStrokeStorage();
 const ayva = createAyva();
 let emulator;
 let editor;
+
+class ScriptRunner {
+  constructor (scriptEditor) {
+    this.scriptEditor = scriptEditor;
+    this.scriptBehavior = new ScriptBehavior(scriptEditor.script).bind(ayva);
+  }
+
+  perform () {
+    // Give control to the script, but notify the user and
+    // stop the script if there are any errors.
+    try {
+      return this.scriptBehavior.perform().catch(this.handleError.bind(this)).finally(() => {
+        this.complete = this.scriptBehavior.complete;
+
+        if (this.complete) {
+          this.scriptEditor.stop();
+        }
+      });
+    } catch (error) {
+      this.handleError(error);
+      this.complete = true;
+      this.scriptEditor.stop();
+      return Promise.resolve();
+    }
+  }
+
+  handleError (error) {
+    this.scriptEditor.notify.error({
+      content: 'Exception occurred while running script:',
+      meta: error.message,
+    });
+
+    this.scriptBehavior.complete = true;
+  }
+}
 
 export default {
   components: {
@@ -92,17 +129,32 @@ export default {
 
   emits: ['close', 'save'],
 
+  setup () {
+    const notification = useNotification();
+    return {
+      notify: notification,
+    };
+  },
+
   data () {
     return {
-      playingScript: false,
+      playing: false,
 
       tempestStrokeLibrary: TempestStroke.library,
 
       customStrokeLibrary: {},
 
+      customScriptLibrary: {},
+
       previewOnDevice: false,
 
       scriptName: '',
+
+      script: '',
+
+      isScriptValid: false,
+
+      decorations: [],
     };
   },
 
@@ -118,7 +170,7 @@ export default {
     disabled () {
       // Because we are putting this attribute on non input elements we have
       // to do this hacky thing...
-      return this.playingScript ? '' : undefined;
+      return this.playing ? '' : undefined;
     },
 
     scriptNameDuplicate () {
@@ -126,8 +178,8 @@ export default {
         return false;
       }
 
-      // TODO: Add check for customScriptLibrary
-      return !!this.tempestStrokeLibrary[this.scriptName] || !!this.customStrokeLibrary[this.scriptName];
+      return !!this.tempestStrokeLibrary[this.scriptName] || !!this.customStrokeLibrary[this.scriptName]
+        || !!this.customScriptLibrary[this.scriptName];
     },
 
     scriptNameValid () {
@@ -136,6 +188,10 @@ export default {
 
     scriptNameReserved () {
       return this.scriptName === 'default' || this.scriptName === 'header';
+    },
+
+    scriptValid () {
+      return !!this.script.trim() && this.validateScript(this.script);
     },
   },
 
@@ -163,8 +219,6 @@ export default {
 
   beforeMount () {
     this.customStrokeLibrary = customStrokeStorage.load();
-
-    // TODO: Load custom script library here.
   },
 
   mounted () {
@@ -184,8 +238,12 @@ export default {
 
     editor = ayvascriptEditor.create(this.$refs.editor);
 
-    editor.getModel().onDidChangeContent((event) => {
-      console.log('changed data');
+    editor.getModel().onDidChangeContent(() => {
+      this.script = editor.getValue();
+
+      for (const d of this.decorations) {
+        editor.deltaDecorations(d, []);
+      }
     });
   },
 
@@ -202,26 +260,20 @@ export default {
 
   methods: {
     togglePlaying () {
-      if (this.playingScript) {
+      if (this.playing) {
         this.stop();
-      } else {
-        const script = editor.getValue();
-
-        console.log(JSHINT);
-
-        this.play(editor.getValue());
+      } else if (this.validateScript(this.script, true)) {
+        this.play();
       }
     },
 
     save () {
       // TODO: Stop script if running.
       if (this.editScript) {
-        // TODO: Delete from customScriptStorage instead.
-        // customStrokeStorage.delete(this.editScript);
+        // customScriptStorage.delete(this.editScript);
       }
 
-      // TODO: Save to customScriptStorage instead.
-      // customStrokeStorage.save(this.scriptName, stroke);
+      // customScriptStorage.save(this.scriptName, this.script);
       this.$emit('close');
       this.$emit('save');
     },
@@ -231,17 +283,57 @@ export default {
       this.$emit('close');
     },
 
-    play (script) {
-      ayva.do(new ScriptBehavior(script));
-      this.playingScript = true;
+    play () {
+      this.playing = true;
       editor.updateOptions({ readOnly: true });
+
+      ayva.do(new ScriptRunner(this));
     },
 
     stop () {
       // TODO: Also move back to home position.
       ayva.stop();
-      this.playingScript = false;
+      this.playing = false;
       editor.updateOptions({ readOnly: false });
+    },
+
+    validateScript (script, notify = false) {
+      const lines = ['function* generate() {', ...script.split('\n'), '}'];
+
+      const valid = JSHINT(lines, {
+        esversion: 11,
+        noyield: true,
+        debug: true,
+      });
+
+      // Discard errors for the first and last line (the faux function declaration),
+      // and adjust line number to match editor.
+      const errors = Object.values(JSHINT.errors.filter((error) => error.line !== 1 && error.line !== lines.length)
+        .map((error) => ({
+          ...error,
+          line: error.line - 1,
+        })).reduce((map, next) => {
+          map[next.line] = map[next.line] || next;
+          return map;
+        }, {}));
+
+      if (!valid) {
+        const messages = [];
+        for (const error of errors) {
+          this.decorations.push(ayvascriptEditor.syntaxError(editor, error.line, error.character));
+          messages.push(h('div', [`Line ${error.line}: ${error.reason}`]));
+          messages.push(h('br'));
+        }
+
+        if (notify) {
+          this.notify.error({
+            content: 'Syntax error(s):',
+            meta: () => h('div', messages),
+          });
+        }
+      }
+
+      return valid;
     },
 
     resetGlobalDevicePosition () {
@@ -287,11 +379,15 @@ export default {
     border-radius: 4px;
   }
 
+  .play:hover[disabled] {
+    background-color: var(--ayva-background-medium);
+  }
+
   .play:focus {
     border-color: black;
   }
 
-  .play:active {
+  .play:active(:not(disabled)) {
     transform: translateY(1px);
   }
 

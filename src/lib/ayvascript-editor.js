@@ -58,4 +58,19 @@ export default {
       },
     });
   },
+
+  syntaxError (editor, line, character) {
+    return editor.deltaDecorations(
+      [],
+      [
+        {
+          range: new monaco.Range(line, character - 1, line, character),
+          options: {
+            className: 'squiggly-error',
+            glyphMarginClassName: 'syntax-error',
+          },
+        },
+      ]
+    );
+  },
 };
