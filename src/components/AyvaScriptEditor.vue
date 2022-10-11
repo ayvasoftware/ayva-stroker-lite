@@ -57,6 +57,7 @@
 
 <script>
 import { useNotification } from 'naive-ui';
+import { JSHINT } from 'jshint';
 import { ScriptBehavior, TempestStroke } from 'ayvajs';
 import { h } from 'vue';
 import OSREmulator from 'osr-emu';
@@ -244,6 +245,8 @@ export default {
       for (const d of this.decorations) {
         editor.deltaDecorations(d, []);
       }
+
+      this.validateScript(this.script);
     });
   },
 
