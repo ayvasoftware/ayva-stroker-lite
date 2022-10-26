@@ -233,12 +233,12 @@ import TempestStrokeEditor from './TempestStrokeEditor.vue';
 import {
   makeCollapsible, formatter, clampHeight
 } from '../lib/util.js';
-import CustomStrokeStorage from '../lib/custom-stroke-storage.js';
+import CustomBehaviorStorage from '../lib/custom-behavior-storage.js';
 
 let previewAyva = null;
 let previewEmulator = null;
 
-const customStrokeStorage = new CustomStrokeStorage();
+const customBehaviorStorage = new CustomBehaviorStorage();
 
 export default {
 
@@ -341,7 +341,7 @@ export default {
 
       strokes: [],
 
-      customStrokeLibrary: {},
+      customBehaviorLibrary: {},
 
       initialParameters: {},
 
@@ -455,7 +455,7 @@ export default {
         return map;
       }, {});
 
-      this.customStrokeLibrary = customStrokeStorage.load();
+      this.customBehaviorLibrary = customBehaviorStorage.load();
 
       const makeLibraryList = (library, custom = false) => Object.keys(library).sort().map((name) => ({
         name,
@@ -464,7 +464,7 @@ export default {
       }));
 
       this.strokes = [
-        ...makeLibraryList(this.customStrokeLibrary, true),
+        ...makeLibraryList(this.customBehaviorLibrary, true),
         ...makeLibraryList(TempestStroke.library)];
 
       this.onResize();
@@ -496,7 +496,7 @@ export default {
           });
         };
 
-        customStrokeStorage.import(onConflicts).then(() => {
+        customBehaviorStorage.import(onConflicts).then(() => {
           this.refreshStrokes();
         }).catch((error) => {
           this.notify.error({
@@ -505,18 +505,18 @@ export default {
           });
         });
       } else if (key === 'export') {
-        customStrokeStorage.export();
+        customBehaviorStorage.export();
       }
     },
 
     onCustomStrokeAction (stroke, action) {
       if (action === 'delete') {
-        customStrokeStorage.delete(stroke.name);
+        customBehaviorStorage.delete(stroke.name);
         this.refreshStrokes();
       } else if (action === 'edit') {
         this.openStrokeEditor(stroke.name);
       } else if (action === 'export') {
-        customStrokeStorage.exportOne(stroke.name);
+        customBehaviorStorage.exportOne(stroke.name);
       }
     },
 
@@ -568,6 +568,18 @@ export default {
 
       if (show) {
         setTimeout(() => {
+          const tempestStroke = TempestStroke.library[stroke];
+
+          const behavior = tempestStroke ? {
+            name: stroke,
+            type: 'tempest-stroke',
+            data: tempestStroke,
+          } : this.customBehaviorLibrary[stroke];
+
+          if (behavior.type !== 'tempest-stroke') {
+            return;
+          }
+
           this.previewParent = document.querySelector(`[data-preview-stroke="${stroke}"]`);
           this.previewParent.appendChild(this.previewElement);
           const container = this.previewParent.closest('.v-binder-follower-content');
@@ -587,7 +599,7 @@ export default {
             previewAyva.$[name].value = 0.5;
           });
 
-          previewAyva.do(new TempestStroke(this.customStrokeLibrary[stroke] || stroke)); // TODO: Support custom strokes too...
+          previewAyva.do(new TempestStroke(behavior.data));
         }, 100);
       }
     },

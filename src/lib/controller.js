@@ -1,7 +1,7 @@
 import {
   Ayva, GeneratorBehavior, TempestStroke, VariableDuration
 } from 'ayvajs';
-import CustomStrokeStorage from './custom-stroke-storage';
+import CustomBehaviorStorage from './custom-behavior-storage';
 
 import { clamp, createConstantProperty } from './util.js';
 
@@ -12,7 +12,7 @@ const STATE = {
 };
 
 export default class Controller extends GeneratorBehavior {
-  #customStrokeStorage = new CustomStrokeStorage();
+  #customBehaviorStorage = new CustomBehaviorStorage();
 
   #currentStroke = null;
 
@@ -138,8 +138,9 @@ export default class Controller extends GeneratorBehavior {
 
   #createStrokeConfig (stroke) {
     if (typeof stroke === 'string') {
-      const customStrokeLibrary = this.#customStrokeStorage.load();
-      const config = customStrokeLibrary[stroke] || TempestStroke.library[stroke];
+      // TODO: Support script here.
+      const customBehaviorLibrary = this.#customBehaviorStorage.load();
+      const config = customBehaviorLibrary[stroke]?.data || TempestStroke.library[stroke];
 
       const existingTwist = config.twist || config.R0;
       const noTwist = !existingTwist || (existingTwist.from === 0.5 && existingTwist.to === 0.5);

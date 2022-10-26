@@ -63,10 +63,10 @@ import { h } from 'vue';
 import OSREmulator from 'osr-emu';
 import { createAyva } from '../lib/ayva-config.js';
 import AyvaCheckbox from './widgets/AyvaCheckbox.vue';
-import CustomStrokeStorage from '../lib/custom-stroke-storage.js';
+import CustomBehaviorStorage from '../lib/custom-behavior-storage.js';
 import ayvascriptEditor from '../lib/ayvascript-editor';
 
-const customStrokeStorage = new CustomStrokeStorage();
+const customBehaviorStorage = new CustomBehaviorStorage();
 const ayva = createAyva();
 let emulator;
 let editor;
@@ -143,9 +143,7 @@ export default {
 
       tempestStrokeLibrary: TempestStroke.library,
 
-      customStrokeLibrary: {},
-
-      customScriptLibrary: {},
+      customBehaviorLibrary: {},
 
       previewOnDevice: false,
 
@@ -179,8 +177,7 @@ export default {
         return false;
       }
 
-      return !!this.tempestStrokeLibrary[this.scriptName] || !!this.customStrokeLibrary[this.scriptName]
-        || !!this.customScriptLibrary[this.scriptName];
+      return !!this.tempestStrokeLibrary[this.scriptName] || !!this.customBehaviorLibrary[this.scriptName];
     },
 
     scriptNameValid () {
@@ -219,7 +216,7 @@ export default {
   },
 
   beforeMount () {
-    this.customStrokeLibrary = customStrokeStorage.load();
+    this.customBehaviorLibrary = customBehaviorStorage.load();
   },
 
   mounted () {

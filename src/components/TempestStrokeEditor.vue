@@ -100,9 +100,9 @@ import AyvaSlider from './widgets/AyvaSlider.vue';
 import AyvaCheckbox from './widgets/AyvaCheckbox.vue';
 import TempestMotion from './TempestMotion.vue';
 import { formatter, validNumber } from '../lib/util.js';
-import CustomStrokeStorage from '../lib/custom-stroke-storage.js';
+import CustomBehaviorStorage from '../lib/custom-behavior-storage.js';
 
-const customStrokeStorage = new CustomStrokeStorage();
+const customBehaviorStorage = new CustomBehaviorStorage();
 const ayva = createAyva();
 let emulator;
 
@@ -172,7 +172,7 @@ export default {
 
       tempestStrokeLibrary: TempestStroke.library,
 
-      customStrokeLibrary: {},
+      customBehaviorLibrary: {},
 
       transitionDuration: 0.5,
 
@@ -301,7 +301,7 @@ export default {
         return false;
       }
 
-      return !!this.tempestStrokeLibrary[this.strokeName] || !!this.customStrokeLibrary[this.strokeName];
+      return !!this.tempestStrokeLibrary[this.strokeName] || !!this.customBehaviorLibrary[this.strokeName];
     },
 
     strokeNameValid () {
@@ -310,6 +310,18 @@ export default {
 
     strokeNameReserved () {
       return this.strokeName === 'default' || this.strokeName === 'header';
+    },
+
+    customStrokeLibrary () {
+      const result = {};
+
+      Object.entries(this.customBehaviorLibrary).forEach(([name, entry]) => {
+        if (entry.type === 'tempest-stroke') {
+          result[name] = entry.data;
+        }
+      });
+
+      return result;
     },
   },
 
@@ -349,7 +361,7 @@ export default {
   },
 
   beforeMount () {
-    this.customStrokeLibrary = customStrokeStorage.load();
+    this.customBehaviorLibrary = customBehaviorStorage.load();
   },
 
   mounted () {
@@ -581,7 +593,7 @@ export default {
 
     save () {
       if (this.editStroke) {
-        customStrokeStorage.delete(this.editStroke);
+        customBehaviorStorage.delete(this.editStroke);
       }
       const stroke = this.axes.reduce((obj, axis) => {
         obj[axis.name] = axis.parameters;
@@ -590,7 +602,7 @@ export default {
         return obj;
       }, {});
 
-      customStrokeStorage.save(this.strokeName, stroke);
+      customBehaviorStorage.save(this.strokeName, 'tempest-stroke', stroke);
       this.$emit('close');
       this.$emit('save');
     },

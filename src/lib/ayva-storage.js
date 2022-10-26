@@ -24,6 +24,10 @@ class Storage {
   storageKey (key) {
     return `${this.namespace}--${key}`;
   }
+
+  remove (key) {
+    localStorage.removeItem(this.storageKey(key));
+  }
 }
 
 export default Storage;

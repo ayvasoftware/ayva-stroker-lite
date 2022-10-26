@@ -111,6 +111,7 @@ import AyvaConnected from './components/AyvaConnected.vue';
 import AyvaController from './lib/controller.js';
 import AyvaReleaseNotes from './components/AyvaReleaseNotes.vue';
 import { formatter } from './lib/util.js';
+import CustomBehaviorStorage from './lib/custom-behavior-storage';
 
 // These need to be "globals" so they aren't proxied by Vue... because issues with private members :(
 const ayva = createAyva();
@@ -191,6 +192,11 @@ export default {
         this.stop();
       }
     },
+  },
+
+  beforeCreate () {
+    // TODO: Remove this in a future release.
+    new CustomBehaviorStorage().migrateLegacyStrokes();
   },
 
   mounted () {
