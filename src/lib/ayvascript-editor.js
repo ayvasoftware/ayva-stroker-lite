@@ -43,8 +43,9 @@ monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
 });
 
 export default {
-  create (element) {
+  create (element, value = '') {
     return monaco.editor.create(element, {
+      value,
       theme: 'ayvascript',
       language: 'javascript',
       hover: false,

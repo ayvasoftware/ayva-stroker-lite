@@ -23,6 +23,10 @@ const behaviorSchema = Joi.object({
   data: Joi.object().required(),
 });
 
+const scriptSchema = Joi.object({
+  script: Joi.string().required(),
+});
+
 function validateTempestStroke (stroke) {
   const axes = Object.keys(stroke);
 
@@ -48,8 +52,11 @@ function validateTempestStroke (stroke) {
 }
 
 function validateAyvaScript (data) {
-  // TODO: Implement
-  return false;
+  if (scriptSchema.validate(data).error) {
+    return false;
+  }
+
+  return true;
 }
 
 export default {

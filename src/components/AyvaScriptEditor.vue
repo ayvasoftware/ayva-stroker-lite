@@ -230,11 +230,10 @@ export default {
 
     if (this.editScript) {
       this.scriptName = this.editScript;
-
-      // TODO: Load existing script into editor here.
+      this.script = this.customBehaviorLibrary[this.scriptName].data.script;
     }
 
-    editor = ayvascriptEditor.create(this.$refs.editor);
+    editor = ayvascriptEditor.create(this.$refs.editor, this.script);
 
     editor.getModel().onDidChangeContent(() => {
       this.script = editor.getValue();
@@ -268,18 +267,19 @@ export default {
     },
 
     save () {
-      // TODO: Stop script if running.
       if (this.editScript) {
-        // customScriptStorage.delete(this.editScript);
+        customBehaviorStorage.delete(this.editScript);
       }
 
-      // customScriptStorage.save(this.scriptName, this.script);
+      customBehaviorStorage.save(this.scriptName, 'ayvascript', {
+        script: this.script,
+      });
+
       this.$emit('close');
       this.$emit('save');
     },
 
     close () {
-      // TODO: Stop script if running.
       this.$emit('close');
     },
 
@@ -291,8 +291,8 @@ export default {
     },
 
     stop () {
-      // TODO: Also move back to home position.
       ayva.stop();
+      ayva.home(1.5);
       this.playing = false;
       editor.updateOptions({ readOnly: false });
     },

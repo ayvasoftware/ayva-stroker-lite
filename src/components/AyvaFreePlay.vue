@@ -180,7 +180,7 @@
                   @update:show="previewStroke(stroke.name, $event)"
                 >
                   <template #trigger>
-                    <eye-icon class="preview icon" />
+                    <eye-icon class="preview icon" :disabled="stroke.type !== 'tempest-stroke' ? '' : undefined" />
                   </template>
                   <div :data-preview-stroke="stroke.name" />
                 </n-popover>
@@ -460,6 +460,7 @@ export default {
       const makeLibraryList = (library, custom = false) => Object.keys(library).sort().map((name) => ({
         name,
         custom,
+        type: library[name].type || 'tempest-stroke',
         enabled: enabledMap[name] ?? true,
       }));
 
@@ -513,8 +514,10 @@ export default {
       if (action === 'delete') {
         customBehaviorStorage.delete(stroke.name);
         this.refreshStrokes();
-      } else if (action === 'edit') {
+      } else if (action === 'edit' && stroke.type === 'tempest-stroke') {
         this.openStrokeEditor(stroke.name);
+      } else if (action === 'edit' && stroke.type === 'ayvascript') {
+        this.openScriptEditor(stroke.name);
       } else if (action === 'export') {
         customBehaviorStorage.exportOne(stroke.name);
       }
