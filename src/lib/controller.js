@@ -2,8 +2,9 @@ import {
   Ayva, GeneratorBehavior, TempestStroke, VariableDuration
 } from 'ayvajs';
 import CustomBehaviorStorage from './custom-behavior-storage';
+import ScriptRunner from './script-runner';
 
-import { clamp, createConstantProperty } from './util.js';
+import { clamp, createConstantProperty, eventMixin } from './util.js';
 
 const STATE = {
   TRANSITION_MANUAL: 0,
@@ -11,12 +12,12 @@ const STATE = {
   STROKING: 2,
 };
 
-export default class Controller extends GeneratorBehavior {
+class Controller extends GeneratorBehavior {
   #customBehaviorStorage = new CustomBehaviorStorage();
 
-  #currentStroke = null;
+  #currentBehavior = null;
 
-  #manualStroke = null;
+  #manualBehavior = null;
 
   #freePlay = false;
 
@@ -35,9 +36,9 @@ export default class Controller extends GeneratorBehavior {
   }
 
   * generate (ayva) {
-    switch (this.#computeState()) {
+    switch (this.#computeState(ayva)) {
       case STATE.TRANSITION_MANUAL:
-        yield* this.#createTransition(ayva, this.#manualStroke);
+        yield* this.#createTransition(ayva, this.#manualBehavior);
         this.#resetManualMode();
 
         break;
@@ -46,7 +47,7 @@ export default class Controller extends GeneratorBehavior {
 
         break;
       case STATE.STROKING:
-        yield* this.#currentStroke;
+        yield this.#currentBehavior.next();
 
         break;
       default:
@@ -56,7 +57,7 @@ export default class Controller extends GeneratorBehavior {
   }
 
   startManualMode (stroke) {
-    this.#manualStroke = stroke;
+    this.#manualBehavior = stroke;
   }
 
   startFreePlayMode () {
@@ -75,16 +76,20 @@ export default class Controller extends GeneratorBehavior {
     }
   }
 
-  #computeState () {
-    if (this.#manualStroke) {
+  #computeState (ayva) {
+    if (this.#manualBehavior) {
       return STATE.TRANSITION_MANUAL;
     }
 
     if (this.#freePlay && this.#readyForNextStroke()) {
       return STATE.TRANSITION_FREE_PLAY;
+    } else if (!this.#freePlay && this.#isScriptAndComplete()) {
+      // If a behavior completes itself in manual mode, simply stop().
+      ayva.stop();
+      return null;
     }
 
-    if (this.#currentStroke) {
+    if (this.#currentBehavior) {
       return STATE.STROKING;
     }
 
@@ -92,45 +97,59 @@ export default class Controller extends GeneratorBehavior {
   }
 
   #resetManualMode () {
-    this.#manualStroke = null;
+    this.#manualBehavior = null;
     this.#duration = null;
     this.#freePlay = false;
   }
 
-  * #createTransition (ayva, strokeConfig) {
+  * #createTransition (ayva, name) {
+    const customBehaviorLibrary = this.#customBehaviorStorage.load();
+
+    if (customBehaviorLibrary[name]?.type === 'ayvascript') {
+      this.#currentBehavior = new ScriptRunner(customBehaviorLibrary[name].data.script).bind(ayva);
+      this.#currentBehavior.on('error', (error) => this.$emit('script-error', name, error));
+      this.$emit('update-current-behavior', name);
+      this.$emit('toggle-bpm-enabled', false);
+      this.resetTimer();
+    } else {
+      yield* this.#transitionTempestStroke(ayva, name);
+    }
+  }
+
+  * #transitionTempestStroke (ayva, strokeConfig) {
     this.#bpm = this.#generateNextBpm();
     const bpmProvider = this.#createBpmProvider();
 
-    if (this.#currentStroke) {
+    if (this.#currentBehavior instanceof TempestStroke) {
       // Create smooth transition to the next stroke.
       const duration = this.#generateTransitionDuration();
-      this.#currentStroke = this.#currentStroke
+      this.#currentBehavior = this.#currentBehavior
         .transition(this.#createStrokeConfig(strokeConfig), bpmProvider, duration, this.#startTransition.bind(this), (_, bpm) => {
           // Make sure we use the pretransformed stroke config for the event.
           this.#endTransition(strokeConfig, bpm);
         });
 
-      yield* this.#currentStroke;
+      yield* this.#currentBehavior;
     } else {
       // Just move to the start position for the new stroke.
-      this.#currentStroke = new TempestStroke(this.#createStrokeConfig(strokeConfig), bpmProvider).bind(ayva);
+      this.#currentBehavior = new TempestStroke(this.#createStrokeConfig(strokeConfig), bpmProvider).bind(ayva);
 
-      this.#startTransition(1, this.#currentStroke.bpm);
-      yield* this.#currentStroke.start({ duration: 1, value: Ayva.RAMP_PARABOLIC });
-      this.#endTransition(strokeConfig, this.#currentStroke.bpm);
+      this.#startTransition(1, this.#currentBehavior.bpm);
+      yield* this.#currentBehavior.start({ duration: 1, value: Ayva.RAMP_PARABOLIC });
+      this.#endTransition(strokeConfig, this.#currentBehavior.bpm);
     }
+  }
+
+  #isScriptAndComplete () {
+    return this.#currentBehavior instanceof ScriptRunner && this.#currentBehavior.complete;
   }
 
   #startTransition (duration, bpm) {
-    if (this.onTransitionStart) {
-      this.onTransitionStart(duration, bpm);
-    }
+    this.$emit('transition-start', duration, bpm);
   }
 
   #endTransition (strokeConfig, bpm) {
-    if (this.onTransitionEnd) {
-      this.onTransitionEnd(strokeConfig, bpm);
-    }
+    this.$emit('transition-end', strokeConfig, bpm);
 
     // Start the timer for the next stroke after finishing the transition.
     this.resetTimer();
@@ -138,7 +157,6 @@ export default class Controller extends GeneratorBehavior {
 
   #createStrokeConfig (stroke) {
     if (typeof stroke === 'string') {
-      // TODO: Support script here.
       const customBehaviorLibrary = this.#customBehaviorStorage.load();
       const config = customBehaviorLibrary[stroke]?.data || TempestStroke.library[stroke];
 
@@ -164,7 +182,10 @@ export default class Controller extends GeneratorBehavior {
   #readyForNextStroke () {
     // We're ready for the next stroke when the duration has elapsed, we have strokes available,
     // and also the user is not mucking about with the bpm slider.
-    return (!this.#duration || this.#duration.complete) && this.strokes.length && !this.bpmSliderState.active;
+    const ready = (!this.#duration || this.#duration.complete) && this.strokes.length && !this.bpmSliderState.active;
+
+    // ... OR, if we are a script behavior and have completed.
+    return ready || this.#isScriptAndComplete();
   }
 
   #generateTransitionDuration () {
@@ -210,9 +231,7 @@ export default class Controller extends GeneratorBehavior {
             this.#bpm = Ayva.map(time, startTime, endTime, startBpm, endBpm);
           }
 
-          if (this.onUpdateBpm) {
-            this.onUpdateBpm(this.#bpm);
-          }
+          this.$emit('update-bpm', this.#bpm);
         } else {
           bpmProvider.startTime = 0;
           bpmProvider.endTime = 0;
@@ -232,3 +251,7 @@ export default class Controller extends GeneratorBehavior {
     return this.strokes[Math.floor(Math.random() * this.strokes.length)];
   }
 }
+
+Object.assign(Controller.prototype, eventMixin);
+
+export default Controller;

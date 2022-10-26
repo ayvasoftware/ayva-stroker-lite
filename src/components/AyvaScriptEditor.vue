@@ -58,53 +58,19 @@
 <script>
 import { useNotification } from 'naive-ui';
 import { JSHINT } from 'jshint';
-import { ScriptBehavior, TempestStroke } from 'ayvajs';
+import { TempestStroke } from 'ayvajs';
 import { h } from 'vue';
 import OSREmulator from 'osr-emu';
 import { createAyva } from '../lib/ayva-config.js';
 import AyvaCheckbox from './widgets/AyvaCheckbox.vue';
 import CustomBehaviorStorage from '../lib/custom-behavior-storage.js';
 import ayvascriptEditor from '../lib/ayvascript-editor';
+import ScriptRunner from '../lib/script-runner.js';
 
 const customBehaviorStorage = new CustomBehaviorStorage();
 const ayva = createAyva();
 let emulator;
 let editor;
-
-class ScriptRunner {
-  constructor (scriptEditor) {
-    this.scriptEditor = scriptEditor;
-    this.scriptBehavior = new ScriptBehavior(scriptEditor.script).bind(ayva);
-  }
-
-  perform () {
-    // Give control to the script, but notify the user and
-    // stop the script if there are any errors.
-    try {
-      return this.scriptBehavior.perform().catch(this.handleError.bind(this)).finally(() => {
-        this.complete = this.scriptBehavior.complete;
-
-        if (this.complete) {
-          this.scriptEditor.stop();
-        }
-      });
-    } catch (error) {
-      this.handleError(error);
-      this.complete = true;
-      this.scriptEditor.stop();
-      return Promise.resolve();
-    }
-  }
-
-  handleError (error) {
-    this.scriptEditor.notify.error({
-      content: 'Exception occurred while running script:',
-      meta: error.message,
-    });
-
-    this.scriptBehavior.complete = true;
-  }
-}
 
 export default {
   components: {
@@ -287,12 +253,25 @@ export default {
       this.playing = true;
       editor.updateOptions({ readOnly: true });
 
-      ayva.do(new ScriptRunner(this));
+      const runner = new ScriptRunner(this.script);
+
+      runner.on('complete', () => {
+        this.stop();
+      });
+
+      runner.on('error', (error) => {
+        this.notify.error({
+          content: 'Exception occurred while running script:',
+          meta: error.message,
+        });
+      });
+
+      ayva.do(runner);
     },
 
     stop () {
       ayva.stop();
-      ayva.home(1.5);
+      ayva.home(1);
       this.playing = false;
       editor.updateOptions({ readOnly: false });
     },

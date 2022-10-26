@@ -647,6 +647,10 @@ export default {
   cursor: default;
 }
 
+.preview.icon[disabled] {
+  cursor: not-allowed;
+}
+
 .stroke-actions {
   padding-left: 10px;
 }

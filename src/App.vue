@@ -1,107 +1,106 @@
 <template>
-  <n-notification-provider placement="bottom-right">
-    <ayva-limits :style="hudStyle" @update-limits="updateLimits" />
+  <ayva-limits :style="hudStyle" @update-limits="updateLimits" />
 
-    <ayva-free-play
-      :mode="mode"
-      :current-stroke-name="currentStrokeName"
-      :style="hudStyle"
-      @update-parameters="updateParameters"
-      @update-strokes="updateStrokes"
-      @select-stroke="selectStroke"
+  <ayva-free-play
+    :mode="mode"
+    :current-stroke-name="currentStrokeName"
+    :style="hudStyle"
+    @update-parameters="updateParameters"
+    @update-strokes="updateStrokes"
+    @select-stroke="selectStroke"
+  />
+
+  <ayva-mode :mode="mode" />
+
+  <div
+    id="main"
+    class="lil-gui"
+  >
+    <div
+      id="emulator"
+      ref="emulator"
     />
 
-    <ayva-mode :mode="mode" />
+    <ayva-connected
+      :connected="device.connected"
+      :mode="mode"
+      :style="hudStyle"
+      @request-connection="requestConnection"
+    />
 
-    <div
-      id="main"
-      class="lil-gui"
-    >
-      <div
-        id="emulator"
-        ref="emulator"
-      />
-
-      <ayva-connected
-        :connected="device.connected"
-        :mode="mode"
-        :style="hudStyle"
-        @request-connection="requestConnection"
-      />
-
-      <div class="actions">
-        <div class="hud-button" @click="showHud = !showHud">
-          <hud-on-icon v-show="showHud" />
-          <hud-off-icon v-show="!showHud" />
-        </div>
-
-        <button
-          id="home"
-          @click="home()"
-        >
-          Home Device
-        </button>
-
-        <button
-          id="start-free-play"
-          :disabled="mode === 'Free Play' || !strokes.length"
-          @click="freePlay()"
-        >
-          Free Play
-        </button>
-
-        <button
-          id="stop"
-          :disabled="mode === 'Stopped'"
-          @click="stop"
-        >
-          Stop (Esc)
-        </button>
+    <div class="actions">
+      <div class="hud-button" @click="showHud = !showHud">
+        <hud-on-icon v-show="showHud" />
+        <hud-off-icon v-show="!showHud" />
       </div>
 
-      <div id="current-bpm" :style="hudStyle">
-        <div class="faux-bpm-track" />
+      <button
+        id="home"
+        @click="home()"
+      >
+        Home Device
+      </button>
 
-        <ayva-slider
-          ref="bpmSlider"
-          :options="bpmSliderOptions"
-          :disabled="bpmDisabled ? '' : null"
-          @update="currentBpm = $event"
-          @start="bpmSliderActive = true"
-          @end="bpmSliderActive = false"
-          @change="onChange"
-        />
-        <div
-          class="label"
-          :disabled="bpmDisabled ? '' : null"
-        >
-          <span>Current BPM</span>
-        </div>
-      </div>
+      <button
+        id="start-free-play"
+        :disabled="mode === 'Free Play' || !strokes.length"
+        @click="freePlay()"
+      >
+        Free Play
+      </button>
 
-      <div class="logo" :style="hudStyle">
-        Powered By <a
-          class="ayva"
-          href="https://ayvajs.github.io/ayvajs-docs"
-          target="_blank"
-        >Ayva</a>
-      </div>
-
-      <n-modal :show="showReleaseNotes" :auto-focus="false">
-        <div>
-          <div class="lil-gui">
-            <ayva-release-notes ref="strokeEditor" @close="showReleaseNotes = false" />
-          </div>
-        </div>
-      </n-modal>
+      <button
+        id="stop"
+        :disabled="mode === 'Stopped'"
+        @click="onStop"
+      >
+        Stop (Esc)
+      </button>
     </div>
-  </n-notification-provider>
+
+    <div id="current-bpm" :style="hudStyle">
+      <div class="faux-bpm-track" />
+
+      <ayva-slider
+        ref="bpmSlider"
+        :options="bpmSliderOptions"
+        :disabled="bpmDisabled ? '' : null"
+        @update="currentBpm = $event"
+        @start="bpmSliderActive = true"
+        @end="bpmSliderActive = false"
+        @change="onChange"
+      />
+      <div
+        class="label"
+        :disabled="bpmDisabled ? '' : null"
+      >
+        <span>Current BPM</span>
+      </div>
+    </div>
+
+    <n-modal :show="showReleaseNotes" :auto-focus="false">
+      <div>
+        <div class="lil-gui">
+          <ayva-release-notes ref="strokeEditor" @close="showReleaseNotes = false" />
+        </div>
+      </div>
+    </n-modal>
+
+    <div class="logo" :style="hudStyle">
+      Powered By <a
+        class="ayva"
+        href="https://ayvajs.github.io/ayvajs-docs"
+        target="_blank"
+      >Ayva</a>
+    </div>
+  </div>
 </template>
 
 <script>
 import OSREmulator from 'osr-emu';
 import { Ayva, WebSerialDevice } from 'ayvajs';
 import { computed } from 'vue';
+import { useNotification } from 'naive-ui';
 import { createAyva } from './lib/ayva-config.js';
 import AyvaSlider from './components/widgets/AyvaSlider.vue';
 import AyvaLimits from './components/AyvaLimits.vue';
@@ -138,6 +137,13 @@ export default {
   },
 
   props: [],
+
+  setup () {
+    const notification = useNotification();
+    return {
+      notify: notification,
+    };
+  },
 
   data () {
     return {
@@ -189,14 +195,21 @@ export default {
         }
       } else {
         ayva.removeOutput(this.device);
-        this.stop();
+        ayva.stop();
       }
     },
   },
 
   beforeCreate () {
-    // TODO: Remove this in a future release.
-    new CustomBehaviorStorage().migrateLegacyStrokes();
+    new CustomBehaviorStorage().migrateLegacyStrokes(); // TODO: Remove this in a future release.
+
+    const ayvaStop = ayva.stop.bind(ayva);
+
+    ayva.stop = () => {
+      // TODO: Remove this once Ayva supports on stop events.
+      ayvaStop();
+      this.onAyvaStop();
+    };
   },
 
   mounted () {
@@ -215,7 +228,7 @@ export default {
 
     window.addEventListener('keyup', (event) => {
       if (event.key === 'Escape') {
-        this.stop();
+        ayva.stop();
       }
     });
   },
@@ -292,22 +305,40 @@ export default {
       // TODO: Check if Ayva's current behavior is equal to the controller as well.
       if (!controller) {
         controller = new AyvaController();
-        controller.onTransitionStart = (duration, targetBpm) => {
+        controller.on('transition-start', (duration, targetBpm) => {
           this.createBpmAnimation(duration, targetBpm);
           this.currentStrokeName = 'Transitioning...';
           this.bpmDisabled = true;
-        };
+        });
 
-        controller.onTransitionEnd = (stroke, bpm) => {
+        controller.on('transition-end', (stroke, bpm) => {
           this.currentStrokeName = typeof stroke === 'string' ? stroke : 'Custom';
           this.bpmDisabled = false;
           this.clearBpmAnimation();
-          this.setBpm(bpm);
-        };
+          if (bpm) {
+            this.setBpm(bpm);
+          }
+        });
 
-        controller.onUpdateBpm = (bpm) => {
+        controller.on('update-bpm', (bpm) => {
           this.setBpm(bpm);
-        };
+        });
+
+        controller.on('update-current-behavior', (name) => {
+          this.currentStrokeName = name;
+        });
+
+        controller.on('toggle-bpm-enabled', (value) => {
+          this.bpmDisabled = !value;
+        });
+
+        controller.on('script-error', (scriptName, error) => {
+          ayva.stop();
+          this.notify.error({
+            content: `Exception occurred while running script ${scriptName}:`,
+            meta: error.message,
+          });
+        });
 
         this.updateController();
         ayva.do(controller);
@@ -315,12 +346,15 @@ export default {
     },
 
     home () {
-      this.stop();
+      ayva.stop();
       ayva.home();
     },
 
-    stop () {
+    onStop () {
       ayva.stop();
+    },
+
+    onAyvaStop () {
       controller = null;
       this.mode = 'Stopped';
       this.currentStrokeName = 'None';
