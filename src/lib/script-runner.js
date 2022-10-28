@@ -4,9 +4,9 @@ import { eventMixin } from './util';
 class ScriptRunner extends GeneratorBehavior {
   #scriptBehavior;
 
-  constructor (script) {
+  constructor (script, scope) {
     super();
-    this.#scriptBehavior = new ScriptBehavior(script);
+    this.#scriptBehavior = new ScriptBehavior(script, scope);
   }
 
   get complete () {

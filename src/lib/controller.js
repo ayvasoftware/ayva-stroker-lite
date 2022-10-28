@@ -1,6 +1,7 @@
 import {
   Ayva, GeneratorBehavior, TempestStroke, VariableDuration
 } from 'ayvajs';
+import _ from 'lodash';
 import CustomBehaviorStorage from './custom-behavior-storage';
 import ScriptRunner from './script-runner';
 
@@ -106,7 +107,7 @@ class Controller extends GeneratorBehavior {
     const customBehaviorLibrary = this.#customBehaviorStorage.load();
 
     if (customBehaviorLibrary[name]?.type === 'ayvascript') {
-      this.#currentBehavior = new ScriptRunner(customBehaviorLibrary[name].data.script).bind(ayva);
+      this.#currentBehavior = this.#createScriptRunner(customBehaviorLibrary[name].data.script).bind(ayva);
       this.#currentBehavior.on('error', (error) => this.$emit('script-error', name, error));
       this.$emit('update-current-behavior', name);
       this.$emit('toggle-bpm-enabled', false);
@@ -124,7 +125,7 @@ class Controller extends GeneratorBehavior {
       // Create smooth transition to the next stroke.
       const duration = this.#generateTransitionDuration();
       this.#currentBehavior = this.#currentBehavior
-        .transition(this.#createStrokeConfig(strokeConfig), bpmProvider, duration, this.#startTransition.bind(this), (_, bpm) => {
+        .transition(this.#createStrokeConfig(strokeConfig), bpmProvider, duration, this.#startTransition.bind(this), ($, bpm) => {
           // Make sure we use the pretransformed stroke config for the event.
           this.#endTransition(strokeConfig, bpm);
         });
@@ -249,6 +250,15 @@ class Controller extends GeneratorBehavior {
 
   #freePlayStroke () {
     return this.strokes[Math.floor(Math.random() * this.strokes.length)];
+  }
+
+  #createScriptRunner (script) {
+    const FREE_PLAY = Object.keys(this.parameters).reduce((result, key) => {
+      result[_.camelCase(key)] = _.cloneDeep(this.parameters[key]);
+      return result;
+    }, {});
+
+    return new ScriptRunner(script, { FREE_PLAY });
   }
 }
 
