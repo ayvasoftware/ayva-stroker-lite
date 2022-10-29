@@ -133,6 +133,7 @@ export default {
     return {
       globalAyva: ayva,
       globalDevice: computed(() => this.device),
+      globalParameters: computed(() => this.parameters),
     };
   },
 

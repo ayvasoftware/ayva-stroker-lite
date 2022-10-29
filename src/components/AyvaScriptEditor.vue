@@ -59,6 +59,7 @@
 import { useNotification } from 'naive-ui';
 import { JSHINT } from 'jshint';
 import { TempestStroke } from 'ayvajs';
+import _ from 'lodash';
 import { h } from 'vue';
 import OSREmulator from 'osr-emu';
 import { createAyva } from '../lib/ayva-config.js';
@@ -84,6 +85,10 @@ export default {
 
     device: {
       from: 'globalDevice',
+    },
+
+    parameters: {
+      from: 'globalParameters',
     },
   },
 
@@ -253,7 +258,14 @@ export default {
       this.playing = true;
       editor.updateOptions({ readOnly: true });
 
-      const runner = new ScriptRunner(this.script);
+      const parameters = Object.keys(this.parameters).reduce((result, key) => {
+        result[_.camelCase(key)] = _.cloneDeep(this.parameters[key]);
+        return result;
+      }, {});
+
+      const runner = new ScriptRunner(this.script, {
+        GLOBALS: { input: null, output: null, parameters },
+      });
 
       runner.on('complete', () => {
         this.stop();

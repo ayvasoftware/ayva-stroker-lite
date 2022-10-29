@@ -343,8 +343,6 @@ export default {
 
       customBehaviorLibrary: {},
 
-      initialParameters: {},
-
       previewElement: null,
       previewParent: null,
 
