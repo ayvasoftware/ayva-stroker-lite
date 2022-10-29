@@ -464,9 +464,18 @@ export default {
         enabled: enabledMap[name] ?? true,
       }));
 
+      const tempestLibrary = TempestStroke.library;
+
+      const filteredTempestLibrary = Object.keys(tempestLibrary).filter(
+        (key) => !this.customBehaviorLibrary[key]
+      ).reduce((filteredLibrary, key) => {
+        filteredLibrary[key] = tempestLibrary[key];
+        return filteredLibrary;
+      }, {});
+
       this.strokes = [
         ...makeLibraryList(this.customBehaviorLibrary, true),
-        ...makeLibraryList(TempestStroke.library)];
+        ...makeLibraryList(filteredTempestLibrary)];
 
       this.onResize();
     },

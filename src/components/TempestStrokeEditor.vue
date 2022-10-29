@@ -252,7 +252,14 @@ export default {
     },
 
     tempestStrokeOptions () {
-      return Object.keys(this.tempestStrokeLibrary).sort().map((key) => ({
+      const filteredTempestLibrary = Object.keys(this.tempestStrokeLibrary).filter(
+        (key) => !this.customBehaviorLibrary[key]
+      ).reduce((filteredLibrary, key) => {
+        filteredLibrary[key] = this.tempestStrokeLibrary[key];
+        return filteredLibrary;
+      }, {});
+
+      return Object.keys(filteredTempestLibrary).sort().map((key) => ({
         key,
         label: key,
       }));

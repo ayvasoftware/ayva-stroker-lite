@@ -1,4 +1,4 @@
-import { Ayva } from 'ayvajs';
+import { Ayva, TempestStroke } from 'ayvajs';
 import _ from 'lodash';
 import Storage from './ayva-storage.js';
 import validator from './custom-behavior-validator.js';
@@ -35,7 +35,15 @@ class CustomBehaviorStorage {
 
   load () {
     const library = storage.load('all') || {};
-    return this.deserialize(library);
+    const result = this.deserialize(library);
+
+    Object.entries(result).forEach(([name, behavior]) => {
+      if (behavior.type === 'tempest-stroke') {
+        TempestStroke.update(name, behavior.data);
+      }
+    });
+
+    return result;
   }
 
   save (name, type, data) {
@@ -52,6 +60,8 @@ class CustomBehaviorStorage {
     const library = this.load();
     delete library[name];
     storage.save('all', library);
+
+    TempestStroke.remove(name);
 
     localStorage.removeItem(`checkbox-value--free-play-pattern-${name}`);
   }
