@@ -2,7 +2,7 @@
   <div class="free-play">
     <div class="free-play-container lil-gui root">
       <div class="title">
-        <span>Free Play Parameters</span>
+        <span>Parameters</span>
         <span class="guide" @click.stop>
           <a href="https://ayvajs.github.io/ayvajs-docs/tutorial-ayva-stroker-lite.html" target="_blank">Help</a>
         </span>
@@ -442,6 +442,8 @@ export default {
     this.refreshStrokes();
 
     this.onResize();
+
+    this.fireUpdateParameter('bpm-mode', this.bpmMode);
   },
 
   unmounted () {

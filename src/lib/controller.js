@@ -13,6 +13,8 @@ const STATE = {
   STROKING: 2,
 };
 
+const scriptGlobals = { input: null, output: null };
+
 class Controller extends GeneratorBehavior {
   #customBehaviorStorage = new CustomBehaviorStorage();
 
@@ -48,7 +50,11 @@ class Controller extends GeneratorBehavior {
 
         break;
       case STATE.STROKING:
-        yield this.#currentBehavior.next();
+        if (this.#currentBehavior instanceof TempestStroke) {
+          yield* this.#currentBehavior;
+        } else {
+          yield this.#currentBehavior.next();
+        }
 
         break;
       default:
@@ -121,14 +127,17 @@ class Controller extends GeneratorBehavior {
     this.#bpm = this.#generateNextBpm();
     const bpmProvider = this.#createBpmProvider();
 
-    if (this.#currentBehavior instanceof TempestStroke) {
+    if (this.#currentBehavior instanceof TempestStroke || scriptGlobals.output instanceof TempestStroke) {
+      const currentStroke = this.#currentBehavior instanceof TempestStroke ? this.#currentBehavior : scriptGlobals.output;
       // Create smooth transition to the next stroke.
       const duration = this.#generateTransitionDuration();
-      this.#currentBehavior = this.#currentBehavior
+      this.#currentBehavior = currentStroke
         .transition(this.#createStrokeConfig(strokeConfig), bpmProvider, duration, this.#startTransition.bind(this), ($, bpm) => {
           // Make sure we use the pretransformed stroke config for the event.
           this.#endTransition(strokeConfig, bpm);
         });
+
+      scriptGlobals.output = null;
 
       yield* this.#currentBehavior;
     } else {
@@ -142,7 +151,11 @@ class Controller extends GeneratorBehavior {
   }
 
   #isScriptAndComplete () {
-    return this.#currentBehavior instanceof ScriptRunner && this.#currentBehavior.complete;
+    return this.#isScript() && this.#currentBehavior.complete;
+  }
+
+  #isScript () {
+    return this.#currentBehavior instanceof ScriptRunner;
   }
 
   #startTransition (duration, bpm) {
@@ -186,7 +199,7 @@ class Controller extends GeneratorBehavior {
     const ready = (!this.#duration || this.#duration.complete) && this.strokes.length && !this.bpmSliderState.active;
 
     // ... OR, if we are a script behavior and have completed.
-    return ready || this.#isScriptAndComplete();
+    return (ready && !this.#isScript()) || this.#isScriptAndComplete();
   }
 
   #generateTransitionDuration () {
@@ -253,12 +266,26 @@ class Controller extends GeneratorBehavior {
   }
 
   #createScriptRunner (script) {
-    const FREE_PLAY = Object.keys(this.parameters).reduce((result, key) => {
+    const parameters = Object.keys(this.parameters).reduce((result, key) => {
       result[_.camelCase(key)] = _.cloneDeep(this.parameters[key]);
       return result;
     }, {});
 
-    return new ScriptRunner(script, { FREE_PLAY });
+    if (this.#currentBehavior instanceof TempestStroke) {
+      scriptGlobals.input = this.#currentBehavior;
+    } else if (this.#currentBehavior instanceof ScriptRunner) {
+      scriptGlobals.input = scriptGlobals.output;
+    } else {
+      scriptGlobals.input = null;
+    }
+
+    scriptGlobals.output = null;
+
+    scriptGlobals.parameters = parameters;
+
+    return new ScriptRunner(script, {
+      GLOBALS: scriptGlobals,
+    });
   }
 }
 
