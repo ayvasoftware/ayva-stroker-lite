@@ -1,5 +1,11 @@
 <template>
-  <ayva-limits :style="hudStyle" @update-limits="updateLimits" />
+  <ayva-output
+    :style="hudStyle"
+    :mode="mode"
+    @update-limits="updateLimits"
+    @request-connection="requestConnection"
+    @disconnect="disconnect"
+  />
 
   <ayva-free-play
     :mode="mode"
@@ -19,13 +25,6 @@
     <div
       id="emulator"
       ref="emulator"
-    />
-
-    <ayva-connected
-      :connected="device.connected"
-      :mode="mode"
-      :style="hudStyle"
-      @request-connection="requestConnection"
     />
 
     <div class="actions">
@@ -103,10 +102,9 @@ import { computed } from 'vue';
 import { useNotification } from 'naive-ui';
 import { createAyva } from './lib/ayva-config.js';
 import AyvaSlider from './components/widgets/AyvaSlider.vue';
-import AyvaLimits from './components/AyvaLimits.vue';
+import AyvaOutput from './components/AyvaOutput.vue';
 import AyvaFreePlay from './components/AyvaFreePlay.vue';
 import AyvaMode from './components/AyvaMode.vue';
-import AyvaConnected from './components/AyvaConnected.vue';
 import AyvaController from './lib/controller.js';
 import AyvaReleaseNotes from './components/AyvaReleaseNotes.vue';
 import { formatter } from './lib/util.js';
@@ -121,10 +119,9 @@ let emulator;
 export default {
 
   components: {
-    AyvaLimits,
+    AyvaOutput,
     AyvaFreePlay,
     AyvaMode,
-    AyvaConnected,
     AyvaSlider,
     AyvaReleaseNotes,
   },
@@ -370,6 +367,11 @@ export default {
         /* Do nothing if no port was selected. */
         console.warn(error); // eslint-disable-line no-console
       });
+    },
+
+    disconnect () {
+      ayva.removeOutput(this.device);
+      this.device.disconnect();
     },
   },
 };

@@ -1,7 +1,15 @@
 <template>
   <div class="limits-container lil-gui root">
     <div class="title">
-      Output Range
+      <span>Output Range</span>
+
+      <ayva-connected
+        :connected="device.connected"
+        :mode="mode"
+        @click.stop="toggleConnection"
+      />
+
+      <settings-icon :disabled="mode !== 'Stopped' || device.connected ? '' : null" class="settings icon" @click.stop />
     </div>
     <div class="limits lil-gui children">
       <template v-for="axis of axes" :key="axis">
@@ -25,14 +33,29 @@
 
 <script>
 import AyvaSlider from './widgets/AyvaSlider.vue';
+import AyvaConnected from './AyvaConnected.vue';
 import { makeCollapsible } from '../lib/util.js';
 
 export default {
   components: {
     AyvaSlider,
+    AyvaConnected,
   },
 
-  emits: ['update-limits'],
+  inject: {
+    device: {
+      from: 'globalDevice',
+    },
+  },
+
+  props: {
+    mode: {
+      type: String,
+      default: null,
+    },
+  },
+
+  emits: ['update-limits', 'request-connection', 'disconnect'],
 
   data () {
     return {
@@ -71,6 +94,38 @@ export default {
         limits,
       });
     },
+
+    toggleConnection () {
+      if (!this.device.connected && this.mode === 'Stopped') {
+        this.$emit('request-connection');
+      } else if (this.device.connected && this.mode === 'Stopped') {
+        this.$emit('disconnect');
+      }
+    },
   },
 };
 </script>
+
+<style scoped>
+.limits-container.lil-gui.root {
+  width: 270px;
+}
+
+.settings.icon {
+  width: 18px;
+  outline: none;
+  position: relative;
+  top: 1px;
+  margin-right: 3px;
+  margin-left: auto;
+}
+
+.settings.icon[disabled] {
+  opacity: 0.25;
+}
+
+.title {
+  display: flex;
+  align-items: flex-start;
+}
+</style>

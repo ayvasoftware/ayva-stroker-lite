@@ -277,7 +277,7 @@
 @media (hover: hover) {
   body:not(.lil-gui-dragging) .lil-gui .title:hover {
     background: var(--title-background-color);
-    opacity: 0.85;
+    /* opacity: 0.85; */
   }
   .lil-gui .title:focus {
     text-decoration: underline var(--focus-color);

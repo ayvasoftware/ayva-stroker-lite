@@ -99,16 +99,16 @@ button[disabled] {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: black;
+  background-color: var(--ayva-background-dark);
   position: absolute;
-  top: 13px;
-  left: 136px;
+  top: 2px;
+  left: 124px;
   font-size: 10px;
 }
 
 .connect-status-container.connected {
   /* No... 😂 */
-  left: 152px;
+  left: 140px;
 }
 
 .connect-status-icon {
