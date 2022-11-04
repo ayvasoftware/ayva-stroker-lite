@@ -91,6 +91,13 @@
 }
 
 .n-dropdown-menu.bpm-select.n-popover-shared.n-dropdown {
-  margin-top: 0;
   width: 250px;
+}
+
+.n-dropdown-menu.connection-type.n-popover-shared.n-dropdown {
+  width: 130.8px;
+}
+
+.n-dropdown-menu.ayva-dropdown.n-popover-shared.n-dropdown {
+  margin-top: 0;
 }

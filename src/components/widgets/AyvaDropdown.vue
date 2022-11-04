@@ -1,7 +1,6 @@
 <template>
-  <!-- TODO: Use AyvaDropdown instead!-->
   <n-dropdown
-    class="bpm-select ayva-dropdown"
+    class="ayva-dropdown"
     placement="bottom-start"
     trigger="click"
     size="small"
@@ -18,7 +17,7 @@
 <script>
 import Storage from '../../lib/ayva-storage.js';
 
-const storage = new Storage('bpm-select');
+const storage = new Storage('ayva-dropdown');
 
 export default {
   props: {
@@ -31,6 +30,11 @@ export default {
       type: String,
       default: null,
     },
+
+    options: {
+      type: Array,
+      default: () => [],
+    },
   },
 
   emits: ['update:modelValue', 'change'],
@@ -38,14 +42,6 @@ export default {
   data () {
     return {
       initialValue: null,
-
-      options: [{
-        key: 'transition',
-        label: 'On Transition',
-      }, {
-        key: 'continuous',
-        label: 'Continuously',
-      }],
     };
   },
 

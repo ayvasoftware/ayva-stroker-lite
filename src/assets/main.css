@@ -44,6 +44,24 @@ button[disabled] {
   cursor: not-allowed;
 }
 
+.ayva-dropdown-input {
+  background-color: var(--ayva-background-dark);
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ayva-dropdown-input:hover {
+  cursor: pointer;
+  opacity: 0.9;
+}
+
+.chevron {
+  width: 14px;
+  height: 14px;
+}
+
 .lil-gui button:active[disabled] {
   background: var(--widget-color);
 }

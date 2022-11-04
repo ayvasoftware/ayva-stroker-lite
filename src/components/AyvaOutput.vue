@@ -9,7 +9,7 @@
         @click.stop="toggleConnection"
       />
 
-      <settings-icon :disabled="mode !== 'Stopped' || device.connected ? '' : null" class="settings icon" @click.stop />
+      <settings-icon :disabled="mode !== 'Stopped' || device.connected ? '' : null" class="settings icon" @click.stop="showSettings = true" />
     </div>
     <div class="limits lil-gui children">
       <template v-for="axis of axes" :key="axis">
@@ -28,18 +28,28 @@
         </div>
       </template>
     </div>
+
+    <n-modal :show="showSettings" :auto-focus="false">
+      <div>
+        <div class="lil-gui">
+          <ayva-settings ref="ayvaSettings" @close="showSettings = false" />
+        </div>
+      </div>
+    </n-modal>
   </div>
 </template>
 
 <script>
 import AyvaSlider from './widgets/AyvaSlider.vue';
 import AyvaConnected from './AyvaConnected.vue';
+import AyvaSettings from './AyvaSettings.vue';
 import { makeCollapsible } from '../lib/util.js';
 
 export default {
   components: {
     AyvaSlider,
     AyvaConnected,
+    AyvaSettings,
   },
 
   inject: {
@@ -70,6 +80,7 @@ export default {
           max: [1],
         },
       },
+      showSettings: false,
     };
   },
 

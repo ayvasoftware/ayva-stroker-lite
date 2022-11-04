@@ -6,6 +6,10 @@
   grid-template-rows: 80px 550px 1fr;
 }
 
+.modal-body-small {
+  width: 250px;
+}
+
 .header {
   grid-column: span 2;
   display: grid;
