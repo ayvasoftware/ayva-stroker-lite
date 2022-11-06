@@ -272,7 +272,6 @@
 }
 .lil-gui .title:active {
   background: var(--title-background-color);
-  opacity: 0.75;
 }
 @media (hover: hover) {
   body:not(.lil-gui-dragging) .lil-gui .title:hover {

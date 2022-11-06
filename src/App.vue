@@ -107,7 +107,10 @@ import AyvaFreePlay from './components/AyvaFreePlay.vue';
 import AyvaMode from './components/AyvaMode.vue';
 import AyvaController from './lib/controller.js';
 import AyvaReleaseNotes from './components/AyvaReleaseNotes.vue';
-import { formatter } from './lib/util.js';
+import Storage from './lib/ayva-storage';
+import WebSocketDevice from './lib/websocket-device.js';
+import ConsoleDevice from './lib/console-device.js';
+import { formatter, eventMixin } from './lib/util.js';
 import CustomBehaviorStorage from './lib/custom-behavior-storage';
 
 // These need to be "globals" so they aren't proxied by Vue... because issues with private members :(
@@ -131,6 +134,7 @@ export default {
       globalAyva: ayva,
       globalDevice: computed(() => this.device),
       globalParameters: computed(() => this.parameters),
+      globalEvents: computed(() => this.events),
     };
   },
 
@@ -175,6 +179,8 @@ export default {
       showHud: true,
 
       showReleaseNotes: true,
+
+      events: { ...eventMixin },
     };
   },
 
@@ -229,6 +235,12 @@ export default {
         ayva.stop();
       }
     });
+
+    this.events.on('refresh-output-settings', () => {
+      this.refreshOutputSettings();
+    });
+
+    this.refreshOutputSettings();
   },
 
   methods: {
@@ -364,14 +376,39 @@ export default {
       this.device.requestConnection().then(() => {
         ayva.addOutput(this.device);
       }).catch((error) => {
-        /* Do nothing if no port was selected. */
-        console.warn(error); // eslint-disable-line no-console
+        if (error instanceof DOMException) {
+          /* For serial connections, do nothing if no port was selected. */
+          console.warn(error); // eslint-disable-line no-console
+        } else {
+          this.notify.error({
+            content: error.message,
+          });
+        }
       });
     },
 
     disconnect () {
       ayva.removeOutput(this.device);
       this.device.disconnect();
+    },
+
+    refreshOutputSettings () {
+      const outputSettingsStorage = new Storage('output-settings');
+
+      const port = Number(outputSettingsStorage.load('port') || 9090);
+      const frequency = Number(outputSettingsStorage.load('frequency') || 50);
+      const connectionType = outputSettingsStorage.load('connectionType') || 'serial';
+
+      ayva.frequency = frequency;
+
+      // TODO: This shouldn't happen, but maybe handle case where device is currently connected.
+      if (connectionType === 'websocket') {
+        this.device = new WebSocketDevice('localhost', port);
+      } else if (connectionType === 'console') {
+        this.device = new ConsoleDevice();
+      } else {
+        this.device = new WebSerialDevice();
+      }
     },
   },
 };

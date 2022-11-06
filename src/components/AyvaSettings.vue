@@ -10,7 +10,7 @@
             <close-icon
               class="close icon"
               :disabled="frequencyInvalid || portInvalid ? '' : undefined"
-              @click="frequencyInvalid || portInvalid ? '' : $emit('close')"
+              @click="close"
             />
           </span>
         </span>
@@ -54,12 +54,17 @@
 </template>
 
 <script>
+import Storage from '../lib/ayva-storage';
 import AyvaDropdown from './widgets/AyvaDropdown.vue';
+
+const storage = new Storage('output-settings');
 
 export default {
   components: {
     AyvaDropdown,
   },
+
+  inject: ['globalEvents'],
 
   emits: ['close'],
 
@@ -71,13 +76,16 @@ export default {
       }, {
         key: 'websocket',
         label: 'WebSocket',
+      }, {
+        key: 'console',
+        label: 'Console',
       }],
 
       connectionType: 'serial',
 
-      port: 9090,
+      port: storage.load('port') || 9090,
 
-      frequency: 50,
+      frequency: storage.load('frequency') || 50,
     };
   },
 
@@ -105,6 +113,20 @@ export default {
         event.preventDefault();
       }
     },
+
+    close () {
+      if (this.frequencyInvalid || this.portInvalid) {
+        return;
+      }
+
+      storage.save('connectionType', this.connectionType);
+      storage.save('frequency', this.frequency);
+      storage.save('port', this.port);
+
+      this.$emit('close');
+
+      this.globalEvents.$emit('refresh-output-settings');
+    },
   },
 
 };
@@ -130,6 +152,7 @@ export default {
 
 .settings input {
   background: var(--ayva-background-dark) !important;
+  padding: 5px;
 }
 
 .port {

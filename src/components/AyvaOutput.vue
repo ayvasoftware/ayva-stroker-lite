@@ -1,6 +1,6 @@
 <template>
   <div class="limits-container lil-gui root">
-    <div class="title">
+    <div class="title" style="padding-right: 0">
       <span>Output Range</span>
 
       <ayva-connected
@@ -9,7 +9,10 @@
         @click.stop="toggleConnection"
       />
 
-      <settings-icon :disabled="mode !== 'Stopped' || device.connected ? '' : null" class="settings icon" @click.stop="showSettings = true" />
+      <settings-icon
+        :disabled="mode !== 'Stopped' || device.connected ? '' : null" class="settings icon"
+        @click.stop="mode != 'Stopped' || device.connected ? '' : (showSettings=true)"
+      />
     </div>
     <div class="limits lil-gui children">
       <template v-for="axis of axes" :key="axis">
@@ -123,11 +126,11 @@ export default {
 }
 
 .settings.icon {
-  width: 18px;
+  width: 25px;
   outline: none;
   position: relative;
   top: 1px;
-  margin-right: 3px;
+  padding-right: 7px;
   margin-left: auto;
 }
 
