@@ -138,6 +138,12 @@ export default {
     };
   },
 
+  inject: {
+    spinner: {
+      from: 'globalSpinner',
+    },
+  },
+
   props: [],
 
   setup () {
@@ -373,7 +379,7 @@ export default {
     },
 
     requestConnection () {
-      this.device.requestConnection().then(() => {
+      const promise = this.device.requestConnection().then(() => {
         ayva.addOutput(this.device);
       }).catch((error) => {
         if (error instanceof DOMException) {
@@ -385,6 +391,8 @@ export default {
           });
         }
       });
+
+      this.spinner.show(promise);
     },
 
     disconnect () {
@@ -395,6 +403,7 @@ export default {
     refreshOutputSettings () {
       const outputSettingsStorage = new Storage('output-settings');
 
+      const host = outputSettingsStorage.load('host') || 'localhost';
       const port = Number(outputSettingsStorage.load('port') || 9090);
       const frequency = Number(outputSettingsStorage.load('frequency') || 50);
       const connectionType = outputSettingsStorage.load('connectionType') || 'serial';
@@ -403,7 +412,7 @@ export default {
 
       // TODO: This shouldn't happen, but maybe handle case where device is currently connected.
       if (connectionType === 'websocket') {
-        this.device = new WebSocketDevice('localhost', port);
+        this.device = new WebSocketDevice(host, port);
       } else if (connectionType === 'console') {
         this.device = new ConsoleDevice();
       } else {

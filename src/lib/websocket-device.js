@@ -37,7 +37,7 @@ class WebSocketDevice {
         this.connected = false;
 
         if (!resolved) {
-          reject(new Error(`Unable to establish connection on port ${this._port}.`));
+          reject(new Error(`Unable to establish connection to host ${this._host} on port ${this._port}.`));
         }
       };
 

@@ -17,6 +17,12 @@ body {
   margin: 0
 }
 
+.app-spinner .n-spin {
+  width: 100px;
+  height: 100px;
+  color: var(--ayva-blue);
+}
+
 .ayva-button,
 .lil-gui .ayva-button {
   height: 30px;

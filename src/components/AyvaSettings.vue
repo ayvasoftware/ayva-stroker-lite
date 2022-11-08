@@ -24,6 +24,19 @@
         </div>
         <div v-show="connectionType === 'websocket'" class="settings">
           <div class="settings-label">
+            Host:
+          </div>
+          <div>
+            <n-tooltip :show="hostInvalid" class="error-tooltip">
+              <template #trigger>
+                <input v-model="host" class="host" :class="hostInvalid ? 'error' : ''">
+              </template>
+              Host cannot be blank.
+            </n-tooltip>
+          </div>
+        </div>
+        <div v-show="connectionType === 'websocket'" class="settings">
+          <div class="settings-label">
             Port:
           </div>
           <div>
@@ -83,6 +96,8 @@ export default {
 
       connectionType: 'serial',
 
+      host: storage.load('host') || 'localhost',
+
       port: storage.load('port') || 9090,
 
       frequency: storage.load('frequency') || 50,
@@ -91,7 +106,7 @@ export default {
 
   computed: {
     modalStyle () {
-      return this.connectionType === 'websocket' ? { height: '165px' } : { height: '118px' };
+      return this.connectionType === 'websocket' ? { height: '205px' } : { height: '118px' };
     },
 
     portInvalid () {
@@ -102,6 +117,10 @@ export default {
     frequencyInvalid () {
       const frequency = Number(this.frequency);
       return !(Number.isFinite(frequency) && frequency >= 10 && frequency <= 250);
+    },
+
+    hostInvalid () {
+      return !this.host || !this.host.trim();
     },
   },
 
@@ -121,6 +140,7 @@ export default {
 
       storage.save('connectionType', this.connectionType);
       storage.save('frequency', this.frequency);
+      storage.save('host', this.host);
       storage.save('port', this.port);
 
       this.$emit('close');
