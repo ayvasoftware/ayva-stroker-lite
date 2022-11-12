@@ -3,7 +3,7 @@
     <div class="header" hover-info="">
       <div class="toolbar">
         <span class="toolbar-left">
-          <span>{{ edit ? 'Edit' : 'Create' }} Stroke</span>
+          <span>{{ edit ? 'Edit' : 'Create' }} TempestStroke</span>
         </span>
         <span class="toolbar-right">
           <span class="presets" :disabled="disabled">

@@ -358,7 +358,7 @@ export default {
 
       settingsOptions: [{
         key: 'create-stroke',
-        label: 'Create Stroke',
+        label: 'Create TempestStroke',
       }, {
         key: 'create-script',
         label: 'Create AyvaScript',
