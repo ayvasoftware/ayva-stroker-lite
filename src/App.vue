@@ -86,6 +86,14 @@
           target="_blank"
         >Ayva</a>
       </div>
+
+      <n-modal :show="showReleaseNotes" :auto-focus="false">
+        <div>
+          <div class="lil-gui">
+            <ayva-release-notes ref="strokeEditor" @close="showReleaseNotes = false" />
+          </div>
+        </div>
+      </n-modal>
     </div>
   </n-notification-provider>
 </template>
@@ -101,6 +109,7 @@ import AyvaFreePlay from './components/AyvaFreePlay.vue';
 import AyvaMode from './components/AyvaMode.vue';
 import AyvaConnected from './components/AyvaConnected.vue';
 import AyvaController from './lib/controller.js';
+import AyvaReleaseNotes from './components/AyvaReleaseNotes.vue';
 import { formatter } from './lib/util.js';
 
 // These need to be "globals" so they aren't proxied by Vue... because issues with private members :(
@@ -117,6 +126,7 @@ export default {
     AyvaMode,
     AyvaConnected,
     AyvaSlider,
+    AyvaReleaseNotes,
   },
 
   provide () {
@@ -158,6 +168,8 @@ export default {
       device: new WebSerialDevice(),
 
       showHud: true,
+
+      showReleaseNotes: true,
     };
   },
 
