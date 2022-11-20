@@ -48,7 +48,8 @@
             </n-tooltip>
           </div>
         </div>
-        <div class="settings">
+        <div class="settings" style="display: none">
+          <!-- One day unhide when we can handle frequencies > 50...-->
           <div class="settings-label">
             Frequency:
           </div>
@@ -106,7 +107,7 @@ export default {
 
   computed: {
     modalStyle () {
-      return this.connectionType === 'websocket' ? { height: '205px' } : { height: '118px' };
+      return this.connectionType === 'websocket' ? { height: '161px' } : { height: '80px' }; // { height: '205px' } : { height: '118px' };
     },
 
     portInvalid () {
