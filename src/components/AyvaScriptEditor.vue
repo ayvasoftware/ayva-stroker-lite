@@ -215,6 +215,14 @@ export default {
 
       this.validateScript(this.script);
     });
+
+    const ayvaStop = ayva.stop.bind(ayva);
+
+    ayva.stop = () => {
+      // TODO: Remove this once Ayva supports on stop events.
+      ayvaStop();
+      this.onAyvaStop();
+    };
   },
 
   unmounted () {
@@ -231,7 +239,7 @@ export default {
   methods: {
     togglePlaying () {
       if (this.playing) {
-        this.stop();
+        ayva.stop();
       } else if (this.validateScript(this.script, true)) {
         this.play();
       }
@@ -268,7 +276,7 @@ export default {
       });
 
       runner.on('complete', () => {
-        this.stop();
+        ayva.stop();
       });
 
       runner.on('error', (error) => {
@@ -281,8 +289,7 @@ export default {
       ayva.do(runner);
     },
 
-    stop () {
-      ayva.stop();
+    onAyvaStop () {
       ayva.home(1);
       this.playing = false;
       editor.updateOptions({ readOnly: false });
@@ -340,15 +347,16 @@ export default {
 <style scoped>
   .editor {
     padding-left: 40px;
-    width: 560px;
+    width: 800px;
     height: 550px;
   }
 
   .modal-body {
-    grid-template-columns: 50% 50%;
+    grid-template-columns: 60% 40%;
+    width: 1400px;
   }
   .emulator {
-    width: 560px;
+    width: 520px;
     height: 100%;
   }
 

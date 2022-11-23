@@ -20,7 +20,7 @@ class WebSocketDevice {
     let resolved = false;
 
     return new Promise((resolve, reject) => {
-      const socket = new WebSocket(`ws://${this._host}:${this._port}`);
+      const socket = new WebSocket(`ws://${this._host}:${this._port}/ws`);
 
       socket.onopen = () => {
         resolve();

@@ -86,11 +86,12 @@
     </n-modal>
 
     <div class="logo" :style="hudStyle">
-      Powered By <a
+      <span><settings-icon class="app-settings" /></span>
+      <span>Powered By <a
         class="ayva"
         href="https://ayvajs.github.io/ayvajs-docs"
         target="_blank"
-      >Ayva</a>
+      >Ayva.js</a></span>
     </div>
   </div>
 </template>
@@ -175,7 +176,7 @@ export default {
         step: 1,
         range: {
           min: 0,
-          max: 150,
+          max: 200,
         },
         format: formatter(),
       },
@@ -184,7 +185,7 @@ export default {
 
       showHud: true,
 
-      showReleaseNotes: true,
+      showReleaseNotes: false,
 
       events: { ...eventMixin },
     };

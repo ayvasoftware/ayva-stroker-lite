@@ -165,7 +165,7 @@ export default {
         step: 1,
         range: {
           min: 0,
-          max: 150,
+          max: 200,
         },
         format: formatter(),
       },

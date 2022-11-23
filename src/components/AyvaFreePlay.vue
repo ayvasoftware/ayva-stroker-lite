@@ -280,7 +280,7 @@ export default {
       bpmOptions: {
         range: {
           min: 0,
-          max: 150,
+          max: 200,
         },
         start: [20, 60],
         padding: [10],
@@ -290,7 +290,7 @@ export default {
       accelerationOptions: {
         range: {
           min: 0,
-          max: 150,
+          max: 200,
         },
         start: [0, 20],
         step: 1,
@@ -312,7 +312,7 @@ export default {
           max: 30,
         },
         start: [2, 5],
-        padding: [1],
+        padding: [0.5],
         step: 0.1,
         format: formatter(1, 's'),
       },

@@ -74,7 +74,7 @@ export default {
     return {
       axes: ['stroke', 'surge', 'sway', 'twist', 'roll', 'pitch'],
       sliderOptions: {
-        start: [0, 1],
+        start: [0.2, 0.8],
         tooltips: true,
         margin: 0.1,
         connect: true,
