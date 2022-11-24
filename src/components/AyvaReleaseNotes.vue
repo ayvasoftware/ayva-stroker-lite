@@ -3,7 +3,7 @@
     <div class="header" hover-info="">
       <div class="toolbar">
         <span class="toolbar-left">
-          <span>Upcoming Release</span>
+          <span>Release Notes</span>
         </span>
         <span class="toolbar-right">
           <span>
@@ -13,22 +13,8 @@
       </div>
     </div>
     <div class="body">
-      <div class="warning">
-        Warning!
-      </div>
       <div class="release-notes">
-        On December 1st, 2022, Ayva Stroker Lite will be changing domains.
-        This means that any settings or custom strokes saved in local storage <span class="lost">will be lost unless exported</span>.
-      </div>
-      <div class="release-notes">
-        To export ALL saved settings (including custom strokes) click the button below.
-        You will be able to import these settings after the release on December 1st to get everything back.
-      </div>
-      <button class="export" @click="exportAll">
-        Export All Settings
-      </button>
-      <div class="release-notes" style="font-style: italic; padding-top: 15px; text-align: center">
-        Note: To see this message again, refresh the page.
+        TBD
       </div>
     </div>
   </div>
@@ -36,44 +22,16 @@
 
 <script>
 
+import settingsStorage from '../lib/settings-storage';
+
 export default {
   emits: ['close'],
 
   data () {
     return {
-      fileOptions: {
-        types: [
-          {
-            description: 'Ayva Stroker Lite Settings',
-            accept: {
-              'application/json': ['.json'],
-            },
-          },
-        ],
-        excludeAcceptAllOption: true,
-        multiple: false,
-        suggestedName: 'ayva-stroker-settings.json',
-      },
+      settingsStorage,
     };
   },
-
-  methods: {
-    async exportAll () {
-      let fileHandle;
-
-      try {
-        fileHandle = await window.showSaveFilePicker(this.fileOptions);
-      } catch (abortError) {
-        return;
-      }
-
-      const writable = await fileHandle.createWritable();
-
-      await writable.write(JSON.stringify(localStorage, null, 2));
-      await writable.close();
-    },
-  },
-
 };
 </script>
 

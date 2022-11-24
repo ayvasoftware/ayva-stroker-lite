@@ -25,6 +25,7 @@
     <div
       id="emulator"
       ref="emulator"
+      @click="onClickEmulator"
     />
 
     <div class="actions">
@@ -80,18 +81,26 @@
     <n-modal :show="showReleaseNotes" :auto-focus="false">
       <div>
         <div class="lil-gui">
-          <ayva-release-notes ref="strokeEditor" @close="showReleaseNotes = false" />
+          <ayva-release-notes ref="strokeEditor" @close="onCloseReleaseNotes" />
         </div>
       </div>
     </n-modal>
 
     <div class="logo" :style="hudStyle">
-      <span><settings-icon class="app-settings" /></span>
-      <span>Powered By <a
-        class="ayva"
-        href="https://ayvajs.github.io/ayvajs-docs"
-        target="_blank"
-      >Ayva.js</a></span>
+      <span>
+        <n-dropdown
+          ref="appSettingsDropdown"
+          placement="bottom-start"
+          trigger="click"
+          size="small"
+          :options="settingsDropdownOptions"
+          :disabled="mode !== 'Stopped'"
+          @select="onSelectSettings"
+        >
+          <settings-icon class="app-settings" :disabled="mode !== 'Stopped' ? '' : null" />
+        </n-dropdown>
+      </span>
+      <span ref="logo">Ayva Stroker <span class="ayva">Lite</span></span>
     </div>
   </div>
 </template>
@@ -111,8 +120,9 @@ import AyvaReleaseNotes from './components/AyvaReleaseNotes.vue';
 import Storage from './lib/ayva-storage';
 import WebSocketDevice from './lib/websocket-device.js';
 import ConsoleDevice from './lib/console-device.js';
-import { formatter, eventMixin } from './lib/util.js';
+import { formatter, eventMixin, triggerMouseEvent } from './lib/util.js';
 import CustomBehaviorStorage from './lib/custom-behavior-storage';
+import settingsStorage from './lib/settings-storage';
 
 // These need to be "globals" so they aren't proxied by Vue... because issues with private members :(
 const ayva = createAyva();
@@ -188,6 +198,19 @@ export default {
       showReleaseNotes: false,
 
       events: { ...eventMixin },
+
+      settingsDropdownOptions: [{
+        key: 'release',
+        label: 'Release Notes',
+      }, {
+        key: 'import',
+        label: 'Import Settings',
+      }, {
+        key: 'export',
+        label: 'Export Settings',
+      }],
+
+      globalSettings: new Storage('global-settings'),
     };
   },
 
@@ -248,6 +271,8 @@ export default {
     });
 
     this.refreshOutputSettings();
+
+    this.showReleaseNotes = this.globalSettings.load('show-release-notes') ?? true;
   },
 
   methods: {
@@ -256,6 +281,34 @@ export default {
       if (controller) {
         controller.bpmSliderState.updated = true;
       }
+    },
+
+    onSelectSettings (key) {
+      if (key === 'export') {
+        settingsStorage.export();
+      } else if (key === 'import') {
+        settingsStorage.import().then((success) => {
+          if (success) {
+            new CustomBehaviorStorage().migrateLegacyStrokes();
+            this.spinner.show(new Promise(() => {}));
+            window.location.reload();
+          }
+        });
+      } else if (key === 'release') {
+        this.showReleaseNotes = true;
+      }
+    },
+
+    onCloseReleaseNotes () {
+      this.showReleaseNotes = false;
+      this.globalSettings.save('show-release-notes', false);
+    },
+
+    onClickEmulator () {
+      // Hack to make sure settings dropdown can see click outside event in order to close.
+      // For some reason the canvas is swallowing the events.
+      triggerMouseEvent(this.$refs.emulator, 'mousedown');
+      triggerMouseEvent(this.$refs.emulator, 'mouseup');
     },
 
     updateLimits (axis) {

@@ -311,29 +311,38 @@ button[disabled] {
 
 [disabled] {
   opacity: 0.5;
-  cursor: not-allowed;
+  cursor: not-allowed !important;
 }
 
 .logo {
   display: flex;
+  align-items: center;
   position: absolute;
   bottom: 5px;
   left: 20px;
   font-family: locust;
-  font-size: 12px;
+  font-size: 16px;
   color: var(--ayva-text-color-blue);
 }
 
 .logo .ayva {
   color: indigo;
-  font-size: 20px;
   text-decoration: none;
 }
 
 .logo .app-settings {
   width: 25px;
-  margin-right: 10px;
+  margin-top: 3px;
+  margin-right: 5px;
   color: var(--widget-color);
+}
+
+.logo .app-settings:focus {
+  outline: none;
+}
+
+.logo .app-settings:hover[disabled] {
+  opacity: 0.5;
 }
 
 .logo .app-settings:hover {

@@ -224,3 +224,8 @@ export const eventMixin = {
     this._eventHandlers[eventName].forEach((handler) => handler.apply(this, args));
   },
 };
+
+export function triggerMouseEvent (node, eventType) {
+  const clickEvent = new MouseEvent(eventType);
+  node.dispatchEvent(clickEvent);
+}
