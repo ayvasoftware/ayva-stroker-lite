@@ -458,7 +458,7 @@ export default {
       const outputSettingsStorage = new Storage('output-settings');
 
       const host = outputSettingsStorage.load('host') || 'localhost';
-      const port = Number(outputSettingsStorage.load('port') || 9090);
+      const port = Number(outputSettingsStorage.load('port') || 80);
       const frequency = Number(outputSettingsStorage.load('frequency') || 50);
       const connectionType = outputSettingsStorage.load('connectionType') || 'serial';
 

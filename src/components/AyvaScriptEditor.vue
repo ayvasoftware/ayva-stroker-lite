@@ -202,6 +202,10 @@ export default {
     if (this.editScript) {
       this.scriptName = this.editScript;
       this.script = this.customBehaviorLibrary[this.scriptName].data.script;
+    } else {
+      this.script = `/**
+ * Enter AyvaScript here...
+ */`;
     }
 
     editor = ayvascriptEditor.create(this.$refs.editor, this.script);

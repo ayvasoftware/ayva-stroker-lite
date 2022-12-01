@@ -29,7 +29,7 @@ export default {
       spinner: {
         show: (promise) => {
           this.showSpinner = true;
-          promise.finally(() => (this.showSpinner = false));
+          return promise.finally(() => (this.showSpinner = false));
         },
       },
     };

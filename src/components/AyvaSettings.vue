@@ -99,7 +99,7 @@ export default {
 
       host: storage.load('host') || 'localhost',
 
-      port: storage.load('port') || 9090,
+      port: storage.load('port') || 80,
 
       frequency: storage.load('frequency') || 50,
     };
