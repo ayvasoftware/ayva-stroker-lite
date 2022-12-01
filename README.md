@@ -1,6 +1,6 @@
 # ayva-stroker-lite
 
-<a href="https://ayvajs.github.io/ayva-stroker-lite/">Ayva Stroker Lite</a> is a small web based stroker app powered by Ayva.js and Vue 3.
+<a href="http://ayva-stroker-lite.io">Ayva Stroker Lite</a> is a small web based stroker app powered by Ayva.js and Vue 3.
 
 A short guide can be found <a href="https://ayvajs.github.io/ayvajs-docs/tutorial-ayva-stroker-lite.html">here</a>.
 

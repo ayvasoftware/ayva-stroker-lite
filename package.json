@@ -5,8 +5,8 @@
   "main": "/src/main.js",
   "scripts": {
     "dev": "vite --port 8080",
-    "build": "vite build --base=/ayva-stroker-lite/",
-    "preview": "vite preview --port 5050 --base=/ayva-stroker-lite/",
+    "build": "vite build",
+    "preview": "vite preview --port 5050",
     "lint": "eslint . --format html -o test-output/eslint.html --ext .vue,.js,.jsx,.cjs,.mjs --fix",
     "deploy": "git subtree push --prefix dist origin gh-pages"
   },
