@@ -3,7 +3,6 @@
     class="connect-status-container lil-gui"
     :class="connectedClass"
     :disabled="mode !== 'Stopped' ? '' : null"
-    @click="requestConnection"
   >
     <span class="connect-status-icon" />
     <span class="connect-status">{{ connectedText }}</span>
@@ -35,14 +34,6 @@ export default {
 
     connectedText () {
       return this.connected ? 'Connected' : 'Disconnected';
-    },
-  },
-
-  methods: {
-    requestConnection () {
-      if (!this.connected && this.mode === 'Stopped') {
-        this.$emit('request-connection');
-      }
     },
   },
 };

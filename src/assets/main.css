@@ -17,6 +17,12 @@ body {
   margin: 0
 }
 
+.app-spinner .n-spin {
+  width: 100px;
+  height: 100px;
+  color: var(--ayva-blue);
+}
+
 .ayva-button,
 .lil-gui .ayva-button {
   height: 30px;
@@ -42,6 +48,24 @@ body {
 
 button[disabled] {
   cursor: not-allowed;
+}
+
+.ayva-dropdown-input {
+  background-color: var(--ayva-background-dark);
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ayva-dropdown-input:hover {
+  cursor: pointer;
+  opacity: 0.9;
+}
+
+.chevron {
+  width: 14px;
+  height: 14px;
 }
 
 .lil-gui button:active[disabled] {
@@ -99,16 +123,16 @@ button[disabled] {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: black;
+  background-color: var(--ayva-background-dark);
   position: absolute;
-  top: 13px;
-  left: 136px;
+  top: 2px;
+  left: 124px;
   font-size: 10px;
 }
 
 .connect-status-container.connected {
   /* No... 😂 */
-  left: 152px;
+  left: 140px;
 }
 
 .connect-status-icon {
@@ -287,22 +311,43 @@ button[disabled] {
 
 [disabled] {
   opacity: 0.5;
-  cursor: not-allowed;
+  cursor: not-allowed !important;
 }
 
 .logo {
+  display: flex;
+  align-items: center;
   position: absolute;
-  bottom: 20px;
+  bottom: 5px;
   left: 20px;
   font-family: locust;
-  font-size: 12px;
+  font-size: 16px;
   color: var(--ayva-text-color-blue);
 }
 
 .logo .ayva {
   color: indigo;
-  font-size: 20px;
   text-decoration: none;
+}
+
+.logo .app-settings {
+  width: 25px;
+  margin-top: 3px;
+  margin-right: 5px;
+  color: var(--widget-color);
+}
+
+.logo .app-settings:focus {
+  outline: none;
+}
+
+.logo .app-settings:hover[disabled] {
+  opacity: 0.5;
+}
+
+.logo .app-settings:hover {
+  opacity: var(--ayva-hover-opacity);
+  cursor: pointer;
 }
 
 .icon:not([disabled]) {

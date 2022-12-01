@@ -2,7 +2,7 @@
   <div class="free-play">
     <div class="free-play-container lil-gui root">
       <div class="title">
-        <span>Free Play Parameters</span>
+        <span>Parameters</span>
         <span class="guide" @click.stop>
           <a href="https://ayvajs.github.io/ayvajs-docs/tutorial-ayva-stroker-lite.html" target="_blank">Help</a>
         </span>
@@ -180,7 +180,7 @@
                   @update:show="previewStroke(stroke.name, $event)"
                 >
                   <template #trigger>
-                    <eye-icon class="preview icon" />
+                    <eye-icon class="preview icon" :disabled="stroke.type !== 'tempest-stroke' ? '' : undefined" />
                   </template>
                   <div :data-preview-stroke="stroke.name" />
                 </n-popover>
@@ -208,6 +208,14 @@
         </div>
       </div>
     </n-modal>
+
+    <n-modal :show="showScriptEditor" :auto-focus="false">
+      <div>
+        <div class="lil-gui">
+          <ayva-script-editor ref="strokeEditor" :edit-script="editScript" @close="showScriptEditor = false" @save="refreshStrokes" />
+        </div>
+      </div>
+    </n-modal>
   </div>
 </template>
 
@@ -220,16 +228,17 @@ import { createAyva } from '../lib/ayva-config.js';
 import AyvaSlider from './widgets/AyvaSlider.vue';
 import AyvaCheckbox from './widgets/AyvaCheckbox.vue';
 import AyvaBpmSelect from './widgets/AyvaBpmSelect.vue';
+import AyvaScriptEditor from './AyvaScriptEditor.vue';
 import TempestStrokeEditor from './TempestStrokeEditor.vue';
 import {
   makeCollapsible, formatter, clampHeight
 } from '../lib/util.js';
-import CustomStrokeStorage from '../lib/custom-stroke-storage.js';
+import CustomBehaviorStorage from '../lib/custom-behavior-storage.js';
 
 let previewAyva = null;
 let previewEmulator = null;
 
-const customStrokeStorage = new CustomStrokeStorage();
+const customBehaviorStorage = new CustomBehaviorStorage();
 
 export default {
 
@@ -237,6 +246,7 @@ export default {
     AyvaSlider,
     AyvaCheckbox,
     AyvaBpmSelect,
+    AyvaScriptEditor,
     TempestStrokeEditor,
   },
 
@@ -270,7 +280,7 @@ export default {
       bpmOptions: {
         range: {
           min: 0,
-          max: 150,
+          max: 200,
         },
         start: [20, 60],
         padding: [10],
@@ -280,7 +290,7 @@ export default {
       accelerationOptions: {
         range: {
           min: 0,
-          max: 150,
+          max: 200,
         },
         start: [0, 20],
         step: 1,
@@ -302,7 +312,7 @@ export default {
           max: 30,
         },
         start: [2, 5],
-        padding: [1],
+        padding: [0.5],
         step: 0.1,
         format: formatter(1, 's'),
       },
@@ -331,12 +341,14 @@ export default {
 
       strokes: [],
 
-      customStrokeLibrary: {},
-
-      initialParameters: {},
+      customBehaviorLibrary: {},
 
       previewElement: null,
       previewParent: null,
+
+      showScriptEditor: false,
+
+      editScript: null,
 
       showStrokeEditor: false,
 
@@ -345,8 +357,11 @@ export default {
       bpmMode: 'transition',
 
       settingsOptions: [{
-        key: 'create',
-        label: 'Create',
+        key: 'create-stroke',
+        label: 'Create TempestStroke',
+      }, {
+        key: 'create-script',
+        label: 'Create AyvaScript',
       }, {
         key: 'import',
         label: 'Import',
@@ -425,6 +440,8 @@ export default {
     this.refreshStrokes();
 
     this.onResize();
+
+    this.fireUpdateParameter('bpm-mode', this.bpmMode);
   },
 
   unmounted () {
@@ -438,17 +455,27 @@ export default {
         return map;
       }, {});
 
-      this.customStrokeLibrary = customStrokeStorage.load();
+      this.customBehaviorLibrary = customBehaviorStorage.load();
 
       const makeLibraryList = (library, custom = false) => Object.keys(library).sort().map((name) => ({
         name,
         custom,
+        type: library[name].type || 'tempest-stroke',
         enabled: enabledMap[name] ?? true,
       }));
 
+      const tempestLibrary = TempestStroke.library;
+
+      const filteredTempestLibrary = Object.keys(tempestLibrary).filter(
+        (key) => !this.customBehaviorLibrary[key]
+      ).reduce((filteredLibrary, key) => {
+        filteredLibrary[key] = tempestLibrary[key];
+        return filteredLibrary;
+      }, {});
+
       this.strokes = [
-        ...makeLibraryList(this.customStrokeLibrary, true),
-        ...makeLibraryList(TempestStroke.library)];
+        ...makeLibraryList(this.customBehaviorLibrary, true),
+        ...makeLibraryList(filteredTempestLibrary)];
 
       this.onResize();
     },
@@ -467,8 +494,10 @@ export default {
     },
 
     onSettings (key) {
-      if (key === 'create') {
+      if (key === 'create-stroke') {
         this.openStrokeEditor();
+      } else if (key === 'create-script') {
+        this.openScriptEditor();
       } else if (key === 'import') {
         const onConflicts = (conflicts) => {
           this.notify.warning({
@@ -477,7 +506,7 @@ export default {
           });
         };
 
-        customStrokeStorage.import(onConflicts).then(() => {
+        customBehaviorStorage.import(onConflicts).then(() => {
           this.refreshStrokes();
         }).catch((error) => {
           this.notify.error({
@@ -486,19 +515,27 @@ export default {
           });
         });
       } else if (key === 'export') {
-        customStrokeStorage.export();
+        customBehaviorStorage.export();
       }
     },
 
     onCustomStrokeAction (stroke, action) {
       if (action === 'delete') {
-        customStrokeStorage.delete(stroke.name);
+        customBehaviorStorage.delete(stroke.name);
         this.refreshStrokes();
-      } else if (action === 'edit') {
+      } else if (action === 'edit' && stroke.type === 'tempest-stroke') {
         this.openStrokeEditor(stroke.name);
+      } else if (action === 'edit' && stroke.type === 'ayvascript') {
+        this.openScriptEditor(stroke.name);
       } else if (action === 'export') {
-        customStrokeStorage.exportOne(stroke.name);
+        customBehaviorStorage.exportOne(stroke.name);
       }
+    },
+
+    openScriptEditor (editScript = null) {
+      this.editScript = editScript;
+      this.showScriptEditor = true;
+      this.animateEditorResize(1000);
     },
 
     openStrokeEditor (editStroke = null) {
@@ -543,13 +580,25 @@ export default {
 
       if (show) {
         setTimeout(() => {
+          const tempestStroke = TempestStroke.library[stroke];
+
+          const behavior = tempestStroke ? {
+            name: stroke,
+            type: 'tempest-stroke',
+            data: tempestStroke,
+          } : this.customBehaviorLibrary[stroke];
+
+          if (behavior.type !== 'tempest-stroke') {
+            return;
+          }
+
           this.previewParent = document.querySelector(`[data-preview-stroke="${stroke}"]`);
           this.previewParent.appendChild(this.previewElement);
           const container = this.previewParent.closest('.v-binder-follower-content');
           container.classList.add('preview-popup-container');
 
           previewAyva = this.createPreviewAyva();
-          previewAyva.addOutputDevice(previewEmulator);
+          previewAyva.addOutput(previewEmulator);
 
           const uniqueAxes = Object.keys(previewAyva.axes).reduce((map, axisName) => {
             const axis = previewAyva.axes[axisName];
@@ -562,7 +611,7 @@ export default {
             previewAyva.$[name].value = 0.5;
           });
 
-          previewAyva.do(new TempestStroke(this.customStrokeLibrary[stroke] || stroke)); // TODO: Support custom strokes too...
+          previewAyva.do(new TempestStroke(behavior.data));
         }, 100);
       }
     },
@@ -605,6 +654,10 @@ export default {
   margin-top: 0;
   height: 20px;
   cursor: default;
+}
+
+.preview.icon[disabled] {
+  cursor: not-allowed;
 }
 
 .stroke-actions {

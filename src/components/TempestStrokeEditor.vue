@@ -3,7 +3,7 @@
     <div class="header" hover-info="">
       <div class="toolbar">
         <span class="toolbar-left">
-          <span>{{ edit ? 'Edit' : 'Create' }} Stroke</span>
+          <span>{{ edit ? 'Edit' : 'Create' }} TempestStroke</span>
         </span>
         <span class="toolbar-right">
           <span class="presets" :disabled="disabled">
@@ -81,7 +81,7 @@
           <template #trigger>
             <input v-model="strokeName" class="name" :class="strokeNameDuplicate ? 'error' : ''">
           </template>
-          A stroke with that name already exists.
+          A behavior with that name already exists.
         </n-tooltip>
         <button class="ayva-button primary" :disabled="!strokeNameValid" @click="save">
           {{ saveText }}
@@ -100,9 +100,9 @@ import AyvaSlider from './widgets/AyvaSlider.vue';
 import AyvaCheckbox from './widgets/AyvaCheckbox.vue';
 import TempestMotion from './TempestMotion.vue';
 import { formatter, validNumber } from '../lib/util.js';
-import CustomStrokeStorage from '../lib/custom-stroke-storage.js';
+import CustomBehaviorStorage from '../lib/custom-behavior-storage.js';
 
-const customStrokeStorage = new CustomStrokeStorage();
+const customBehaviorStorage = new CustomBehaviorStorage();
 const ayva = createAyva();
 let emulator;
 
@@ -165,14 +165,14 @@ export default {
         step: 1,
         range: {
           min: 0,
-          max: 150,
+          max: 200,
         },
         format: formatter(),
       },
 
       tempestStrokeLibrary: TempestStroke.library,
 
-      customStrokeLibrary: {},
+      customBehaviorLibrary: {},
 
       transitionDuration: 0.5,
 
@@ -252,7 +252,14 @@ export default {
     },
 
     tempestStrokeOptions () {
-      return Object.keys(this.tempestStrokeLibrary).sort().map((key) => ({
+      const filteredTempestLibrary = Object.keys(this.tempestStrokeLibrary).filter(
+        (key) => !this.customBehaviorLibrary[key]
+      ).reduce((filteredLibrary, key) => {
+        filteredLibrary[key] = this.tempestStrokeLibrary[key];
+        return filteredLibrary;
+      }, {});
+
+      return Object.keys(filteredTempestLibrary).sort().map((key) => ({
         key,
         label: key,
       }));
@@ -301,7 +308,7 @@ export default {
         return false;
       }
 
-      return !!this.tempestStrokeLibrary[this.strokeName] || !!this.customStrokeLibrary[this.strokeName];
+      return !!this.tempestStrokeLibrary[this.strokeName] || !!this.customBehaviorLibrary[this.strokeName];
     },
 
     strokeNameValid () {
@@ -310,6 +317,18 @@ export default {
 
     strokeNameReserved () {
       return this.strokeName === 'default' || this.strokeName === 'header';
+    },
+
+    customStrokeLibrary () {
+      const result = {};
+
+      Object.entries(this.customBehaviorLibrary).forEach(([name, entry]) => {
+        if (entry.type === 'tempest-stroke') {
+          result[name] = entry.data;
+        }
+      });
+
+      return result;
     },
   },
 
@@ -329,16 +348,16 @@ export default {
 
     previewOnDevice () {
       if (this.previewOnDevice) {
-        ayva.addOutputDevice(this.device);
+        ayva.addOutput(this.device);
       } else {
-        ayva.removeOutputDevice(this.device);
+        ayva.removeOutput(this.device);
         this.resetGlobalDevicePosition();
       }
     },
 
     'device.connected' (connected) {
       if (!connected) {
-        ayva.removeOutputDevice(this.device);
+        ayva.removeOutput(this.device);
         this.previewOnDevice = false;
       }
     },
@@ -349,12 +368,12 @@ export default {
   },
 
   beforeMount () {
-    this.customStrokeLibrary = customStrokeStorage.load();
+    this.customBehaviorLibrary = customBehaviorStorage.load();
   },
 
   mounted () {
     emulator = new OSREmulator(this.$refs.emulator);
-    ayva.addOutputDevice(emulator);
+    ayva.addOutput(emulator);
 
     // Copy all axis limits from global Ayva instance.
     Object.keys(ayva.axes).forEach((name) => {
@@ -375,8 +394,8 @@ export default {
 
   unmounted () {
     ayva.stop();
-    ayva.removeOutputDevice(emulator);
-    ayva.removeOutputDevice(this.device);
+    ayva.removeOutput(emulator);
+    ayva.removeOutput(this.device);
     emulator.destroy();
     window.removeEventListener('scroll', this.onAxisScroll);
 
@@ -581,7 +600,7 @@ export default {
 
     save () {
       if (this.editStroke) {
-        customStrokeStorage.delete(this.editStroke);
+        customBehaviorStorage.delete(this.editStroke);
       }
       const stroke = this.axes.reduce((obj, axis) => {
         obj[axis.name] = axis.parameters;
@@ -590,7 +609,7 @@ export default {
         return obj;
       }, {});
 
-      customStrokeStorage.save(this.strokeName, stroke);
+      customBehaviorStorage.save(this.strokeName, 'tempest-stroke', stroke);
       this.$emit('close');
       this.$emit('save');
     },
@@ -604,213 +623,4 @@ export default {
 };
 </script>
 
-<style scoped>
-.modal-body {
-  width: 1200px;
-  height: 700px;
-  display: grid;
-  grid-template-columns: 45% 55%;
-  grid-template-rows: 80px 550px 1fr;
-}
-
-.header {
-  grid-column: span 2;
-  display: grid;
-  grid-template-rows: 30px 50px;
-}
-
-.toolbar {
-  background-color: rgb(17, 17, 17);
-  height: 30px;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 10px;
-}
-
-.toolbar > * {
-  display: flex;
-}
-
-.toolbar-left {
-  align-items: center;
-}
-
-[disabled] > * {
-  pointer-events: none;
-}
-
-.presets {
-  display: flex;
-  align-items: center;
-}
-
-.presets-button:hover {
-  opacity: var(--ayva-hover-opacity);
-  cursor: pointer;
-}
-
-.presets-button:active {
-  opacity: var(--ayva-active-opacity);
-}
-
-.emulator {
-  width: 620px;
-  height: 100%;
-}
-
-.emulator-column {
-  position: relative;
-  grid-row: 2;
-}
-
-.axis-column {
-  grid-row: 2;
-}
-
-.axis-scroll {
-  height: 100%;
-  overflow: scroll;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.tempest-motion-container {
-  padding: 0px 10px 19px 10px;
-}
-
-.tempest-motion-container:nth-last-child(1) {
-  padding-bottom: 0;
-}
-
-.preview-bpm {
-  display: grid;
-  grid-template-rows: 1fr 1fr;
-  position: absolute;
-  top: 500px;
-  width: 300px;
-  left: 50%;
-  transform: translate(-50%);
-}
-
-.preview-bpm .label {
-  display: flex;
-  justify-content: center;
-  padding: 4px;
-  color: var(--ayva-text-color-blue);
-  font-weight: 700;
-}
-
-.close.icon {
-  margin-left: 5px;
-}
-
-.settings.icon {
-  width: 20px;
-  margin-top: 5px;
-  margin-right: 7.5px;
-  outline: none;
-}
-
-.main-inputs {
-  display: flex;
-  justify-content: space-between;
-}
-
-.main-inputs > * {
-  display: flex;
-  align-items: center;
-}
-
-.main-inputs .device,
-.main-inputs .setup {
-  margin-right: 40px;
-}
-
-.main-inputs .setup {
-  margin-left: 45px;
-  position: relative;
-}
-
-.main-inputs .device label {
-  cursor: pointer;
-}
-
-.main-inputs .device label[disabled] {
-  cursor: not-allowed;
-}
-
-.main-inputs .device > span,
-.main-inputs .setup > span {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  color: var(--ayva-text-color-light-gray)
-}
-
-.main-inputs .setup > .context-clue {
-  position: absolute;
-  left: -20px;
-  opacity: 0.5;
-  color: var(--text-color);
-}
-
-input.name {
-  width: 200px;
-  background: var(--ayva-background-dark);
-}
-
-.save-container {
-  grid-column: 2;
-  display: flex;
-  align-items: center;
-  height: 100%;
-  font-size: 16px;
-  color: var(--ayva-text-color-off-white);
-  justify-content: end;
-}
-
-.save-container input {
-  font-size: 12px;
-  min-width: 200px;
-  height: 30px;
-  color: var(--ayva-text-color-light-gray);
-  margin-left: 5px;
-  padding: 0 5px;
-}
-
-.save-container button {
-  width: 150px;
-  margin-left: 10px;
-  margin-right: 28px;
-}
-
-.save-container div {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  justify-content: end;
-}
-
-.select-axes .icon:hover {
-  opacity: 1;
-}
-
-.select-axes {
-  font-size: 14px;
-  margin-left: 390px; /* No... */
-}
-
-.select-axes:hover:not([disabled]) {
-  cursor: pointer;
-  opacity: var(--ayva-hover-opacity);
-}
-
-.select-axes:active:not([disabled]) {
-  opacity: var(--ayva-active-opacity);
-}
-
-</style>
+<style src="../assets/ayva-modal.css" scoped></style>

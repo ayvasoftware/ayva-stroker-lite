@@ -3,7 +3,7 @@
     <div class="header" hover-info="">
       <div class="toolbar">
         <span class="toolbar-left">
-          <span>Upcoming Release</span>
+          <span>Release Notes (1.42.0)</span>
         </span>
         <span class="toolbar-right">
           <span>
@@ -13,22 +13,34 @@
       </div>
     </div>
     <div class="body">
-      <div class="warning">
-        Warning!
-      </div>
       <div class="release-notes">
-        On December 1st, 2022, Ayva Stroker Lite will be changing domains.
-        This means that any settings or custom strokes saved in local storage <span class="lost">will be lost unless exported</span>.
+        <h2>New Features</h2>
+        <ul style="margin-left: 20px; margin-top: 10px;" class="light-gray">
+          <li>25 new stroke patterns.</li>
+          <li>WiFi support (via WebSocket output).</li>
+          <li>
+            Create custom
+            <a
+              href="https://ayvajs.github.io/ayvajs-docs/tutorial-ayva-stroker-lite.html#ayvascripts"
+              style="color: var(--ayva-text-color-blue); font-weight: bold; text-decoration: none"
+              target="_blank"
+            >AyvaScripts</a>.
+          </li>
+          <li>Import and export all site settings.</li>
+          <li>Maximum BPM increased to 200.</li>
+          <li>Minimum transition time decreased to 0.5 seconds.</li>
+          <li>Improved BPM performance (perfect timing).</li>
+          <li>Allow console output (for debugging).</li>
+        </ul>
       </div>
-      <div class="release-notes">
-        To export ALL saved settings (including custom strokes) click the button below.
-        You will be able to import these settings after the release on December 1st to get everything back.
+      <div class="release-notes light-gray">
+        View the updated guide <a
+          style="color: var(--ayva-text-color-blue)" href="https://ayvajs.github.io/ayvajs-docs/tutorial-ayva-stroker-lite.html" target="_blank"
+        >here.</a>
       </div>
-      <button class="export" @click="exportAll">
-        Export All Settings
-      </button>
-      <div class="release-notes" style="font-style: italic; padding-top: 15px; text-align: center">
-        Note: To see this message again, refresh the page.
+
+      <div class="release-notes light-gray">
+        <i>Note: Import, export, and these release notes can be accessed from the settings menu in the lower left corner of the app.</i>
       </div>
     </div>
   </div>
@@ -36,51 +48,23 @@
 
 <script>
 
+import settingsStorage from '../lib/settings-storage';
+
 export default {
   emits: ['close'],
 
   data () {
     return {
-      fileOptions: {
-        types: [
-          {
-            description: 'Ayva Stroker Lite Settings',
-            accept: {
-              'application/json': ['.json'],
-            },
-          },
-        ],
-        excludeAcceptAllOption: true,
-        multiple: false,
-        suggestedName: 'ayva-stroker-settings.json',
-      },
+      settingsStorage,
     };
   },
-
-  methods: {
-    async exportAll () {
-      let fileHandle;
-
-      try {
-        fileHandle = await window.showSaveFilePicker(this.fileOptions);
-      } catch (abortError) {
-        return;
-      }
-
-      const writable = await fileHandle.createWritable();
-
-      await writable.write(JSON.stringify(localStorage, null, 2));
-      await writable.close();
-    },
-  },
-
 };
 </script>
 
 <style scoped>
 .modal-body {
   width: 500px;
-  height: 380px;
+  height: 395px;
 }
 
 .header {
@@ -109,6 +93,10 @@ export default {
   font-size: 16px;
   line-height: 24px;
   padding-bottom: 15px;
+}
+
+.light-gray {
+  color: var(--ayva-text-color-light-gray);
 }
 
 .export {

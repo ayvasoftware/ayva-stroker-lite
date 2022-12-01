@@ -13,4 +13,24 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  build: {
+    sourcemap: false,
+    chunkSizeWarningLimit: '10mb',
+    rollupOptions: {
+      output: {
+        manualChunks (id) {
+          if (id.includes('node_modules')) {
+            return 'vendor';
+          }
+
+          return null;
+        },
+      },
+      onwarn (warning, warn) {
+        // suppress eval warnings
+        if (warning.code === 'EVAL') return;
+        warn(warning);
+      },
+    },
+  },
 });
