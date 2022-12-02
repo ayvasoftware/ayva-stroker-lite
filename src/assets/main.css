@@ -413,11 +413,3 @@ input.error {
     display: none;
   }
 }
-
-#maintenance-splash {
-  display: flex !important;
-  height: 100vh;
-  color: var(--ayva-text-color-blue);
-  justify-content: center;
-  align-items: center;
-}

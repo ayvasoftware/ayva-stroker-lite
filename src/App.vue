@@ -272,7 +272,7 @@ export default {
 
     this.refreshOutputSettings();
 
-    this.showReleaseNotes = this.globalSettings.load('show-release-notes') ?? false;
+    this.showReleaseNotes = this.globalSettings.load('show-release-notes') ?? true;
   },
 
   methods: {
