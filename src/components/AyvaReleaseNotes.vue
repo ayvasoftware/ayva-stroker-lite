@@ -17,7 +17,7 @@
         <h2>New Features</h2>
         <ul style="margin-left: 20px; margin-top: 10px;" class="light-gray">
           <li>25 new stroke patterns.</li>
-          <li>WiFi support (via WebSocket output).</li>
+          <li>Allow WebSocket output.</li>
           <li>
             Create custom
             <a
