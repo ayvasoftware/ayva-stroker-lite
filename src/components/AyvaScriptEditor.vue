@@ -276,7 +276,9 @@ export default {
       }, {});
 
       const runner = new ScriptRunner(this.script, {
-        GLOBALS: { input: null, output: null, parameters },
+        GLOBALS: {
+          input: null, output: null, parameters, mode: 'manual',
+        },
       });
 
       runner.on('complete', () => {

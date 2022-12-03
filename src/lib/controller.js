@@ -283,6 +283,8 @@ class Controller extends GeneratorBehavior {
 
     scriptGlobals.parameters = parameters;
 
+    scriptGlobals.mode = this.#freePlay ? 'freePlay' : 'manual';
+
     return new ScriptRunner(script, {
       GLOBALS: scriptGlobals,
     });
