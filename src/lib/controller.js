@@ -13,7 +13,7 @@ const STATE = {
   STROKING: 2,
 };
 
-const scriptGlobals = { input: null, output: null };
+const scriptGlobals = {};
 
 class Controller extends GeneratorBehavior {
   #customBehaviorStorage = new CustomBehaviorStorage();
@@ -35,6 +35,10 @@ class Controller extends GeneratorBehavior {
       active: false,
       updated: false,
       value: null,
+    });
+
+    Object.keys(scriptGlobals).forEach((key) => {
+      delete scriptGlobals[key];
     });
   }
 
@@ -69,6 +73,11 @@ class Controller extends GeneratorBehavior {
 
   startFreePlayMode () {
     this.#freePlay = true;
+
+    if (this.#isScript()) {
+      // TODO: No... don't want to muck about with the behavior's complete status manually.
+      this.#currentBehavior.complete = true;
+    }
   }
 
   resetTimer () {
@@ -267,7 +276,11 @@ class Controller extends GeneratorBehavior {
 
   #createScriptRunner (script) {
     const parameters = Object.keys(this.parameters).reduce((result, key) => {
-      result[_.camelCase(key)] = _.cloneDeep(this.parameters[key]);
+      Object.defineProperty(result, _.camelCase(key), {
+        enumerable: true,
+        get: () => this.parameters[key],
+      });
+
       return result;
     }, {});
 
@@ -283,7 +296,11 @@ class Controller extends GeneratorBehavior {
 
     scriptGlobals.parameters = parameters;
 
-    scriptGlobals.mode = this.#freePlay ? 'freePlay' : 'manual';
+    Object.defineProperty(scriptGlobals, 'mode', {
+      configurable: true,
+      enumerable: true,
+      get: () => (this.#freePlay ? 'freePlay' : 'manual'),
+    });
 
     return new ScriptRunner(script, {
       GLOBALS: scriptGlobals,
