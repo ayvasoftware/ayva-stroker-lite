@@ -86,6 +86,14 @@
       </div>
     </n-modal>
 
+    <n-modal :show="showLicense" :auto-focus="false">
+      <div>
+        <div class="lil-gui">
+          <ayva-license ref="licenseModal" @close="showLicense = false" />
+        </div>
+      </div>
+    </n-modal>
+
     <div class="logo" :style="hudStyle">
       <span>
         <n-dropdown
@@ -117,6 +125,7 @@ import AyvaFreePlay from './components/AyvaFreePlay.vue';
 import AyvaMode from './components/AyvaMode.vue';
 import AyvaController from './lib/controller.js';
 import AyvaReleaseNotes from './components/AyvaReleaseNotes.vue';
+import AyvaLicense from './components/AyvaLicense.vue';
 import Storage from './lib/ayva-storage';
 import WebSocketDevice from './lib/websocket-device.js';
 import ConsoleDevice from './lib/console-device.js';
@@ -138,6 +147,7 @@ export default {
     AyvaMode,
     AyvaSlider,
     AyvaReleaseNotes,
+    AyvaLicense,
   },
 
   provide () {
@@ -197,17 +207,22 @@ export default {
 
       showReleaseNotes: false,
 
+      showLicense: false,
+
       events: { ...eventMixin },
 
       settingsDropdownOptions: [{
-        key: 'release',
-        label: 'Release Notes',
-      }, {
         key: 'import',
         label: 'Import Settings',
       }, {
         key: 'export',
         label: 'Export Settings',
+      }, {
+        key: 'release',
+        label: 'Release Notes',
+      }, {
+        key: 'license',
+        label: 'License',
       }],
 
       globalSettings: new Storage('global-settings'),
@@ -296,6 +311,8 @@ export default {
         });
       } else if (key === 'release') {
         this.showReleaseNotes = true;
+      } else if (key === 'license') {
+        this.showLicense = true;
       }
     },
 

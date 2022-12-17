@@ -101,3 +101,8 @@
 .n-dropdown-menu.ayva-dropdown.n-popover-shared.n-dropdown {
   margin-top: 0;
 }
+
+.n-dropdown-menu .n-dropdown-divider {
+  background-color: var(--ayva-text-color-light-gray);
+  opacity: 0.20;
+}

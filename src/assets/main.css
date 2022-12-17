@@ -186,7 +186,7 @@ button[disabled] {
 }
 
 #current-bpm .slider {
-  width: 600px;
+  width: 34.72vw; /* 600px on full screen */
   height: 20px;
 }
 
