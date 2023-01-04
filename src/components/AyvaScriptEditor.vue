@@ -7,7 +7,7 @@
         </span>
         <span class="toolbar-right">
           <span>
-            <close-icon class="close icon" @click="close" />
+            <close-icon class="close icon" @click="onClose" />
           </span>
         </span>
       </div>
@@ -56,7 +56,7 @@
 </template>
 
 <script>
-import { useNotification } from 'naive-ui';
+import { useNotification, useDialog } from 'naive-ui';
 import { JSHINT } from 'jshint';
 import { TempestStroke } from 'ayvajs';
 import _ from 'lodash';
@@ -103,7 +103,9 @@ export default {
 
   setup () {
     const notification = useNotification();
+    const dialog = useDialog();
     return {
+      dialog,
       notify: notification,
     };
   },
@@ -121,6 +123,10 @@ export default {
       scriptName: '',
 
       script: '',
+
+      originalScript: '',
+
+      originalScriptName: '',
 
       isScriptValid: false,
 
@@ -227,6 +233,9 @@ export default {
       ayvaStop();
       this.onAyvaStop();
     };
+
+    this.originalScript = this.script;
+    this.originalScriptName = this.scriptName;
   },
 
   unmounted () {
@@ -264,6 +273,24 @@ export default {
 
     close () {
       this.$emit('close');
+    },
+
+    onClose () {
+      if (this.originalScript !== this.script || this.originalScriptName !== this.scriptName) {
+        this.dialog.warning({
+          title: 'Confirm',
+          content: 'You have unsaved changes. These changes will be lost if you continue.',
+          positiveText: 'Continue',
+          negativeText: 'Cancel',
+          class: 'unsaved-changes',
+          autoFocus: false,
+          onPositiveClick: () => {
+            this.close();
+          },
+        });
+      } else {
+        this.close();
+      }
     },
 
     play () {

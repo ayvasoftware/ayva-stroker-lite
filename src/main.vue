@@ -1,9 +1,11 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <n-notification-provider placement="bottom-right">
-    <n-spin :show="showSpinner" class="app-spinner">
-      <App />
-    </n-spin>
+    <n-dialog-provider>
+      <n-spin :show="showSpinner" class="app-spinner">
+        <App />
+      </n-spin>
+    </n-dialog-provider>
   </n-notification-provider>
 </template>
 

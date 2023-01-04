@@ -106,3 +106,39 @@
   background-color: var(--ayva-text-color-light-gray);
   opacity: 0.20;
 }
+
+.n-dialog.n-modal {
+  background-color: var(--ayva-background-medium);
+  color: var(--ayva-text-color-light-gray);
+}
+
+.unsaved-changes.n-dialog .n-dialog__icon {
+  color: var(--ayva-color-error);
+}
+
+.unsaved-changes.n-dialog .n-dialog__title {
+  color: var(--ayva-text-color-off-white);
+}
+
+.unsaved-changes.n-dialog .n-button.n-button--default-type {
+  color: var(--ayva-text-color-light-gray);
+}
+
+.unsaved-changes.n-dialog .n-button.n-button--warning-type {
+  background-color: var(--ayva-color-error);
+}
+
+.unsaved-changes.n-dialog .n-button .n-button__border {
+  display: none;
+}
+
+.unsaved-changes.n-dialog .n-button.n-button--warning-type .n-button__state-border {
+  display: none;
+}
+
+.unsaved-changes.n-dialog .n-button:not(.n-button--disabled):hover .n-button__state-border,
+.unsaved-changes.n-dialog .n-button:not(.n-button--disabled):focus .n-button__state-border {
+  border-color: var(--ayva-text-color-off-white);
+}
+
+
