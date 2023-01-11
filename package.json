@@ -43,6 +43,7 @@
     "lodash": "^4.17.21",
     "monaco-editor": "^0.34.0",
     "naive-ui": "2.29.0",
+    "native-file-system-adapter": "^2.0.4",
     "nouislider": "^15.6.0",
     "osr-emu": "^0.3.0",
     "prettier": "^2.5.1",
