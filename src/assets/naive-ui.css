@@ -86,9 +86,9 @@
   opacity: 0.75;
 }
 
-.n-notification-container .n-notification .n-notification__avatar .n-base-icon {
+/* .n-notification-container .n-notification .n-notification__avatar .n-base-icon {
   color: var(--ayva-color-error);
-}
+} */
 
 .n-dropdown-menu.bpm-select.n-popover-shared.n-dropdown {
   width: 250px;

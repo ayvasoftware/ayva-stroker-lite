@@ -116,10 +116,11 @@
 <script>
 import OSREmulator from 'osr-emu';
 import { Ayva, WebSerialDevice } from 'ayvajs';
-import { computed } from 'vue';
+import { computed, h } from 'vue';
 import { useNotification } from 'naive-ui';
 import { createAyva } from './lib/ayva-config.js';
 import AyvaSlider from './components/widgets/AyvaSlider.vue';
+import AyvaCheckbox from './components/widgets/AyvaCheckbox.vue';
 import AyvaOutput from './components/AyvaOutput.vue';
 import AyvaFreePlay from './components/AyvaFreePlay.vue';
 import AyvaMode from './components/AyvaMode.vue';
@@ -129,6 +130,7 @@ import AyvaLicense from './components/AyvaLicense.vue';
 import Storage from './lib/ayva-storage';
 import WebSocketDevice from './lib/websocket-device.js';
 import ConsoleDevice from './lib/console-device.js';
+import PatreonIcon from './assets/icons/patreon.svg';
 import { formatter, eventMixin, triggerMouseEvent } from './lib/util.js';
 import CustomBehaviorStorage from './lib/custom-behavior-storage';
 import settingsStorage from './lib/settings-storage';
@@ -209,6 +211,8 @@ export default {
 
       showLicense: false,
 
+      patreonUrl: 'https://patreon.com/soritesparadox',
+
       events: { ...eventMixin },
 
       settingsDropdownOptions: [{
@@ -223,6 +227,9 @@ export default {
       }, {
         key: 'license',
         label: 'License',
+      }, {
+        key: 'patreon',
+        label: 'Patreon',
       }],
 
       globalSettings: new Storage('global-settings'),
@@ -288,6 +295,8 @@ export default {
     this.refreshOutputSettings();
 
     this.showReleaseNotes = this.globalSettings.load('show-release-notes') ?? true;
+
+    this.patreonPromo();
   },
 
   methods: {
@@ -313,6 +322,8 @@ export default {
         this.showReleaseNotes = true;
       } else if (key === 'license') {
         this.showLicense = true;
+      } else if (key === 'patreon') {
+        window.open(this.patreonUrl, '_blank').focus();
       }
     },
 
@@ -489,6 +500,43 @@ export default {
       } else {
         this.device = new WebSerialDevice();
       }
+    },
+
+    patreonPromo () {
+      const storageKey = 'patreon-promo-disabled';
+      const patreonPromoDisabled = new Storage('checkbox-value').load(storageKey);
+
+      if (patreonPromoDisabled) {
+        return;
+      }
+
+      const patreonStyle = { style: 'color: rgb(255, 66, 77)' };
+
+      setTimeout(() => {
+        this.notify.info({
+          content: 'Enjoy Ayva Stroker Lite?',
+          meta: () => h(
+            'div',
+            [
+              'Support this software by becoming a ',
+              h('a', {
+                href: this.patreonUrl,
+                target: '_blank',
+                ...patreonStyle,
+              }, 'patron.'),
+              h(
+                'div',
+                { class: 'lil-gui patreon-promo-disable' },
+                [
+                  h('span', 'Don\'t show this message again.'),
+                  h(AyvaCheckbox, {
+                    storageKey,
+                  })]
+              )]
+          ),
+          avatar: () => h(PatreonIcon, patreonStyle),
+        });
+      }, 30000);
     },
   },
 };

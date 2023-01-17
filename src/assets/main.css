@@ -392,6 +392,20 @@ input.error {
   border: 1px solid var(--ayva-color-error);
 }
 
+.patreon-promo-disable {
+  padding-top: 10px;
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  color: var(--ayva-text-color-light-gray);
+  opacity: 0.75;
+}
+
+.patreon-promo-disable > span {
+  font-style: italic;
+  padding-right: 5px;
+}
+
 @media only screen and (max-width: 1280px) {  
   #app {
     display: none;
