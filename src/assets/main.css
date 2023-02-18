@@ -96,11 +96,15 @@ button[disabled] {
 
 #main {
   background-color: black;
+  min-width: 1025px;
+  min-height: 450px;
+  position: relative;
+  width: 100%;
 }
 
 .actions {
   position: absolute;
-  bottom: 10px;
+  bottom: 40px;
   display: flex;
   left: 50%;
   transform: translate(-50%);
@@ -178,7 +182,7 @@ button[disabled] {
 
 #current-bpm {
   position: absolute;
-  bottom: 70px;
+  bottom: 90px;
   left: 50%;
   transform: translate(-50%);
   display: grid;
@@ -406,24 +410,30 @@ input.error {
   padding-right: 5px;
 }
 
-@media only screen and (max-width: 1280px) {  
-  #app {
-    display: none;
+@media only screen and (max-width: 1180px) {
+  #current-bpm {
+    left: 95px;
+    transform: none;
+  }
+
+  #current-bpm .slider {
+    width: 480px;
+  }
+
+  .actions {
+    left: 30px;
+    transform: none;
   }
 }
 
-@media only screen and (max-width: 1280px) {  
-  #mobile-splash {
-    display: flex !important;
-    height: 100vh;
-    color: var(--ayva-text-color-blue);
-    justify-content: center;
-    align-items: center;
+@media only screen and (max-width: 1420px) and (min-width: 1180px) {
+  #current-bpm {
+    left: 30%;
+    transform: translate(-30%);
   }
-}
 
-@media only screen and (min-width: 1280px) {  
-  #mobile-splash {
-    display: none;
+  .actions {
+    left: 30%;
+    transform: translate(-30%);
   }
 }

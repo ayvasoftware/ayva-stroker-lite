@@ -1,31 +1,31 @@
 <template>
-  <ayva-output
-    :style="hudStyle"
-    :mode="mode"
-    @update-limits="updateLimits"
-    @request-connection="requestConnection"
-    @disconnect="disconnect"
-  />
-
-  <ayva-free-play
-    :mode="mode"
-    :current-stroke-name="currentStrokeName"
-    :style="hudStyle"
-    @update-parameters="updateParameters"
-    @update-strokes="updateStrokes"
-    @select-stroke="selectStroke"
-  />
-
-  <ayva-mode :mode="mode" />
-
   <div
     id="main"
     class="lil-gui"
   >
+    <ayva-mode :mode="mode" />
+
+    <ayva-free-play
+      :mode="mode"
+      :current-stroke-name="currentStrokeName"
+      :style="hudStyle"
+      @update-parameters="updateParameters"
+      @update-strokes="updateStrokes"
+      @select-stroke="selectStroke"
+    />
+
     <div
       id="emulator"
       ref="emulator"
       @click="onClickEmulator"
+    />
+
+    <ayva-output
+      :style="hudStyle"
+      :mode="mode"
+      @update-limits="updateLimits"
+      @request-connection="requestConnection"
+      @disconnect="disconnect"
     />
 
     <div class="actions">
