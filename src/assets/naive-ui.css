@@ -5,7 +5,7 @@
 
 .n-dropdown-menu, .n-base-select-menu {
   max-height: 600px;
-  overflow: scroll;
+  overflow: auto;
   background-color: var(--ayva-background-medium);
   color: var(--ayva-text-color-light-gray);
 }
@@ -53,7 +53,7 @@
 }
 
 .axis-column .n-scrollbar {
-  border-top: 3px groove var(--ayva-background-medium);
+  border-top: 2px solid var(--ayva-background-dark);
 }
 
 .axis-column .n-scrollbar[data-scroll="0"] {
