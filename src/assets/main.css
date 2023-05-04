@@ -78,7 +78,7 @@ button[disabled] {
 }
 @font-face {
   font-family: locust;
-  src: url(fonts/cgf-locust-resistance.regular.ttf);
+  src: url(fonts/cgf-locust-resistance.regular.woff2);
 }
 
 .hud-button {

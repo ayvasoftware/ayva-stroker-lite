@@ -48,8 +48,8 @@
             </n-tooltip>
           </div>
         </div>
-        <div class="settings" style="display: none">
-          <!-- One day unhide when we can handle frequencies > 50...-->
+        <!-- One day unhide when we can handle frequencies > 50...-->
+        <!-- <div class="settings" style="display: none">
           <div class="settings-label">
             Frequency:
           </div>
@@ -60,6 +60,12 @@
               </template>
               Frequency must be a number between 10 and 250.
             </n-tooltip>
+          </div>
+        </div> -->
+        <div v-show="connectionType === 'websocket'" class="settings">
+          <div style="grid-column: span 2; font-size: 14px; text-align: center; color: var(--ayva-color-error)">
+            Note: There currently is no firmware available that supports a secure WebSocket.
+            You must connect to another application running on localhost, such as Ayva WebSocket Hub<br>(coming soon!)
           </div>
         </div>
       </div>
@@ -107,7 +113,7 @@ export default {
 
   computed: {
     modalStyle () {
-      return this.connectionType === 'websocket' ? { height: '161px' } : { height: '80px' }; // { height: '205px' } : { height: '118px' };
+      return this.connectionType === 'websocket' ? { height: '277px' } : { height: '80px' }; // { height: '205px' } : { height: '118px' };
     },
 
     portInvalid () {
