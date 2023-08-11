@@ -81,7 +81,15 @@
     <n-modal :show="showReleaseNotes" :auto-focus="false">
       <div>
         <div class="lil-gui">
-          <ayva-release-notes ref="strokeEditor" @close="onCloseReleaseNotes" />
+          <ayva-release-notes @close="onCloseReleaseNotes" />
+        </div>
+      </div>
+    </n-modal>
+
+    <n-modal :show="showAyvaRemotePromo" :auto-focus="false">
+      <div>
+        <div>
+          <ayva-remote-promo @close="onCloseAyvaRemotePromo" />
         </div>
       </div>
     </n-modal>
@@ -126,6 +134,7 @@ import AyvaFreePlay from './components/AyvaFreePlay.vue';
 import AyvaMode from './components/AyvaMode.vue';
 import AyvaController from './lib/controller.js';
 import AyvaReleaseNotes from './components/AyvaReleaseNotes.vue';
+import AyvaRemotePromo from './components/AyvaRemotePromo.vue';
 import AyvaLicense from './components/AyvaLicense.vue';
 import Storage from './lib/ayva-storage';
 import WebSocketDevice from './lib/websocket-device.js';
@@ -150,6 +159,7 @@ export default {
     AyvaSlider,
     AyvaReleaseNotes,
     AyvaLicense,
+    AyvaRemotePromo,
   },
 
   provide () {
@@ -208,6 +218,8 @@ export default {
       showHud: true,
 
       showReleaseNotes: false,
+
+      showAyvaRemotePromo: true,
 
       showLicense: false,
 
@@ -294,9 +306,10 @@ export default {
 
     this.refreshOutputSettings();
 
-    this.showReleaseNotes = this.globalSettings.load('show-release-notes') ?? true;
+    // Temporarily hide release notes for Promo.
+    // this.showReleaseNotes = this.globalSettings.load('show-release-notes') ?? true;
 
-    this.patreonPromo();
+    // this.patreonPromo();
   },
 
   methods: {
@@ -537,6 +550,11 @@ export default {
           avatar: () => h(PatreonIcon, patreonStyle),
         });
       }, 30000);
+    },
+
+    onCloseAyvaRemotePromo () {
+      this.showAyvaRemotePromo = false;
+      this.patreonPromo();
     },
   },
 };
