@@ -123,7 +123,9 @@
 
 <script>
 import OSREmulator from 'osr-emu';
-import { Ayva, WebSerialDevice } from 'ayvajs';
+import {
+  Ayva, WebSerialDevice, WebSocketDevice, ConsoleDevice, BLEDevice
+} from 'ayvajs';
 import { computed, h } from 'vue';
 import { useNotification } from 'naive-ui';
 import { createAyva } from './lib/ayva-config.js';
@@ -137,8 +139,6 @@ import AyvaReleaseNotes from './components/AyvaReleaseNotes.vue';
 import AyvaRemotePromo from './components/AyvaRemotePromo.vue';
 import AyvaLicense from './components/AyvaLicense.vue';
 import Storage from './lib/ayva-storage';
-import WebSocketDevice from './lib/websocket-device.js';
-import ConsoleDevice from './lib/console-device.js';
 import PatreonIcon from './assets/icons/patreon.svg';
 import { formatter, eventMixin, triggerMouseEvent } from './lib/util.js';
 import CustomBehaviorStorage from './lib/custom-behavior-storage';
@@ -510,6 +510,8 @@ export default {
         this.device = new WebSocketDevice(host, port);
       } else if (connectionType === 'console') {
         this.device = new ConsoleDevice();
+      } else if (connectionType === 'ble') {
+        this.device = new BLEDevice();
       } else {
         this.device = new WebSerialDevice();
       }

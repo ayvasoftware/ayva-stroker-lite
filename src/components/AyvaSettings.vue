@@ -94,6 +94,9 @@ export default {
         key: 'serial',
         label: 'Serial',
       }, {
+        key: 'ble',
+        label: 'Bluetooth LE',
+      }, {
         key: 'websocket',
         label: 'WebSocket',
       }, {
