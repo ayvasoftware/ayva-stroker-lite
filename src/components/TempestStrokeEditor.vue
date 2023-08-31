@@ -591,7 +591,7 @@ export default {
     },
 
     onHover (event) {
-      const infoElement = event.path.find((element) => element.hasAttribute && element.hasAttribute('hover-info'));
+      const infoElement = event.composedPath().find((element) => element.hasAttribute && element.hasAttribute('hover-info'));
 
       if (infoElement) {
         this.contextClue = infoElement.getAttribute('hover-info');

@@ -46,15 +46,15 @@
         :disabled="mode === 'Free Play' || !strokes.length"
         @click="freePlay()"
       >
-        Free Play
+        <span>Free Play</span> <span style="font-size: 12px">(Space)</span>
       </button>
 
       <button
         id="stop"
         :disabled="mode === 'Stopped'"
-        @click="onStop"
+        @click="stop"
       >
-        Stop (Esc)
+        <span>Stop</span> <span style="font-size: 12px">(Esc)</span>
       </button>
     </div>
 
@@ -78,29 +78,17 @@
       </div>
     </div>
 
-    <n-modal :show="showReleaseNotes" :auto-focus="false">
-      <div>
-        <div class="lil-gui">
-          <ayva-release-notes @close="onCloseReleaseNotes" />
-        </div>
-      </div>
-    </n-modal>
+    <ayva-modal :show="showReleaseNotes" lil-gui>
+      <ayva-release-notes @close="onCloseReleaseNotes" />
+    </ayva-modal>
 
-    <n-modal :show="showAyvaRemotePromo" :auto-focus="false">
-      <div>
-        <div>
-          <ayva-remote-promo @close="onCloseAyvaRemotePromo" />
-        </div>
-      </div>
-    </n-modal>
+    <ayva-modal :show="showAyvaRemotePromo">
+      <ayva-remote-promo @close="onCloseAyvaRemotePromo" />
+    </ayva-modal>
 
-    <n-modal :show="showLicense" :auto-focus="false">
-      <div>
-        <div class="lil-gui">
-          <ayva-license ref="licenseModal" @close="showLicense = false" />
-        </div>
-      </div>
-    </n-modal>
+    <ayva-modal :show="showLicense" lil-gui>
+      <ayva-license ref="licenseModal" @close="showLicense = false" />
+    </ayva-modal>
 
     <div class="logo" :style="hudStyle">
       <span>
@@ -132,6 +120,7 @@ import { createAyva } from './lib/ayva-config.js';
 import AyvaSlider from './components/widgets/AyvaSlider.vue';
 import AyvaCheckbox from './components/widgets/AyvaCheckbox.vue';
 import AyvaOutput from './components/AyvaOutput.vue';
+import AyvaModal from './components/AyvaModal.vue';
 import AyvaFreePlay from './components/AyvaFreePlay.vue';
 import AyvaMode from './components/AyvaMode.vue';
 import AyvaController from './lib/controller.js';
@@ -160,6 +149,7 @@ export default {
     AyvaReleaseNotes,
     AyvaLicense,
     AyvaRemotePromo,
+    AyvaModal,
   },
 
   provide () {
@@ -168,6 +158,7 @@ export default {
       globalDevice: computed(() => this.device),
       globalParameters: computed(() => this.parameters),
       globalEvents: computed(() => this.events),
+      modals: computed(() => this.modals),
     };
   },
 
@@ -245,6 +236,10 @@ export default {
       }],
 
       globalSettings: new Storage('global-settings'),
+
+      modals: {
+        count: 0,
+      },
     };
   },
 
@@ -295,8 +290,25 @@ export default {
     watchProperties.forEach((prop) => this.$watch(prop, () => this.updateController(), { immediate: true, deep: true }));
 
     window.addEventListener('keyup', (event) => {
-      if (event.key === 'Escape') {
-        ayva.stop();
+      const noModals = this.modals.count === 0;
+
+      if (noModals && event.key === 'Escape') {
+        this.stop();
+      } else if (noModals && event.key === ' ') {
+        // Toggle Free Play Mode on Space Click
+        if (this.mode === 'Free Play') {
+          this.stop();
+        } else {
+          this.freePlay();
+        }
+      }
+    });
+
+    window.addEventListener('keydown', (event) => {
+      const noModals = this.modals.count === 0;
+
+      if (noModals && event.key === ' ') {
+        event.preventDefault();
       }
     });
 
@@ -461,7 +473,7 @@ export default {
       ayva.home();
     },
 
-    onStop () {
+    stop () {
       ayva.stop();
     },
 

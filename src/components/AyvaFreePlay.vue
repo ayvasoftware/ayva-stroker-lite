@@ -201,21 +201,13 @@
       </div>
     </div>
 
-    <n-modal :show="showStrokeEditor" :auto-focus="false">
-      <div>
-        <div class="lil-gui">
-          <tempest-stroke-editor ref="strokeEditor" :edit-stroke="editStroke" @close="showStrokeEditor = false" @save="refreshStrokes" />
-        </div>
-      </div>
-    </n-modal>
+    <ayva-modal :show="showStrokeEditor" lil-gui>
+      <tempest-stroke-editor ref="strokeEditor" :edit-stroke="editStroke" @close="showStrokeEditor = false" @save="refreshStrokes" />
+    </ayva-modal>
 
-    <n-modal :show="showScriptEditor" :auto-focus="false">
-      <div>
-        <div class="lil-gui">
-          <ayva-script-editor ref="strokeEditor" :edit-script="editScript" @close="showScriptEditor = false" @save="refreshStrokes" />
-        </div>
-      </div>
-    </n-modal>
+    <ayva-modal :show="showScriptEditor" lil-gui>
+      <ayva-script-editor ref="strokeEditor" :edit-script="editScript" @close="showScriptEditor = false" @save="refreshStrokes" />
+    </ayva-modal>
   </div>
 </template>
 
@@ -230,6 +222,7 @@ import AyvaCheckbox from './widgets/AyvaCheckbox.vue';
 import AyvaBpmSelect from './widgets/AyvaBpmSelect.vue';
 import AyvaScriptEditor from './AyvaScriptEditor.vue';
 import TempestStrokeEditor from './TempestStrokeEditor.vue';
+import AyvaModal from './AyvaModal.vue';
 import {
   makeCollapsible, formatter, clampHeight
 } from '../lib/util.js';
@@ -248,6 +241,7 @@ export default {
     AyvaBpmSelect,
     AyvaScriptEditor,
     TempestStrokeEditor,
+    AyvaModal,
   },
 
   inject: ['globalAyva'],

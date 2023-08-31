@@ -32,13 +32,9 @@
       </template>
     </div>
 
-    <n-modal :show="showSettings" :auto-focus="false">
-      <div>
-        <div class="lil-gui">
-          <ayva-settings ref="ayvaSettings" @close="showSettings = false" />
-        </div>
-      </div>
-    </n-modal>
+    <ayva-modal :show="showSettings" lil-gui>
+      <ayva-settings ref="ayvaSettings" @close="showSettings = false" />
+    </ayva-modal>
   </div>
 </template>
 
@@ -46,6 +42,7 @@
 import AyvaSlider from './widgets/AyvaSlider.vue';
 import AyvaConnected from './AyvaConnected.vue';
 import AyvaSettings from './AyvaSettings.vue';
+import AyvaModal from './AyvaModal.vue';
 import { makeCollapsible } from '../lib/util.js';
 
 export default {
@@ -53,6 +50,7 @@ export default {
     AyvaSlider,
     AyvaConnected,
     AyvaSettings,
+    AyvaModal,
   },
 
   inject: {
