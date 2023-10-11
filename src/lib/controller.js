@@ -50,7 +50,7 @@ class Controller extends GeneratorBehavior {
 
         break;
       case STATE.TRANSITION_FREE_PLAY:
-        yield* this.#createTransition(ayva, this.#freePlayStroke());
+        yield* this.#createTransition(ayva, _.sample(this.strokes));
 
         break;
       case STATE.STROKING:
@@ -268,10 +268,6 @@ class Controller extends GeneratorBehavior {
     };
 
     return bpmProvider;
-  }
-
-  #freePlayStroke () {
-    return this.strokes[Math.floor(Math.random() * this.strokes.length)];
   }
 
   #createScriptRunner (script) {
