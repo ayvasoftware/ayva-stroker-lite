@@ -321,7 +321,7 @@ export default {
     // Temporarily hide release notes for Promo.
     // this.showReleaseNotes = this.globalSettings.load('show-release-notes') ?? true;
 
-    // this.patreonPromo();
+    this.patreonPromo();
   },
 
   methods: {
@@ -530,8 +530,15 @@ export default {
     },
 
     patreonPromo () {
-      const storageKey = 'patreon-promo-disabled';
-      const patreonPromoDisabled = new Storage('checkbox-value').load(storageKey);
+      const checkboxStorage = new Storage('checkbox-value');
+      const resetPromoStorage = new Storage('promo-reset');
+
+      if (!resetPromoStorage.load('patreon')) {
+        checkboxStorage.save('patreon-promo-disabled', false);
+        resetPromoStorage.save('patreon', true);
+      }
+
+      const patreonPromoDisabled = checkboxStorage.load('patreon-promo-disabled');
 
       if (patreonPromoDisabled) {
         return;
@@ -557,7 +564,7 @@ export default {
                 [
                   h('span', 'Don\'t show this message again.'),
                   h(AyvaCheckbox, {
-                    storageKey,
+                    storageKey: 'patreon-promo-disabled',
                   })]
               )]
           ),
