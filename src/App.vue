@@ -321,7 +321,7 @@ export default {
     // Temporarily hide release notes for Promo.
     // this.showReleaseNotes = this.globalSettings.load('show-release-notes') ?? true;
 
-    this.patreonPromo();
+    // this.patreonPromo();
   },
 
   methods: {
