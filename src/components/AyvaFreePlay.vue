@@ -503,6 +503,7 @@ export default {
         customBehaviorStorage.import(onConflicts).then(() => {
           this.refreshStrokes();
         }).catch((error) => {
+          console.error(error?.stack); // eslint-disable-line no-console
           this.notify.error({
             content: 'Error importing stroke:',
             meta: error.message,

@@ -15,7 +15,7 @@ const parametersSchema = Joi.object({
 const noiseSchema = Joi.object({
   from: Joi.number().min(0).max(1),
   to: Joi.number().min(0).max(1),
-}).min(1).required();
+});
 
 const behaviorSchema = Joi.object({
   name: Joi.string().required().pattern(keyPattern),
