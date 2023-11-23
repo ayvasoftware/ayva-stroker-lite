@@ -1,6 +1,6 @@
 <template>
   <Transition name="fade">
-    <div v-show="showPromo" class="modal-body" @mouseover="onHover">
+    <div v-show="showPromo" class="modal-body">
       <div class="body">
         <a target="_blank" href="https://remote.ayvasoftware.io/about">
           <img class="promo" src="/img/ayva-remote.png">
@@ -24,6 +24,8 @@
 export default {
   emits: ['close'],
 
+  expose: ['showPromo'],
+
   data () {
     return {
       showPromo: false,
@@ -33,7 +35,7 @@ export default {
   mounted () {
     setTimeout(() => {
       this.showPromo = true;
-    }, 100);
+    }, Math.random() * 30000 + 30000);
   },
 };
 </script>
@@ -105,10 +107,10 @@ export default {
 }
 
 .promo {
-  width: 40rem;
+  width: 40em;
   font-family: Helvetica;
-  font-size: 1rem;
-  line-height: 1.5rem;
+  font-size: 1em;
+  line-height: 1.5em;
   color: var(--ayva-blue);
   text-align: center;
 }
@@ -135,7 +137,7 @@ export default {
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 1.5s ease-in;
+  transition: opacity 0.75s ease-in;
 }
 
 .fade-enter-from,

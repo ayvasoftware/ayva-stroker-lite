@@ -82,9 +82,7 @@
       <ayva-release-notes @close="onCloseReleaseNotes" />
     </ayva-modal>
 
-    <ayva-modal :show="showAyvaRemotePromo">
-      <ayva-remote-promo @close="onCloseAyvaRemotePromo" />
-    </ayva-modal>
+    <ayva-remote-promo ref="ayvaRemotePromo" class="ayva-remote-promo" @close="onCloseAyvaRemotePromo" />
 
     <ayva-modal :show="showLicense" lil-gui>
       <ayva-license ref="licenseModal" @close="showLicense = false" />
@@ -574,7 +572,7 @@ export default {
     },
 
     onCloseAyvaRemotePromo () {
-      this.showAyvaRemotePromo = false;
+      this.$refs.ayvaRemotePromo.showPromo = false;
       this.patreonPromo();
     },
   },
@@ -582,3 +580,12 @@ export default {
 </script>
 
 <style src="./assets/main.css"></style>
+<style>
+.ayva-remote-promo {
+  position: fixed;
+  bottom: 10vh;
+  z-index: 1000;
+  left: 2vw;
+  font-size: 0.75rem;
+}
+</style>

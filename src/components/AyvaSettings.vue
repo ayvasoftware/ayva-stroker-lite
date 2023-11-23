@@ -65,7 +65,8 @@
         <div v-show="connectionType === 'websocket'" class="settings">
           <div style="grid-column: span 2; font-size: 14px; text-align: center; color: var(--ayva-color-error)">
             Note: There currently is no firmware available that supports a secure WebSocket.
-            You must connect to another application running on localhost, such as Ayva WebSocket Hub<br>(coming soon!)
+            You must connect to another application running on localhost, such as
+            <a href="https://osr.wiki/books/ayva-websocket-hub/page/overview" target="_blank" style="color: var(--ayva-color-error);">Ayva WebSocket Hub</a>.
           </div>
         </div>
       </div>
