@@ -11,8 +11,6 @@
           try <a target="_blank" href="https://remote.ayvasoftware.io/about">Ayva <span class="indigo">Remote</span></a>, the first app that
           allows <b class="indigo"><span style="text-decoration: underline">true</span> live control</b> of
           Homebuilt Multi Axis Strokers over the internet!
-
-          <br><br>New <a class="indigo" target="_blank" href="https://remote.ayvasoftware.io/providers">providers</a> listed regularly!
         </div>
       </div>
     </div>

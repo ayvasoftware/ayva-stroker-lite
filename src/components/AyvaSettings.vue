@@ -1,6 +1,6 @@
 <template>
-  <div class="modal-body-small" :style="modalStyle">
-    <div class="header">
+  <div class="modal-body-small">
+    <div>
       <div class="toolbar">
         <span class="toolbar-left">
           <span>Output Settings</span>
@@ -18,7 +18,13 @@
       <div class="limits lil-gui children">
         <div class="settings">
           <div class="settings-label">
-            Type:
+            Device:
+          </div>
+          <ayva-dropdown v-model="deviceType" class="device-type" :options="deviceTypeOptions" storage-key="device-type" />
+        </div>
+        <div class="settings">
+          <div class="settings-label">
+            Connection:
           </div>
           <ayva-dropdown v-model="connectionType" class="connection-type" :options="connectionTypeOptions" storage-key="connection-type" />
         </div>
@@ -48,25 +54,17 @@
             </n-tooltip>
           </div>
         </div>
-        <!-- One day unhide when we can handle frequencies > 50...-->
-        <!-- <div class="settings" style="display: none">
-          <div class="settings-label">
-            Frequency:
-          </div>
-          <div>
-            <n-tooltip :show="frequencyInvalid" class="error-tooltip">
-              <template #trigger>
-                <input v-model="frequency" class="frequency" :class="frequencyInvalid ? 'error' : ''" maxlength="3" @keydown="restrictNumbers">
-              </template>
-              Frequency must be a number between 10 and 250.
-            </n-tooltip>
-          </div>
-        </div> -->
         <div v-show="connectionType === 'websocket'" class="settings">
-          <div style="grid-column: span 2; font-size: 14px; text-align: center; color: var(--ayva-color-error)">
+          <div style="grid-column: span 2; font-size: 14px; text-align: center; color: var(--ayva-color-error);">
             Note: There currently is no firmware available that supports a secure WebSocket.
-            You must connect to another application running on localhost, such as
-            <a href="https://osr.wiki/books/ayva-websocket-hub/page/overview" target="_blank" style="color: var(--ayva-color-error);">Ayva WebSocket Hub</a>.
+            You must connect to another application running on localhost, such as<br>
+            <a
+              href="https://osr.wiki/books/ayva-websocket-hub/page/overview"
+              target="_blank"
+              style="color: var(--ayva-color-error);"
+            >
+              Ayva WebSocket Hub
+            </a>.
           </div>
         </div>
       </div>
@@ -91,6 +89,16 @@ export default {
 
   data () {
     return {
+      deviceTypeOptions: [{
+        key: 'OSR2',
+        label: 'OSR2',
+      }, {
+        key: 'SR6',
+        label: 'SR6',
+      }],
+
+      deviceType: 'OSR2',
+
       connectionTypeOptions: [{
         key: 'serial',
         label: 'Serial',
@@ -116,10 +124,6 @@ export default {
   },
 
   computed: {
-    modalStyle () {
-      return this.connectionType === 'websocket' ? { height: '277px' } : { height: '80px' }; // { height: '205px' } : { height: '118px' };
-    },
-
     portInvalid () {
       const port = Number(this.port);
       return !(Number.isFinite(port) && port >= 1 && port <= 65535);
@@ -149,6 +153,7 @@ export default {
         return;
       }
 
+      storage.save('deviceType', this.deviceType);
       storage.save('connectionType', this.connectionType);
       storage.save('frequency', this.frequency);
       storage.save('host', this.host);
@@ -178,12 +183,16 @@ export default {
 .settings {
   display: grid;
   grid-template-columns: 40% 60%;
-  padding: 10px 21px 10px 4px;
+  padding: 10px 20px 10px 20px;
 }
 
 .settings input {
   background: var(--ayva-background-dark) !important;
   padding: 5px;
+}
+
+.limits {
+  padding-bottom: 5px;
 }
 
 .port {

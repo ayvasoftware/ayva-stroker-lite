@@ -127,6 +127,10 @@ export default {
     device: {
       from: 'globalDevice',
     },
+
+    deviceType: {
+      from: 'deviceType',
+    },
   },
 
   props: {
@@ -372,7 +376,7 @@ export default {
   },
 
   mounted () {
-    emulator = new OSREmulator(this.$refs.emulator);
+    emulator = new OSREmulator(this.$refs.emulator, { model: this.deviceType });
     ayva.addOutput(emulator);
 
     // Copy all axis limits from global Ayva instance.

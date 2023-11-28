@@ -3,7 +3,7 @@
     <div class="header" hover-info="">
       <div class="toolbar">
         <span class="toolbar-left">
-          <span>Release Notes (1.42.0)</span>
+          <span>Release Notes (1.43.0)</span>
         </span>
         <span class="toolbar-right">
           <span>
@@ -14,24 +14,12 @@
     </div>
     <div class="body">
       <div class="release-notes">
-        <h2>New Features</h2>
-        <ul style="margin-left: 20px; margin-top: 10px;" class="light-gray">
-          <li>25 new stroke patterns.</li>
-          <li>Allow WebSocket output.</li>
-          <li>
-            Create custom
-            <a
-              href="https://ayvajs.github.io/ayvajs-docs/tutorial-ayva-stroker-lite.html#ayvascripts"
-              style="color: var(--ayva-text-color-blue); font-weight: bold; text-decoration: none"
-              target="_blank"
-            >AyvaScripts</a>.
-          </li>
-          <li>Import and export all site settings.</li>
-          <li>Maximum BPM increased to 200.</li>
-          <li>Minimum transition time decreased to 0.5 seconds.</li>
-          <li>Improved BPM performance (perfect timing).</li>
-          <li>Allow console output (for debugging).</li>
-        </ul>
+        <h2>SR6 Emulator now Available!</h2>
+        <div class="release-notes light-gray">
+          Enable the SR6 from the Output Settings menu:
+        </div>
+        <img style="margin-bottom: 10px" src="/img/enable-sr6.gif">
+        <img src="/img/sr6-example.gif">
       </div>
       <div class="release-notes light-gray">
         View the updated guide <a
@@ -64,7 +52,7 @@ export default {
 <style scoped>
 .modal-body {
   width: 500px;
-  height: 395px;
+  height: fit-content;
 }
 
 .header {
@@ -125,5 +113,15 @@ export default {
 
 [disabled] > * {
   pointer-events: none;
+}
+
+img {
+  width: 50%;
+  display: block;
+  margin: auto;
+}
+
+h2 {
+  padding-bottom: 1rem;
 }
 </style>

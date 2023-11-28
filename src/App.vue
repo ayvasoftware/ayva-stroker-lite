@@ -157,6 +157,7 @@ export default {
       globalParameters: computed(() => this.parameters),
       globalEvents: computed(() => this.events),
       modals: computed(() => this.modals),
+      deviceType: computed(() => this.deviceType),
     };
   },
 
@@ -204,6 +205,8 @@ export default {
 
       device: new WebSerialDevice(),
 
+      deviceType: null,
+
       showHud: true,
 
       showReleaseNotes: false,
@@ -213,6 +216,8 @@ export default {
       showLicense: false,
 
       patreonUrl: 'https://patreon.com/soritesparadox',
+
+      eggplantUrl: 'https://www.buymeacoffee.com/soritesparadox',
 
       events: { ...eventMixin },
 
@@ -228,6 +233,9 @@ export default {
       }, {
         key: 'license',
         label: 'License',
+      }, {
+        key: 'eggplant',
+        label: 'Buy Sorites Paradox an Eggplant 🍆',
       }, {
         key: 'patreon',
         label: 'Patreon',
@@ -259,6 +267,16 @@ export default {
         ayva.stop();
       }
     },
+
+    deviceType () {
+      if (emulator) {
+        emulator.destroy();
+        ayva.removeOutput(emulator);
+
+        emulator = new OSREmulator(this.$refs.emulator, { model: this.deviceType });
+        ayva.addOutput(emulator);
+      }
+    },
   },
 
   beforeCreate () {
@@ -273,11 +291,11 @@ export default {
     };
   },
 
+  beforeMount () {
+    this.refreshOutputSettings();
+  },
+
   mounted () {
-    emulator = new OSREmulator(this.$refs.emulator);
-
-    ayva.addOutput(emulator);
-
     const watchProperties = [
       'bpmSliderActive',
       'currentBpm',
@@ -314,12 +332,11 @@ export default {
       this.refreshOutputSettings();
     });
 
-    this.refreshOutputSettings();
+    emulator = new OSREmulator(this.$refs.emulator, { model: this.deviceType });
+    ayva.addOutput(emulator);
 
     // Temporarily hide release notes for Promo.
-    // this.showReleaseNotes = this.globalSettings.load('show-release-notes') ?? true;
-
-    // this.patreonPromo();
+    this.showReleaseNotes = this.globalSettings.load('show-release-notes-1.43.0') ?? true;
   },
 
   methods: {
@@ -345,6 +362,8 @@ export default {
         this.showReleaseNotes = true;
       } else if (key === 'license') {
         this.showLicense = true;
+      } else if (key === 'eggplant') {
+        window.open(this.eggplantUrl, '_blank').focus();
       } else if (key === 'patreon') {
         window.open(this.patreonUrl, '_blank').focus();
       }
@@ -352,7 +371,7 @@ export default {
 
     onCloseReleaseNotes () {
       this.showReleaseNotes = false;
-      this.globalSettings.save('show-release-notes', false);
+      this.globalSettings.save('show-release-notes-1.43.0', false);
     },
 
     onClickEmulator () {
@@ -508,6 +527,7 @@ export default {
     refreshOutputSettings () {
       const outputSettingsStorage = new Storage('output-settings');
 
+      const deviceType = outputSettingsStorage.load('deviceType') || 'OSR2';
       const host = outputSettingsStorage.load('host') || 'localhost';
       const port = Number(outputSettingsStorage.load('port') || 80);
       const frequency = Number(outputSettingsStorage.load('frequency') || 50);
@@ -525,6 +545,8 @@ export default {
       } else {
         this.device = new WebSerialDevice();
       }
+
+      this.deviceType = deviceType;
     },
 
     patreonPromo () {

@@ -1,7 +1,7 @@
 <template>
   <div class="limits-container lil-gui root">
     <div class="title" style="padding-right: 0">
-      <span>Output Range</span>
+      <span>Output</span>
 
       <ayva-connected
         :connected="device.connected"
@@ -9,7 +9,7 @@
         @click.stop="toggleConnection"
       />
 
-      <settings-icon
+      <edit-settings-icon
         :disabled="mode !== 'Stopped' || device.connected ? '' : null" class="settings icon"
         @click.stop="mode != 'Stopped' || device.connected ? '' : (showSettings=true)"
       />

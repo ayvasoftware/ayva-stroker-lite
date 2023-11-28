@@ -3,7 +3,8 @@
   <n-notification-provider placement="bottom-right">
     <n-dialog-provider>
       <n-spin :show="showSpinner" class="app-spinner">
-        <App />
+        <App v-if="fundraiserComplete" />
+        <AyvaFundraiser v-else @end-fundraiser="onEndFundraiser" />
       </n-spin>
     </n-dialog-provider>
   </n-notification-provider>
@@ -12,11 +13,16 @@
 <script>
 import { computed } from 'vue';
 import App from './App.vue';
+import AyvaFundraiser from './components/AyvaFundraiser.vue';
+import Storage from './lib/ayva-storage';
+
+const fundraiserStorage = new Storage('fundraiser');
 
 export default {
 
   components: {
     App,
+    AyvaFundraiser,
   },
 
   provide () {
@@ -34,7 +40,21 @@ export default {
           return promise.finally(() => (this.showSpinner = false));
         },
       },
+      fundraiserComplete: false,
     };
+  },
+
+  beforeMount () {
+    if (fundraiserStorage.load('november-2023')) {
+      this.fundraiserComplete = true;
+    }
+  },
+
+  methods: {
+    onEndFundraiser () {
+      this.fundraiserComplete = true;
+      fundraiserStorage.save('november-2023', true);
+    },
   },
 };
 </script>

@@ -244,7 +244,7 @@ export default {
     AyvaModal,
   },
 
-  inject: ['globalAyva'],
+  inject: ['globalAyva', 'deviceType'],
 
   props: {
     currentStrokeName: {
@@ -417,6 +417,10 @@ export default {
     selectAllStrokes () {
       this.fireUpdateStrokes();
     },
+
+    deviceType () {
+      this.resetEmulator();
+    },
   },
 
   mounted () {
@@ -427,7 +431,7 @@ export default {
     this.previewElement = document.createElement('div');
     this.previewElement.classList.add('preview-popup');
 
-    previewEmulator = new OSREmulator(this.previewElement);
+    this.resetEmulator();
 
     window.addEventListener('resize', this.onResize);
 
@@ -632,6 +636,14 @@ export default {
         this.previewParent.removeChild(this.previewElement);
         this.previewParent = null;
       }
+    },
+
+    resetEmulator () {
+      if (previewEmulator) {
+        previewEmulator.destroy();
+      }
+
+      previewEmulator = new OSREmulator(this.previewElement, { model: this.deviceType });
     },
   },
 };
