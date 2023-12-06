@@ -336,7 +336,7 @@ export default {
     ayva.addOutput(emulator);
 
     // Temporarily hide release notes for Promo.
-    this.showReleaseNotes = this.globalSettings.load('show-release-notes-1.43.0') ?? true;
+    this.showReleaseNotes = this.globalSettings.load('show-release-notes-1.44.0') ?? true;
   },
 
   methods: {
@@ -371,7 +371,7 @@ export default {
 
     onCloseReleaseNotes () {
       this.showReleaseNotes = false;
-      this.globalSettings.save('show-release-notes-1.43.0', false);
+      this.globalSettings.save('show-release-notes-1.44.0', false);
     },
 
     onClickEmulator () {

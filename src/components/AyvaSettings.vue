@@ -95,6 +95,9 @@ export default {
       }, {
         key: 'SR6',
         label: 'SR6',
+      }, {
+        key: 'SSR1',
+        label: 'SSR1',
       }],
 
       deviceType: 'OSR2',

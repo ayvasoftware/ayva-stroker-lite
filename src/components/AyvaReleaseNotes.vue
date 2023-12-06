@@ -3,7 +3,7 @@
     <div class="header" hover-info="">
       <div class="toolbar">
         <span class="toolbar-left">
-          <span>Release Notes (1.43.0)</span>
+          <span>Release Notes (1.44.0)</span>
         </span>
         <span class="toolbar-right">
           <span>
@@ -14,12 +14,15 @@
     </div>
     <div class="body">
       <div class="release-notes">
-        <h2>SR6 Emulator now Available!</h2>
+        <h2>Additional Emulators now Available!</h2>
         <div class="release-notes light-gray">
-          Enable the SR6 from the Output Settings menu:
+          Enable the SR6 or SSR1 emulators from the Output Settings menu:
         </div>
         <img style="margin-bottom: 10px" src="/img/enable-sr6.gif">
-        <img src="/img/sr6-example.gif">
+        <div class="examples">
+          <img src="/img/sr6-example.gif">
+          <img src="/img/ssr1-example.gif">
+        </div>
       </div>
       <div class="release-notes light-gray">
         View the updated guide <a
@@ -123,5 +126,13 @@ img {
 
 h2 {
   padding-bottom: 1rem;
+}
+
+.examples {
+  display: flex;
+}
+
+.examples > * {
+  height: 221px;
 }
 </style>
