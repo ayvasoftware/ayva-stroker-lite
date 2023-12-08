@@ -45,9 +45,9 @@ export default {
   },
 
   beforeMount () {
-    if (fundraiserStorage.load('november-2023')) {
-      this.fundraiserComplete = true;
-    }
+    // if (fundraiserStorage.load('november-2023')) {
+    this.fundraiserComplete = true;
+    // }
   },
 
   methods: {
