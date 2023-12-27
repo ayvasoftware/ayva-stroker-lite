@@ -82,8 +82,6 @@
       <ayva-release-notes @close="onCloseReleaseNotes" />
     </ayva-modal>
 
-    <ayva-remote-promo ref="ayvaRemotePromo" class="ayva-remote-promo" @close="onCloseAyvaRemotePromo" />
-
     <ayva-modal :show="showLicense" lil-gui>
       <ayva-license ref="licenseModal" @close="showLicense = false" />
     </ayva-modal>
@@ -123,7 +121,6 @@ import AyvaFreePlay from './components/AyvaFreePlay.vue';
 import AyvaMode from './components/AyvaMode.vue';
 import AyvaController from './lib/controller.js';
 import AyvaReleaseNotes from './components/AyvaReleaseNotes.vue';
-import AyvaRemotePromo from './components/AyvaRemotePromo.vue';
 import AyvaLicense from './components/AyvaLicense.vue';
 import Storage from './lib/ayva-storage';
 import PatreonIcon from './assets/icons/patreon.svg';
@@ -146,7 +143,6 @@ export default {
     AyvaSlider,
     AyvaReleaseNotes,
     AyvaLicense,
-    AyvaRemotePromo,
     AyvaModal,
   },
 
@@ -210,8 +206,6 @@ export default {
       showHud: true,
 
       showReleaseNotes: false,
-
-      showAyvaRemotePromo: true,
 
       showLicense: false,
 
@@ -335,8 +329,9 @@ export default {
     emulator = new OSREmulator(this.$refs.emulator, { model: this.deviceType });
     ayva.addOutput(emulator);
 
-    // Temporarily hide release notes for Promo.
-    this.showReleaseNotes = this.globalSettings.load('show-release-notes-1.44.0') ?? true;
+    this.showReleaseNotes = this.globalSettings.load('show-release-notes-1.45.0') ?? true;
+
+    this.patreonPromo();
   },
 
   methods: {
@@ -371,7 +366,7 @@ export default {
 
     onCloseReleaseNotes () {
       this.showReleaseNotes = false;
-      this.globalSettings.save('show-release-notes-1.44.0', false);
+      this.globalSettings.save('show-release-notes-1.45.0', false);
     },
 
     onClickEmulator () {
@@ -593,10 +588,6 @@ export default {
       }, 30000);
     },
 
-    onCloseAyvaRemotePromo () {
-      this.$refs.ayvaRemotePromo.showPromo = false;
-      this.patreonPromo();
-    },
   },
 };
 </script>

@@ -2,9 +2,7 @@
   <div class="modal-body" @mouseover="onHover">
     <div class="header" hover-info="">
       <div class="toolbar">
-        <span class="toolbar-left">
-          <span>Release Notes (1.44.0)</span>
-        </span>
+        <span class="toolbar-left" />
         <span class="toolbar-right">
           <span>
             <close-icon class="close icon" @click="$emit('close')" />
@@ -14,24 +12,27 @@
     </div>
     <div class="body">
       <div class="release-notes">
-        <h2>Additional Emulators now Available!</h2>
-        <div class="release-notes light-gray">
-          Enable the SR6 or SSR1 emulators from the Output Settings menu:
+        <h2 style="text-align: center">
+          A special announcement!
+        </h2>
+        <a href="https://remote.ayvasoftware.io/about" target="_blank">
+          <img src="/img/ayva-remote.png" style="width: 460px"></a>
+        <div class="light-gray" style="padding-top: 5px">
+          Ayva Remote is now FREE. Allow anyone in the world to control your device!
+          <br><br>Now supporting the <b>SR6</b>, <b>SSR1</b>, and <b>The Handy</b>!
         </div>
-        <img style="margin-bottom: 10px" src="/img/enable-sr6.gif">
+      </div>
+      <div class="release-notes">
         <div class="examples">
           <img src="/img/sr6-example.gif">
           <img src="/img/ssr1-example.gif">
         </div>
       </div>
       <div class="release-notes light-gray">
-        View the updated guide <a
-          style="color: var(--ayva-text-color-blue)" href="https://ayvajs.github.io/ayvajs-docs/tutorial-ayva-stroker-lite.html" target="_blank"
+        More information about this announcement is available <a
+          style="color: var(--ayva-text-color-blue)"
+          href="https://discuss.eroscripts.com/t/ayva-remote-now-free-for-everyone-the-handy-and-sr6-modes-released/136271" target="_blank"
         >here.</a>
-      </div>
-
-      <div class="release-notes light-gray">
-        <i>Note: Import, export, and these release notes can be accessed from the settings menu in the lower left corner of the app.</i>
       </div>
     </div>
   </div>
