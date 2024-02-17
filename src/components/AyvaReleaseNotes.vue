@@ -19,7 +19,7 @@
           <img src="/img/ayva-remote.png" style="width: 460px"></a>
         <div class="light-gray" style="padding-top: 5px">
           Ayva Remote is now FREE. Allow anyone in the world to control your device!
-          <br><br>Now supporting the <b>SR6</b>, <b>SSR1</b>, and <b>The Handy</b>!
+          <br><br>Now supporting the <b>SR6</b>, <b>SSR1</b>, <b>The Handy</b>, and <b>Keon</b>!
         </div>
       </div>
       <div class="release-notes">

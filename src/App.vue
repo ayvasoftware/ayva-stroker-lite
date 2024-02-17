@@ -329,7 +329,7 @@ export default {
     emulator = new OSREmulator(this.$refs.emulator, { model: this.deviceType });
     ayva.addOutput(emulator);
 
-    this.showReleaseNotes = this.globalSettings.load('show-release-notes-1.45.0') ?? true;
+    this.showReleaseNotes = this.globalSettings.load('show-release-notes-1.45.1') ?? true;
 
     this.patreonPromo();
   },
@@ -366,7 +366,7 @@ export default {
 
     onCloseReleaseNotes () {
       this.showReleaseNotes = false;
-      this.globalSettings.save('show-release-notes-1.45.0', false);
+      this.globalSettings.save('show-release-notes-1.45.1', false);
     },
 
     onClickEmulator () {
