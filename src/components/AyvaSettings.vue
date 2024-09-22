@@ -26,7 +26,14 @@
           <div class="settings-label">
             Connection:
           </div>
-          <ayva-dropdown v-model="connectionType" class="connection-type" :options="connectionTypeOptions" storage-key="connection-type" />
+          <template v-if="['HANDY', 'KEON', 'RUBJOY'].includes(deviceType)">
+            <div class="connection-type">
+              Bluetooth LE
+            </div>
+          </template>
+          <template v-else>
+            <ayva-dropdown v-model="connectionType" class="connection-type" :options="connectionTypeOptions" storage-key="connection-type" />
+          </template>
         </div>
         <div v-show="connectionType === 'websocket'" class="settings">
           <div class="settings-label">
@@ -98,6 +105,9 @@ export default {
       }, {
         key: 'SSR1',
         label: 'SSR1',
+      }, {
+        key: 'RUBJOY',
+        label: 'Rubjoy',
       }],
 
       deviceType: 'OSR2',
@@ -139,6 +149,14 @@ export default {
 
     hostInvalid () {
       return !this.host || !this.host.trim();
+    },
+  },
+
+  watch: {
+    deviceType (value) {
+      if (value === 'HANDY' || value === 'KEON' || value === 'RUBJOY') {
+        this.connectionType = 'ble';
+      }
     },
   },
 

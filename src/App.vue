@@ -127,6 +127,7 @@ import PatreonIcon from './assets/icons/patreon.svg';
 import { formatter, eventMixin, triggerMouseEvent } from './lib/util.js';
 import CustomBehaviorStorage from './lib/custom-behavior-storage';
 import settingsStorage from './lib/settings-storage';
+import RubjoyBLEDevice from './lib/rubjoy-ble-device.js';
 
 // These need to be "globals" so they aren't proxied by Vue... because issues with private members :(
 const ayva = createAyva();
@@ -154,6 +155,7 @@ export default {
       globalEvents: computed(() => this.events),
       modals: computed(() => this.modals),
       deviceType: computed(() => this.deviceType),
+      createRubjoyEmulator: computed(() => this.createRubjoyEmulator),
     };
   },
 
@@ -267,7 +269,12 @@ export default {
         emulator.destroy();
         ayva.removeOutput(emulator);
 
-        emulator = new OSREmulator(this.$refs.emulator, { model: this.deviceType });
+        if (this.deviceType === 'RUBJOY') {
+          emulator = this.createRubjoyEmulator(this.$refs.emulator);
+        } else {
+          emulator = new OSREmulator(this.$refs.emulator, { model: this.deviceType });
+        }
+
         ayva.addOutput(emulator);
       }
     },
@@ -326,7 +333,10 @@ export default {
       this.refreshOutputSettings();
     });
 
-    emulator = new OSREmulator(this.$refs.emulator, { model: this.deviceType });
+    emulator = this.deviceType === 'RUBJOY'
+      ? this.createRubjoyEmulator(this.$refs.emulator)
+      : new OSREmulator(this.$refs.emulator, { model: this.deviceType });
+
     ayva.addOutput(emulator);
 
     this.showReleaseNotes = this.globalSettings.load('show-release-notes-1.45.1') ?? true;
@@ -531,7 +541,11 @@ export default {
       ayva.frequency = frequency;
 
       // TODO: This shouldn't happen, but maybe handle case where device is currently connected.
-      if (connectionType === 'websocket') {
+      if (deviceType === 'RUBJOY') {
+        this.device = new RubjoyBLEDevice(() => new Promise((resolve) => {
+          this.$nextTick(() => resolve(ayva.$.stroke.value));
+        }));
+      } else if (connectionType === 'websocket') {
         this.device = new WebSocketDevice(host, port);
       } else if (connectionType === 'console') {
         this.device = new ConsoleDevice();
@@ -588,6 +602,15 @@ export default {
       }, 30000);
     },
 
+    createRubjoyEmulator (element) {
+      const indigo = [0.294 * 0.75, 0.0, 0.51 * 0.75];
+
+      const rubjoyEmulator = new OSREmulator(element);
+      rubjoyEmulator.osrModel.objects.base.children[0].material.color.fromArray([0.075, 0.075, 0.075]);
+      rubjoyEmulator.osrModel.objects.receiver.children[0].material.color.fromArray(indigo);
+
+      return rubjoyEmulator;
+    },
   },
 };
 </script>

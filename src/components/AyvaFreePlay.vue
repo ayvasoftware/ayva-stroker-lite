@@ -244,7 +244,7 @@ export default {
     AyvaModal,
   },
 
-  inject: ['globalAyva', 'deviceType'],
+  inject: ['globalAyva', 'deviceType', 'createRubjoyEmulator'],
 
   props: {
     currentStrokeName: {
@@ -643,7 +643,11 @@ export default {
         previewEmulator.destroy();
       }
 
-      previewEmulator = new OSREmulator(this.previewElement, { model: this.deviceType });
+      if (this.deviceType === 'RUBJOY') {
+        previewEmulator = this.createRubjoyEmulator(this.previewElement);
+      } else {
+        previewEmulator = new OSREmulator(this.previewElement, { model: this.deviceType });
+      }
     },
   },
 };

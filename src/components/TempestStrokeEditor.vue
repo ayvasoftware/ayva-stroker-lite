@@ -131,6 +131,10 @@ export default {
     deviceType: {
       from: 'deviceType',
     },
+
+    createRubjoyEmulator: {
+      from: 'createRubjoyEmulator',
+    },
   },
 
   props: {
@@ -376,7 +380,9 @@ export default {
   },
 
   mounted () {
-    emulator = new OSREmulator(this.$refs.emulator, { model: this.deviceType });
+    emulator = this.deviceType === 'RUBJOY'
+      ? this.createRubjoyEmulator(this.$refs.emulator)
+      : new OSREmulator(this.$refs.emulator, { model: this.deviceType });
     ayva.addOutput(emulator);
 
     // Copy all axis limits from global Ayva instance.
