@@ -28,12 +28,6 @@
           <img src="/img/ssr1-example.gif">
         </div>
       </div>
-      <div class="release-notes light-gray">
-        More information about this announcement is available <a
-          style="color: var(--ayva-text-color-blue)"
-          href="https://discuss.eroscripts.com/t/ayva-remote-now-free-for-everyone-the-handy-and-sr6-modes-released/136271" target="_blank"
-        >here.</a>
-      </div>
     </div>
   </div>
 </template>
