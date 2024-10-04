@@ -234,9 +234,6 @@ export default {
         key: 'license',
         label: 'License',
       }, {
-        key: 'eggplant',
-        label: 'Buy Sorites Paradox an Eggplant 🍆',
-      }, {
         key: 'patreon',
         label: 'Patreon',
       }],
@@ -371,8 +368,6 @@ export default {
         this.showReleaseNotes = true;
       } else if (key === 'license') {
         this.showLicense = true;
-      } else if (key === 'eggplant') {
-        window.open(this.eggplantUrl, '_blank').focus();
       } else if (key === 'patreon') {
         window.open(this.patreonUrl, '_blank').focus();
       }
