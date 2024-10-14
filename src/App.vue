@@ -103,8 +103,14 @@
       <span ref="logo">Ayva Stroker <span class="ayva">Lite</span>
       </span>
       <span style="margin-left: 2rem">
-        <a href="https://discord.gg/dFxt5RCE" target="_blank" style="display: flex; color: var(--ayva-blue);"><discord-icon style="width: 1.25rem" />
-        </a></span>
+        <a
+          href="https://discord.gg/WKdSFzjdcG"
+          target="_blank"
+          style="display: flex; color: var(--ayva-blue);"
+        >
+          <discord-icon style="width: 1.25rem" />
+        </a>
+      </span>
     </div>
   </div>
 </template>
