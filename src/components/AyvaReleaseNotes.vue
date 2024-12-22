@@ -13,19 +13,39 @@
     <div class="body">
       <div class="release-notes">
         <h2 style="text-align: center">
-          A special announcement!
+          <a href="https://osrmarket.io?utm_source=ayva_stroker_lite&utm_content=announcement" target="_blank" style="text-decoration: none; color: white">
+            <span style="font-family: locust">OSR Market</span> launched!</a>
         </h2>
-        <a href="https://remote.ayvasoftware.io/about" target="_blank">
-          <img src="/img/ayva-remote.png" style="width: 460px"></a>
+        <a href="https://osrmarket.io?utm_source=ayva_stroker_lite&utm_content=announcement" target="_blank" style="display: flex;">
+          <video
+            style="width: 100%; position: relative; left: -25%; z-index: 1"
+            autoplay
+            muted
+            loop
+            playsinline poster="https://imagedelivery.net/7u8LqukFR3cVPEzrL6HmYw/bd7eda83-ad9d-40ff-f9f9-4395e7ba1500/public"
+          >
+            <!-- TODO: Animate transition in, THEN start video.-->
+            <source src="https://customer-wzu3ck3lf8kalih1.cloudflarestream.com/71d0182bf0bf0a07347d6ad5c12275a1/downloads/default.mp4" type="video/mp4">
+          </video>
+          <video
+            style="width: 100%; position: relative; left: -72%; clip-path: polygon(20% 0, 100% 0, 100% 100%, 20% 100%); z-index: 1"
+            autoplay
+            muted
+            loop
+            playsinline
+          >
+            <source src="https://customer-wzu3ck3lf8kalih1.cloudflarestream.com/1f6f9f8495ea7d10745048b7eb427fcb/downloads/default.mp4" type="video/mp4">
+          </video>
+        </a>
         <div class="light-gray" style="padding-top: 5px">
-          Ayva Remote is now FREE. Allow anyone in the world to control your device!
-          <br><br>Now supporting the <b>SR6</b>, <b>SSR1</b>, <b>The Handy</b>, and <b>Keon</b>!
-        </div>
-      </div>
-      <div class="release-notes">
-        <div class="examples">
-          <img src="/img/sr6-example.gif">
-          <img src="/img/ssr1-example.gif">
+          The <a href="https://osrmarket.io?utm_source=ayva_stroker_lite&utm_content=announcement" target="_blank" style="color: var(--ayva-blue);">
+            OSR Market</a> is a premier online marketplace dedicated to
+          connecting users with a carefully curated selection of trusted
+          and verified suppliers specializing in Open-source Stroker
+          Robot devices and accessories. <br><br>Qualifying purchases unlock premium features in
+          <span style="font-family: locust; font-size: 0.75rem; color: var(--ayva-blue)">Ayva</span>&nbsp;
+          <span style="color: indigo; font-size: 0.75rem; font-family: locust">Software</span> —
+          giving you more ways to connect, create, and explore!
         </div>
       </div>
     </div>
@@ -48,6 +68,14 @@ export default {
 </script>
 
 <style scoped>
+.release-notes a {
+  text-decoration: none;
+}
+
+.release-notes a:hover {
+  text-decoration: underline;
+}
+
 .modal-body {
   width: 500px;
   height: fit-content;
@@ -79,6 +107,7 @@ export default {
   font-size: 16px;
   line-height: 24px;
   padding-bottom: 15px;
+  overflow: hidden;
 }
 
 .light-gray {
