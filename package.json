@@ -1,6 +1,6 @@
 {
   "name": "ayva-stroker-lite",
-  "version": "1.47.0",
+  "version": "1.47.1",
   "description": "A stroker app powered by Ayva.",
   "main": "/src/main.js",
   "scripts": {

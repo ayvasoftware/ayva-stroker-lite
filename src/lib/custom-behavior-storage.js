@@ -53,13 +53,17 @@ class CustomBehaviorStorage {
       data,
     };
 
+    this.saveAll(library);
+  }
+
+  saveAll (library) {
     storage.save('all', this.serialize(library));
   }
 
   delete (name) {
     const library = this.load();
     delete library[name];
-    storage.save('all', library);
+    this.saveAll(library);
 
     TempestStroke.remove(name);
 
