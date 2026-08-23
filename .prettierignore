@@ -1,8 +1,0 @@
-.ignored
-node_modules
-test-output
-src/.sandbox.*
-.vscode
-dist
-.github
-public
