@@ -11,7 +11,6 @@ import { mergeTooltips } from '../../lib/util.js';
 const storage = new Storage('slider-value');
 
 export default {
-  expose: ['set', 'get'],
 
   props: {
     options: {
@@ -44,6 +43,7 @@ export default {
   },
 
   emits: ['update', 'update:modelValue', 'change', 'start', 'end'],
+  expose: ['set', 'get'],
 
   data () {
     return {

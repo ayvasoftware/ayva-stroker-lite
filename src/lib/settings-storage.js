@@ -18,7 +18,7 @@ export default {
 
     try {
       fileHandle = await window.showSaveFilePicker(fileOptions);
-    } catch (abortError) {
+    } catch (abortError) { // eslint-disable-line no-unused-vars
       return false;
     }
 
@@ -34,7 +34,7 @@ export default {
 
     try {
       [fileHandle] = await window.showOpenFilePicker(fileOptions);
-    } catch (abortError) {
+    } catch (abortError) { // eslint-disable-line no-unused-vars
       return false;
     }
 

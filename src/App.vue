@@ -261,7 +261,7 @@ export default {
   watch: {
     'device.connected' (connected) {
       if (connected) {
-        for (const axis in ayva.$) { // eslint-disable-line guard-for-in
+        for (const axis in ayva.$) {  
           // Insta home....
           ayva.$[axis].value = ayva.$[axis].defaultValue;
         }
@@ -518,7 +518,7 @@ export default {
       }).catch((error) => {
         if (error instanceof DOMException) {
           /* For serial connections, do nothing if no port was selected. */
-          console.warn(error); // eslint-disable-line no-console
+          console.warn(error);  
         } else {
           this.notify.error({
             content: error.message,
@@ -596,7 +596,7 @@ export default {
                 'div',
                 { class: 'lil-gui patreon-promo-disable' },
                 [
-                  h('span', 'Don\'t show this message again.'),
+                  h('span', "Don't show this message again."),
                   h(AyvaCheckbox, {
                     storageKey: 'patreon-promo-disabled',
                   })]

@@ -80,7 +80,7 @@ class CustomBehaviorStorage {
 
     try {
       [fileHandle] = await window.showOpenFilePicker(fileOptions);
-    } catch (abortError) {
+    } catch (abortError) { // eslint-disable-line no-unused-vars
       return;
     }
 
@@ -124,7 +124,7 @@ class CustomBehaviorStorage {
 
     try {
       fileHandle = await window.showSaveFilePicker(fileOptions);
-    } catch (abortError) {
+    } catch (abortError) { // eslint-disable-line no-unused-vars
       return;
     }
 
@@ -148,7 +148,7 @@ class CustomBehaviorStorage {
 
     try {
       fileHandle = await window.showSaveFilePicker({ ...fileOptions, suggestedName: `${name}.json` });
-    } catch (abortError) {
+    } catch (abortError) { // eslint-disable-line no-unused-vars
       return;
     }
 
@@ -187,11 +187,11 @@ class CustomBehaviorStorage {
                 params.motion = 'Ayva.linearMotion';
                 break;
               default:
-                console.warn('Invalid motion property:', params.motion); // eslint-disable-line no-console
+                console.warn('Invalid motion property:', params.motion);  
                 delete params.motion;
             }
           } else if (params.motion !== undefined && typeof params.motion !== 'string') {
-            console.warn('Invalid motion property:', params.motion); // eslint-disable-line no-console
+            console.warn('Invalid motion property:', params.motion);  
             delete params.motion;
           }
         });
@@ -221,7 +221,7 @@ class CustomBehaviorStorage {
               break;
             default:
               if (params.motion) {
-                console.warn('Invalid motion property:', params.motion); // eslint-disable-line no-console
+                console.warn('Invalid motion property:', params.motion);  
                 delete params.motion;
               }
           }

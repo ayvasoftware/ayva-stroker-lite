@@ -372,7 +372,7 @@ export default {
     },
 
     resetGlobalDevicePosition () {
-      for (const axis in ayva.$) { // eslint-disable-line guard-for-in
+      for (const axis in ayva.$) {  
         this.globalAyva.$[axis].value = ayva.$[axis].value;
       }
     },

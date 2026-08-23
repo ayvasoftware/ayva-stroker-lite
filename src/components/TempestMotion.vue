@@ -218,7 +218,7 @@ export default {
     },
 
     selectedMotion (updatedMotion) {
-      this.motion = eval(updatedMotion); // eslint-disable-line no-eval
+      this.motion = eval(updatedMotion);  
       this.updateModelValue();
     },
   },
